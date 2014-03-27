@@ -8,3 +8,6 @@ git push
 
 Instructions to get newest remote repository:
 git pull git@github.com:ltikvica/WZanalysis.git master
+
+bla
+
