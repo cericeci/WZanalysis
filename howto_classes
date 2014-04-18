@@ -48,3 +48,14 @@ TODO:
   that BRs are correctly implemented in the WZ MC.
   A similar class is used for the Unfolding analysis.
 
+
+Random instructions
+
+- If you change the base tree class because 
+  more variables are added, names are changed, etc.
+  You need to change:
+   > Define the new class name at the top of WZEvent.h
+   > If needed modify the implementation of the ReadEvent()
+     method in WZEvent.C
+   > Define the new class name in wzToolsNew.C
+
