@@ -35,6 +35,8 @@ public:
     pdgid  = id;
   };
 
+  float GetScaleFactor();
+
 protected:
   float pdgid;
   float charge;

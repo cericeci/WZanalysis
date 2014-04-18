@@ -3,7 +3,6 @@
 #include "TLorentzVector.h"
 
 
-
 #include <iostream>
 
 //
@@ -17,6 +16,15 @@ bool passMVAiso(float isomva, float pt, float eta);
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
 bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+
+
+float RecoLepton::GetScaleFactor() {
+
+  float factor = 1.;
+
+  return factor;
+
+}
 
 WZEvent::WZEvent(TTree * tree) :
   WZBASECLASS(tree),
@@ -196,13 +204,6 @@ void WZEvent::PrintSummary()
 {
 
   std::cout<<" SUMMARY " << std::endl << std::endl;
-
-  std::cout<<"Zyield: "<<numZ<<std::endl;
-  std::cout<<"Wyield: "<<numW<<std::endl;
-  std::cout<<"W3e:     "<<num3e<<std::endl;
-  std::cout<<"W2e1mu:  "<<num2e1mu<<std::endl;
-  std::cout<<"W1e2mu:  "<<num1e2mu<<std::endl;
-  std::cout<<"W3mu:    "<<num3mu<<std::endl;
   std::cout<<" ==================== \n \n";
 
 }
