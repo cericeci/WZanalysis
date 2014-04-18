@@ -4,6 +4,7 @@
 #define WZBASECLASS WZGenEvent
 
 #include "TLorentzVector.h"
+#include "TH2F.h"
 
 #include <vector>
 
@@ -40,6 +41,8 @@ public:
 protected:
   float pdgid;
   float charge;
+
+  static TH2F * efficiencyMap;
 
 };
 
@@ -149,9 +152,12 @@ protected:
 
   FinalState          final_state;
   PassedSelectionStep selection_level;
+
+  int  wLeptonIndex;
+  int  zLeptonsIndex[2];
+
   
   double selectedZPt;
-
 
   float numZ;
   float numW;

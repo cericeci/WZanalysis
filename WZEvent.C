@@ -18,7 +18,18 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
 bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
 
 
+// Initialize static data members
+TH2F * RecoLepton::efficiencyMap = 0;
+
 float RecoLepton::GetScaleFactor() {
+
+  if (efficiencyMap) { 
+    //    std::cout << "eff map defined \n";
+  }  else {
+    std::cout << "eff map undefined \n";
+    efficiencyMap = new TH2F("hhhh","hhhh",10,0.,1.,10,0.,1.);
+  }
+
 
   float factor = 1.;
 
@@ -92,6 +103,11 @@ void WZEvent::ReadEvent()
 
   final_state     = undefined;
   selection_level = failsSelection;
+
+  wLeptonIndex     = -1;
+  zLeptonsIndex[0] = -1;
+  zLeptonsIndex[1] = -1;
+
 
   // Red Reco leptons
 
@@ -437,6 +453,9 @@ bool WZEvent::passesSelection(){
   //    std::cout << "PASSED FINAL SELECTION: " << state << std::endl;
 
 
+
+
+
   TLorentzVector zl1,zl2,zp4;;
   
 
@@ -445,6 +464,10 @@ bool WZEvent::passesSelection(){
 
   zl2.SetPtEtaPhiM(*pt[WZcandidates[1]],*eta[WZcandidates[1]],
 		   *phi[WZcandidates[1]], muonMass);
+
+  zLeptonsIndex[0] =   WZcandidates[0]; 
+  zLeptonsIndex[1] =   WZcandidates[1]; 
+  wLeptonIndex     =   WZcandidates[2]; 
 
   zp4 = zl1+zl2;
 
