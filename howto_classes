@@ -1,0 +1,50 @@
+A few words on how to use Vuko's analysis classes
+to run on the latino tree:
+
+Basic goals:
+- Be as much as possible independent of the latino
+  tree flat structure and variable names, especially
+  for things which are subject to frequent changes,
+  like leptons, jets, ...
+
+- Declare vector of more intelligent objects to 
+  use in the analysis, e.g. LorentzVectors, that
+  are easy to work with and to loop over
+
+- Corrolary of the two first goals: "intelligent" objects
+  are created from the flat latino tree variables in JUST ONE
+  place: if the tree variable change, there's just one
+  place that needs to be modified.
+
+- Writing a new analysis should require as little 
+  new code as possible and be able to built on basic
+  stuff: event accepted? List of used leptons, ...
+
+
+Basic design features:
+
+- Defined new class "WZEvent" which inherits from the
+  tree class created with MakeClass() in ROOT. That
+  class among others contain:
+  > vectors of reco and gen leptons, jets
+  > has method telling you whether the event
+    is passing selection and in which channel
+
+- Defined simple reco and gen lepton classes,
+  inherit from TLorentzVector and contain the 
+  basic info you want to know about a vector.
+  The WZEvent has vectors of these objects.
+
+TODO: 
+ > the reco lepton class should implement scale factors per
+   lepton, as these depend only on the lepton id and kinematics
+ > WZEvent should tell you which of these leptons were used
+   for the WZ final state
+
+- To do an analysis on selected (or all events)
+  and build on all of the above, I am defining
+  a WZAnalysis class, look at the example which
+  currently does the a gen analysis to check
+  that BRs are correctly implemented in the WZ MC.
+  A similar class is used for the Unfolding analysis.
+
