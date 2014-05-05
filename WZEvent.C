@@ -17,22 +17,35 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
 
 bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
 
+TH2F* LoadHistogram(TString filename, TString hname, TString cname);
+
+float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
 
 // Initialize static data members
-TH2F * RecoLepton::efficiencyMap = 0;
+TH2F * RecoLepton::MuonSF = 0;
+TH2F * RecoLepton::ElecSF = 0;
 
 float RecoLepton::GetScaleFactor() {
 
-  if (efficiencyMap) { 
+  if (MuonSF) { 
+    //std::cout << "eff map defined \n";
+  }  else {
+    //std::cout << "defining eff map \n";
+    MuonSF=LoadHistogram("auxiliaryFiles/MuSF_2012.root", "h2inverted", "MuonSF");
+  }
+  if (ElecSF) { 
     //    std::cout << "eff map defined \n";
   }  else {
-    std::cout << "eff map undefined \n";
-    efficiencyMap = new TH2F("hhhh","hhhh",10,0.,1.,10,0.,1.);
+    //std::cout << "defining eff map \n";
+    ElecSF=LoadHistogram("auxiliaryFiles/EleSF_2012.root", "h2inverted", "ElecSF");
   }
-
-
-  float factor = 1.;
-
+  float leptonEta=Eta();
+  float leptonPt= Pt();
+  float factor(0);
+  if (fabs(pdgid)==11)
+    factor= GetFactor(ElecSF, leptonPt, leptonEta);
+  else if (fabs(pdgid)==13)
+    factor= GetFactor(MuonSF, leptonPt, leptonEta);
   return factor;
 
 }
@@ -127,9 +140,10 @@ void WZEvent::ReadEvent()
 				   lepton_ch[il],
 				   lepton_id[il]));
     }
+
   }
 
-
+ 
   // Read generated leptons
 
   genLeptons.clear();
