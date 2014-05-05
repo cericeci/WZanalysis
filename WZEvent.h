@@ -42,8 +42,8 @@ protected:
   float pdgid;
   float charge;
 
-  static TH2F * efficiencyMap;
-
+  static TH2F * MuonSF;
+  static TH2F * ElecSF;
 };
 
 
