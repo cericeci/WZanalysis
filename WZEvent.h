@@ -42,7 +42,10 @@ protected:
   float pdgid;
   float charge;
 
-  static TH2F * efficiencyMap;
+  static TH2F * electronEfficiencyMap;
+  static TH2F * muonEfficiencyMap;
+
+
 
 };
 
@@ -105,6 +108,9 @@ public:
   float LeptonIso(int i);
   float LeptonIsomva(int i);
 
+
+  float GetMCWeight();
+  float GetTriggerEfficiency();
 
   FinalState GetFinalState(){return final_state;}
   PassedSelectionStep GetSelectionLevel() { return selection_level;}

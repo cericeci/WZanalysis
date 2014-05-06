@@ -19,9 +19,14 @@ bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
 
 
 // Initialize static data members
-TH2F * RecoLepton::efficiencyMap = 0;
+TH2F * RecoLepton::electronEfficiencyMap = 0;
+TH2F * RecoLepton::muonEfficiencyMap = 0;
 
 float RecoLepton::GetScaleFactor() {
+
+  return 1.;
+
+  float thisPt = Pt();
 
   if (efficiencyMap) { 
     //    std::cout << "eff map defined \n";
@@ -29,7 +34,6 @@ float RecoLepton::GetScaleFactor() {
     std::cout << "eff map undefined \n";
     efficiencyMap = new TH2F("hhhh","hhhh",10,0.,1.,10,0.,1.);
   }
-
 
   float factor = 1.;
 
@@ -482,3 +486,29 @@ bool WZEvent::PassesGenCuts(){
   return (MZ>71. && MZ<111.);
 
 }
+
+
+float GetMCWeight() {
+
+  float trigEff = GetTriggerEfficiency();
+
+  // Get lepton scale factors
+  double leptonSF = 1.;
+
+  int leptonIndices[3] = { zLeptonIndex[0],
+			   zLeptonIndex[1],
+			   wLeptonIndex };
+  //
+  for (int i=0; i<2; i++) {
+    if (leptonIndices[i]>=0 
+	&& leptonIndices[i]<leptons.size()) {
+      leptonSF *= leptons[leptonIndices[i]].GetScaleFactor();
+    }
+  }
+}
+
+float GetTriggerEfficiency(){
+  return 1.;
+
+}
+
