@@ -1,16 +1,28 @@
 #ifndef WZEvent_h
 #define WZEvent_h
 
+//Lucija added this to test working with data
+
+#ifdef DATA
+#define WZBASECLASS WZ2012Data
+#include "WZ2012Data.h"
+#else
 #define WZBASECLASS WZGenEvent
+#include "WZGenEvent.h"
+#endif
+
+//Lucija commented it
+//#define WZBASECLASS WZGenEvent
 
 #include "TLorentzVector.h"
 #include "TH2F.h"
-
 #include <vector>
 
 
+
 // #include "WZGenNew.h"
-#include "WZGenEvent.h"
+//Lucija commented it
+//#include "WZGenEvent.h"
 
 enum FinalState { undefined,
 		  eee,
