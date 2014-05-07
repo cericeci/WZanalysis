@@ -17,26 +17,54 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
 
 bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
 
+TH2F* LoadHistogram(TString filename, TString hname, TString cname);
+
+float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
 
 // Initialize static data members
-TH2F * RecoLepton::electronEfficiencyMap = 0;
-TH2F * RecoLepton::muonEfficiencyMap = 0;
+// <<<<<<< HEAD
+// TH2F * RecoLepton::electronEfficiencyMap = 0;
+// TH2F * RecoLepton::muonEfficiencyMap = 0;
+
+// float RecoLepton::GetScaleFactor() {
+
+//   return 1.;
+
+//   float thisPt = Pt();
+
+//   if (efficiencyMap) { 
+// =======
+TH2F * RecoLepton::MuonSF = 0;
+TH2F * RecoLepton::ElecSF = 0;
 
 float RecoLepton::GetScaleFactor() {
 
-  return 1.;
-
-  float thisPt = Pt();
-
-  if (efficiencyMap) { 
+  if (MuonSF) { 
+    //std::cout << "eff map defined \n";
+  }  else {
+    //std::cout << "defining eff map \n";
+    MuonSF=LoadHistogram("auxiliaryFiles/MuSF_2012.root", "h2inverted", "MuonSF");
+  }
+  if (ElecSF) { 
+    // >>>>>>> b9fc1514f52dbc4f21337b6468cc3b7ba153e7c7
     //    std::cout << "eff map defined \n";
   }  else {
-    std::cout << "eff map undefined \n";
-    efficiencyMap = new TH2F("hhhh","hhhh",10,0.,1.,10,0.,1.);
+    //std::cout << "defining eff map \n";
+    ElecSF=LoadHistogram("auxiliaryFiles/EleSF_2012.root", "h2inverted", "ElecSF");
   }
+// <<<<<<< HEAD
 
-  float factor = 1.;
+//   float factor = 1.;
 
+// =======
+  float leptonEta=Eta();
+  float leptonPt= Pt();
+  float factor(0);
+  if (fabs(pdgid)==11)
+    factor= GetFactor(ElecSF, leptonPt, leptonEta);
+  else if (fabs(pdgid)==13)
+    factor= GetFactor(MuonSF, leptonPt, leptonEta);
+  // >>>>>>> b9fc1514f52dbc4f21337b6468cc3b7ba153e7c7
   return factor;
 
 }
@@ -131,9 +159,10 @@ void WZEvent::ReadEvent()
 				   lepton_ch[il],
 				   lepton_id[il]));
     }
+
   }
 
-
+ 
   // Read generated leptons
 
   genLeptons.clear();
@@ -219,6 +248,32 @@ void WZEvent::ReadEvent()
 
 }
 
+
+void WZEvent::DumpEvent(std::ostream & out) {
+
+  out << run << "-" 
+      << event  
+      << " - PU w: " <<  puW
+      << " SF : " << GetMCWeight();
+
+
+  int leptonIndices[3] = { zLeptonsIndex[0],
+			   zLeptonsIndex[1],
+			   wLeptonIndex };
+  //
+  for (int i=0; i<3; i++) {
+    if (leptonIndices[i]>=0 
+	&& leptonIndices[i]<leptons.size()) {
+      int index = leptonIndices[i];
+      out << " Lepton : " << i
+	  << " Pt = " << leptons[index].Pt()
+	  << " Eta = " << leptons[index].Eta()
+	  << " SF = " << leptons[index].GetScaleFactor();
+    }
+  }
+  out << std::endl;
+
+}
 
 void WZEvent::PrintSummary()
 {
@@ -488,26 +543,30 @@ bool WZEvent::PassesGenCuts(){
 }
 
 
-float GetMCWeight() {
+float  WZEvent::GetMCWeight() {
 
   float trigEff = GetTriggerEfficiency();
 
   // Get lepton scale factors
   double leptonSF = 1.;
 
-  int leptonIndices[3] = { zLeptonIndex[0],
-			   zLeptonIndex[1],
+  int leptonIndices[3] = { zLeptonsIndex[0],
+			   zLeptonsIndex[1],
 			   wLeptonIndex };
   //
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<3; i++) {
     if (leptonIndices[i]>=0 
 	&& leptonIndices[i]<leptons.size()) {
       leptonSF *= leptons[leptonIndices[i]].GetScaleFactor();
+    } else {
+      std::cout << "Lepton Index out of bounds!!! \n";
     }
   }
+  return leptonSF;
+
 }
 
-float GetTriggerEfficiency(){
+float  WZEvent::GetTriggerEfficiency(){
   return 1.;
 
 }
