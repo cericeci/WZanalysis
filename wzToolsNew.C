@@ -19,11 +19,17 @@
 #ifdef DATA
 #define WZTREE WZ2012Data
 #include "WZ2012Data.h"
-#else
+#endif
+#ifdef OLDMC
+#define WZTREE WZ
+#include "WZ.h"
+#endif
+#ifdef NEWMC
 #define WZTREE WZGenEvent
 #include "WZGenEvent.h"
 #endif
 
+//#include "WZ.h"
 void readChainFromList(TString fileList, TChain * chain)
 {
   const int linesize=1024;
