@@ -6,7 +6,12 @@
 #ifdef DATA
 #define WZBASECLASS WZ2012Data
 #include "WZ2012Data.h"
-#else
+#endif
+#ifdef OLDMC
+#define WZBASECLASS WZ
+#include "WZ.h"
+#endif
+#ifdef NEWMC
 #define WZBASECLASS WZGenEvent
 #include "WZGenEvent.h"
 #endif

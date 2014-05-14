@@ -19,11 +19,23 @@
 #ifdef DATA
 #define WZTREE WZ2012Data
 #include "WZ2012Data.h"
-#else
+// <<<<<<< HEAD
+// #else
+// #define WZTREE WZGenEvent
+// #include "WZGenEvent.h"
+// =======
+#endif
+#ifdef OLDMC
+#define WZTREE WZ
+#include "WZ.h"
+// >>>>>>> 70fa253f99ebb78c063c3656e7c573b6bc6f7b8b
+#endif
+#ifdef NEWMC
 #define WZTREE WZGenEvent
 #include "WZGenEvent.h"
 #endif
 
+//#include "WZ.h"
 void readChainFromList(TString fileList, TChain * chain)
 {
   const int linesize=1024;
@@ -99,8 +111,9 @@ bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLore
       && (((pt[Z_muonIndex1]>20 ) && (pt[Z_muonIndex2])>10 ) 
       || ((pt[Z_muonIndex2]>20 ) && ((pt[Z_muonIndex1])>10 )))) 
     {
-      if (diff>20) std::cout<<diff<<std::endl;
+      //      if (diff>20) std::cout<<diff<<std::endl;
       massMu=mass1;
+      Zpt=ZtransIm;
       //first goes lepton with bigger pt
       if (pt[Z_muonIndex1]>pt[Z_muonIndex2]){
 	WZcandidates[0] = Z_muonIndex1;
@@ -324,7 +337,7 @@ float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, T
     eL[2]=GetFactor(DoubleMuLead, pt[index3], eta[index3]);
     eT[0]=GetFactor(DoubleElTrail, pt[index1], eta[index1]);
     eT[1]=GetFactor(DoubleElTrail, pt[index2], eta[index2]);
-    eT[2]=GetFactor(DoubleMuTrail, pt[index2], eta[index2]);
+    eT[2]=GetFactor(DoubleMuTrail, pt[index3], eta[index3]);
     
     //    factor=trigger2sameLeptons(eL, eT);
     factor=trigger3sameLeptons(eL, eT);

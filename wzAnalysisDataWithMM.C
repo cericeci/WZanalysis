@@ -2,8 +2,10 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TLorentzVector.h"
+#include "UnfoldingHistogramFactory.h"
 
 // Replace this with the new tree
 //#include "WZ.h"
@@ -60,10 +62,25 @@ int main()
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+
+
+  std::ostringstream Zptname, LeadingJetname;
+  const int nChannels(4);
+  TH1D * hZpt[nChannels];
+  TH1D * hLeadingJetPt[nChannels]; 
+  
+  for (int hist=0; hist<nChannels<4; hist++){
+    LeadingJetname<<"LeadingJetPt_"<<hist;
+    Zptname<<"Zpt_"<<hist;
+    hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
+    hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
+  }
   TH2F* MuonFR;
   TH2F* MuonPR;
   TH2F* ElectronFR;
   TH2F* ElectronPR;
+
+
   
   MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet20_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
   MuonPR=LoadHistogram("auxiliaryFiles/MuPR_Moriond13_2012.root", "h2inverted", "MuonPR");
@@ -94,7 +111,7 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_113_DoubleMuon2012A.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_114_MuEG2012A.root");
 
-    
+      
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_202_DoubleElectron2012B.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_203_DoubleMuon2012B.root ");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_204_MuEG2012B.root");
@@ -124,7 +141,7 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_403_DoubleMuon2012D.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_404_MuEG2012D.root");
   
-
+  
   
   for (int input=0; input< inputName.size(); input++){
     wz.Add(inputName[input]);
@@ -136,7 +153,7 @@ int main()
   std::cout<<"number of events: "<<events << std::endl;
 
 
-  for  (Int_t k = 0; k<events /*&& k<10000*/;k++) {
+  for  (Int_t k = 0; k<events/* && k<1000*/;k++) {
     wz_tTree->GetEntry(k);
 
     //rejecting run 201191
@@ -356,7 +373,10 @@ int main()
     if (ev3e){
       double w_event_3e=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label);
       N_good_3e+=w_event_3e;
-      //      error_3e+=(w_event_3e*w_event_3e);
+      
+      //      hZpt3e->Fill(Zpt, w_event_3e);
+      
+            //      error_3e+=(w_event_3e*w_event_3e);
       error_3e+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3e);
       N_fake_3e+=(Nttt-w_event_3e);
       //      ferror_3e+=(Nttt-w_event_3e)*(Nttt-w_event_3e);
