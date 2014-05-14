@@ -12,6 +12,7 @@
 #include <string>
 
 
+
 class UnfoldingAnalysis {
 
 
@@ -87,7 +88,7 @@ protected:
   double leadingRecoJetPt;
   double leadingGenJetPt;
 
-  virtual TH1D * createHistogram(std::string s, std::string title);
+  TH1D * createHistogram(std::string s, std::string title);
 
   TH1D * hnGenJets[5];
   TH1D * hnRecoJets[5];
@@ -111,7 +112,7 @@ protected:
   double recoZPt;
   double genZPt;
 
-  virtual TH1D * createHistogram(std::string s, std::string title);
+  TH1D * createHistogram(std::string s, std::string title);
 
 };
 
