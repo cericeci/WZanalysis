@@ -21,21 +21,80 @@ TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
 float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
 
+float trigger3sameLeptons(float* eL, float* eT);
+
+float trigger2sameLeptons(float* eL, float* eT);
+
+float triggerDifferentLeptons(float* eL, float* eT);
+
+
 // Initialize static data members
-// <<<<<<< HEAD
-// TH2F * RecoLepton::electronEfficiencyMap = 0;
-// TH2F * RecoLepton::muonEfficiencyMap = 0;
-
-// float RecoLepton::GetScaleFactor() {
-
-//   return 1.;
-
-//   float thisPt = Pt();
-
-//   if (efficiencyMap) { 
-// =======
 TH2F * RecoLepton::MuonSF = 0;
 TH2F * RecoLepton::ElecSF = 0;
+TH2F * RecoLepton::DoubleMuLeadEff    = 0;
+TH2F * RecoLepton::DoubleMuTrailEff   = 0;
+TH2F * RecoLepton::DoubleEleLeadEff   = 0;
+TH2F * RecoLepton::DoubleEleTrailEff  = 0;
+
+
+
+float RecoLepton::LeadTriggerEff() {
+
+  TH2F * hlead;
+
+  float eff = 1.;
+
+  if (fabs(pdgid)==11) {
+    if (DoubleEleLeadEff == 0) {
+        DoubleEleLeadEff=LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleElLead", "DoubleElLead");
+    }
+    hlead = DoubleEleLeadEff;
+  } else if (fabs(pdgid)==13) {
+    if (DoubleMuLeadEff == 0) {
+        DoubleMuLeadEff =LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleMuLead", "DoubleMuLead");
+    }
+    hlead = DoubleMuLeadEff;
+  } else {
+    std::cout << "RecoLepton::LeadTriggerEff> UNKNOWN LEPTON ID \n";
+    return -1;
+  }
+  if (hlead) {
+    //    int bin = hlead->FindBin(Pt(),Eta());
+    //    eff = hlead->GetBinContent(bin);
+    float factor= GetFactor(hlead, Pt(), Eta());
+    //     std::cout << "eff = " << eff << "\t" << factor << std::endl;
+    eff = factor;
+  } else {
+    std::cout << "Missing eff histo for " << pdgid << std::endl;
+  }
+
+  return eff;
+
+}
+
+float RecoLepton::TrailTriggerEff() {
+
+  TH2F * htrail;
+
+  if (fabs(pdgid)==11) {
+    if (DoubleEleTrailEff == 0) {
+        DoubleEleTrailEff=LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleElTrail", "DoubleElTrail");
+    }
+    htrail = DoubleEleTrailEff;
+  } else if (fabs(pdgid)==13) {
+    if (DoubleMuTrailEff == 0) {
+      DoubleMuTrailEff =LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleMuTrail", "DoubleMuTrail");
+    }
+    htrail = DoubleMuTrailEff;
+  }
+  //  int bin = htrail->FindBin(Pt(),Eta());
+  //  float eff = htrail->GetBinContent(bin);
+
+  float eff= GetFactor(htrail, Pt(), Eta());
+
+  return eff;
+}
+
 
 float RecoLepton::GetScaleFactor() {
 
@@ -52,11 +111,7 @@ float RecoLepton::GetScaleFactor() {
     //std::cout << "defining eff map \n";
     ElecSF=LoadHistogram("auxiliaryFiles/EleSF_2012.root", "h2inverted", "ElecSF");
   }
-// <<<<<<< HEAD
 
-//   float factor = 1.;
-
-// =======
   float leptonEta=Eta();
   float leptonPt= Pt();
   float factor(0);
@@ -249,28 +304,38 @@ void WZEvent::ReadEvent()
 }
 
 
-void WZEvent::DumpEvent(std::ostream & out) {
+void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
 
-  out << run << "-" 
-      << event  
-      << " - PU w: " <<  puW
-      << " SF : " << GetMCWeight();
+  out << run << "\t" 
+      << event ;
+
+  if (verbosity>0) {
+    out << "  " <<  puW
+	<< "  " << GetMCWeight()
+	<< "  " << GetTriggerEfficiency();
+
+  }
 
 
   int leptonIndices[3] = { zLeptonsIndex[0],
 			   zLeptonsIndex[1],
 			   wLeptonIndex };
   //
-  for (int i=0; i<3; i++) {
-    if (leptonIndices[i]>=0 
-	&& leptonIndices[i]<leptons.size()) {
-      int index = leptonIndices[i];
-      out << " Lepton : " << i
-	  << " Pt = " << leptons[index].Pt()
-	  << " Eta = " << leptons[index].Eta()
-	  << " SF = " << leptons[index].GetScaleFactor();
+  if (verbosity>1) {
+    for (int i=0; i<3; i++) {
+      if (leptonIndices[i]>=0 
+	  && leptonIndices[i]<leptons.size()) {
+	int index = leptonIndices[i];
+	out << " Lepton : " << i
+	    << " Pt = " << leptons[index].Pt()
+	    << " Eta = " << leptons[index].Eta()
+	    << " SF = " << leptons[index].GetScaleFactor()
+	    << " effL = " << leptons[index].LeadTriggerEff()
+	    << " effT = " << leptons[index].TrailTriggerEff();
+      }
     }
   }
+
   out << std::endl;
 
 }
@@ -562,12 +627,64 @@ float  WZEvent::GetMCWeight() {
       std::cout << "Lepton Index out of bounds!!! \n";
     }
   }
-  return leptonSF;
+
+  float weight = leptonSF*trigEff;
+
+  return weight;
 
 }
 
 float  WZEvent::GetTriggerEfficiency(){
-  return 1.;
+
+  double triggerEff=1.;
+
+  float zpid = fabs(leptons[zLeptonsIndex[0]].PdgId());
+  float wpid = fabs(leptons[wLeptonIndex].PdgId());
+
+  int leptonIndices[3] = { zLeptonsIndex[0],
+			   zLeptonsIndex[1],
+			   wLeptonIndex };
+
+  float effLead[3],effTrail[3];
+
+  for (int i=0; i<3; i++) { 
+    effLead[i]  = leptons[leptonIndices[i]].LeadTriggerEff();
+    effTrail[i] = leptons[leptonIndices[i]].TrailTriggerEff();
+  }
+
+  if (zpid==wpid 
+      || zpid!=wpid   /// JONATAN'S WAY: CORRECT AFTER ALL :)
+      ) {
+    triggerEff = trigger3sameLeptons(effLead, effTrail);
+  } else { // The real thing
+    // Here is another way to write it down for the x-channels, 
+    // actually completely equivalent
+
+    std::cout << "Trigger eff: alternate formulation - We should not be running this... \n";
+
+    double eff_LL      = trigger2sameLeptons(effLead, effTrail);
+    double eff_XTrig1  = triggerDifferentLeptons(effLead, effTrail);
+    double eff_XTrig2  = triggerDifferentLeptons(effTrail, effLead);
+
+    double PLLandXT1 = eff_LL*effTrail[2];
+    double PLLandXT2 = eff_LL*effLead[2];
+    double PXT1_and_XT2 = triggerDifferentLeptons(effLead, effLead);
+
+    double PLLandXT = eff_LL*effLead[2];
+
+    triggerEff = eff_LL + eff_XTrig1 + eff_XTrig2
+      - PLLandXT1 - PLLandXT2 - PXT1_and_XT2 + PLLandXT;
+
+  }
+
+  // Sanity check
+  if (triggerEff <0. || triggerEff > 1.) {
+    std::cout << "NONSENSE trigger eff value: " << triggerEff
+	      << "\t W: " << wpid
+	      << "\t Z: " << wpid << std::endl;
+  }
+
+  return triggerEff;
 
 }
 

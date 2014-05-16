@@ -28,12 +28,12 @@
 #include <set>
 
 
-TH1D * createJetPtHisto(std::string key, std::string title) {
+// TH1D * createJetPtHisto(std::string key, std::string title) {
 
-  TH1D * h = new TH1D(key.c_str(),title.c_str(), 10,0., 500.);
-  return h;
+//   TH1D * h = new TH1D(key.c_str(),title.c_str(), 10,0., 500.);
+//   return h;
 
-}
+// }
 
 
 //function declaration goes here:
@@ -93,55 +93,22 @@ int main(int argc, char **argv)
   TH1D * hZmassMu1         = new TH1D ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1D * hZmassEl1         = new TH1D ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
-//   TH1D * hnGenJets            = new TH1D ("hnGenJets", "Nr. gen jets", 6, -0.5, 5.5);
-//   TH1D * hleadingGenJetPt     = createJetPtHisto("hleadingGenJetPt", "Leading GenJet Pt");
-
-//   TH1D * hnrecoJets            = new TH1D ("hnrecoJets", "Nr. reco jets", 6, -0.5, 5.5);
-//   TH1D * hleadingrecoJetPt     = createJetPtHisto("hleadingRecoJetPt", "Leading reco Jet Pt");
-
   TH2D * hRecoVsGenChannel     = new TH2D ("hRecoVsGenChannel","Reco vs Gen Channel",
 					   5, -0.5, 4.5,
 					   5, -0.5, 4.5);
 
-  // Control distributions for unfolding
+//   TH2D * hXChanelTriggerEff    = new TH2D ("hXChanelTriggerEff",
+// 					   "XCH Trig. eff: right vs wrong",
+// 					   100, 0.,1.,
+// 					   100, 0.,1.);
 
-//   TH1D * genJetPtHistos[4];
-//   TH1D * recoJetPtHistos[4];
-
-//   TH1D * controlJetPtHistos[4];
-//   TH1D * controlGenJetPtHistos[4];
-
-//   for (int i=0; i<4; i++) {
-//     std::ostringstream gjhistoKey;
-//     std::ostringstream gjhistoTitle;
-//     gjhistoKey << "hGenJetPt_" << i+1;
-//     gjhistoTitle << "Leading Gen Jet Pt for channel " << i+1;
-//     genJetPtHistos[i] = createJetPtHisto(gjhistoKey.str(), gjhistoTitle.str());
-
-//     std::ostringstream rjhistoKey;
-//     std::ostringstream rjhistoTitle;
-//     rjhistoKey << "hRecoJetPt_" << i+1;
-//     rjhistoTitle << "Leading Reco Jet Pt for channel " << i+1;
-//     recoJetPtHistos[i] = createJetPtHisto(rjhistoKey.str(), rjhistoTitle.str());
-
-//     std::ostringstream crjhistoKey;
-//     std::ostringstream crjhistoTitle;
-//     crjhistoKey << "hControlJetPt_" << i+1;
-//     crjhistoTitle << "CR: Leading Reco Jet Pt for channel " << i+1;
-//     controlJetPtHistos[i] = createJetPtHisto(crjhistoKey.str(), crjhistoTitle.str());
-//     std::ostringstream crgjhistoKey;
-//     std::ostringstream crgjhistoTitle;
-//     crgjhistoKey << "hControlGenJetPt_" << i+1;
-//     crgjhistoTitle << "CR-GEN: Leading Gen Jet Pt for channel " << i+1;
-//     controlGenJetPtHistos[i] = createJetPtHisto(crgjhistoKey.str(), crgjhistoTitle.str());
-
-//     // NOW WE NEED TO FILL THESE DISTRIBUTIONS...
-
-//   }
-  
-
-
-
+//   TH2D * hXChanelTriggerEff2    = new TH2D ("hXChanelTriggerEff2",
+// 					   "XCH Trig. eff: right vs wrong",
+// 					   100, 0.92,1.,
+// 					   100, 0.92,1.);
+//   TH1D * hXChanelTrigEffDiff    = new TH1D ("hXChanelTrigEffDiff",
+// 					   "XCH Trig. eff: right - wrong",
+// 					    100, -0.02,0.02);
 
   // INPUT TREES
 
@@ -158,9 +125,8 @@ int main(int argc, char **argv)
   } else   if (gotInput) {
     inputName.push_back(inputFileName);
   } else {
-    //  inputName.push_back("/STORE/lucija/latinosTrees/MC_LooseLooseTypeI/latino_074_WZJetsMad.root");
-    inputName.push_back("/users/vuko/phan/wz8tev/latinos/CMSSW_5_3_15/src/WWAnalysis/AnalysisStep/test/step3/latinowz-step3-oldJets.root"); 
-    //  inputName.push_back("/users/vuko/phan/wz8tev/latinos/CMSSW_5_3_15/src/WWAnalysis/AnalysisStep/test/step3/latinowz-step3-NoElNoMuNoNuJets.root");
+    std::cout << "Got no input ROOT file: quit \n";
+    return 1;
   }
   for (int input=0; input< inputName.size(); input++){
     wz.Add(inputName[input]);
@@ -180,23 +146,16 @@ int main(int argc, char **argv)
   float nZYield(0.),nWYield(0.);
 
 
-  // UNFOLDING: SETTING UP
-
-//   RooUnfoldResponse *responseJetPt[4];
-//   for (int i=0; i<4; i++) {
-//     responseJetPt[i]   = new RooUnfoldResponse(hleadingrecoJetPt,
-// 					       hleadingGenJetPt);
-//   }
-
+  //
+  // Creating analyses classes that will be run
+  //
   UnfoldingLeadingJetPt unfoldJetPt(cWZ);
   //  unfoldJetPt.Init();
-
   UnfoldingZPt unfoldZPt(cWZ);
-
   WZAnalysis   genAnalysis(cWZ);
 
 
-  // Setup event lists 
+  // Setup selected event lists 
   std::ofstream eventLists[4];
   for (int i=0; i<4; i++) {
     std::ostringstream fileName;
@@ -235,6 +194,7 @@ int main(int argc, char **argv)
       std::cout << "Event passed: " << eventPassed
 		<< "\t step: " << selectionLevel
 		<< "\t channel : " << channel << std::endl;
+
       
       if (eventPassed) std::cout << "PAAAASSSSS " << pileUpWeight << "\n";
     }
@@ -245,12 +205,10 @@ int main(int argc, char **argv)
 
 
     if (eventPassed) {
-      yields[channel] += pileUpWeight;
+      yields[channel] += pileUpWeight*cWZ->GetMCWeight();
 
-      eventLists[channel-1] << cWZ->run << "\t" 
-			    << cWZ->event  << "\t" 
-			    << pileUpWeight
-			    << std::endl;
+      cWZ->DumpEvent(eventLists[channel-1],1);
+
     } else {
       if (selectionLevel == passesZSelection) {
 	nZYield += pileUpWeight;
@@ -309,9 +267,11 @@ int main(int argc, char **argv)
 
   cWZ->PrintSummary();
 
-  //  fout->cd();
+  fout->cd();
   //  fout->Write();
-
+//   hXChanelTriggerEff->Write();
+//   hXChanelTriggerEff2->Write();
+//   hXChanelTrigEffDiff->Write();
 
   genAnalysis.Finish();
   unfoldJetPt.Finish(fout);

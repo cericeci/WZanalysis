@@ -19,10 +19,16 @@
 #ifdef DATA
 #define WZTREE WZ2012Data
 #include "WZ2012Data.h"
+// <<<<<<< HEAD
+// #else
+// #define WZTREE WZGenEvent
+// #include "WZGenEvent.h"
+// =======
 #endif
 #ifdef OLDMC
 #define WZTREE WZ
 #include "WZ.h"
+// >>>>>>> 70fa253f99ebb78c063c3656e7c573b6bc6f7b8b
 #endif
 #ifdef NEWMC
 //#define WZTREE WZEvent
@@ -302,6 +308,15 @@ float trigger2sameLeptons(float* eL, float* eT){
   float r3=eL[1]*(1-eT[0]);
   return (1-(r1+r2+r3));
 }
+
+// Cross trigger efficiency: flavour of 3rd lepton is trailing
+float triggerDifferentLeptons(float* eL, float* eT){
+  //  float r1=1-eL[0]*eL[1];
+  float r1=(1-eT[2]);
+  float r2=eT[2]*(1-eL[0])*(1-eL[1]);
+  return (1-(r1+r2));
+}
+
 
 float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, TH2F* DoubleElTrail, TH2F* DoubleMuTrail, int type,float* pt, float* eta){
   int index1=WZcandidates[0];

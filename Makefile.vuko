@@ -24,10 +24,10 @@ wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C
 wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZ.C WZEvent.C
 	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzMCSignalAnalysis: wzMCSignalAnalysis.C wzToolsNew.C WZ.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C  UnfoldingAnalysis.h
+wzMCSignalAnalysis: wzMCSignalAnalysis.C wzToolsNew.C WZ.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C  UnfoldingAnalysis.h 
 	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h
+wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h UnfoldingHistogramFactory.C
 	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzExampleAnalysis: wzExampleAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C WZAnalysis.C 

@@ -16,6 +16,9 @@
 #include "WZGenEvent.h"
 #endif
 
+#define _ISWZMC_
+
+
 //Lucija commented it
 //#define WZBASECLASS WZGenEvent
 
@@ -54,6 +57,9 @@ public:
   };
 
   float GetScaleFactor();
+  float LeadTriggerEff();
+  float TrailTriggerEff();
+  float PdgId() { return pdgid;};
 
 protected:
   float pdgid;
@@ -61,6 +67,13 @@ protected:
 
   static TH2F * MuonSF;
   static TH2F * ElecSF;
+
+  // Trigger efficiencies
+  static TH2F * DoubleMuLeadEff;
+  static TH2F * DoubleMuTrailEff;
+  static TH2F * DoubleEleLeadEff;
+  static TH2F * DoubleEleTrailEff;
+
 };
 
 
@@ -108,7 +121,7 @@ public:
 
   void ReadEvent();
 
-  void DumpEvent(std::ostream & out);
+  void DumpEvent(std::ostream & out, int verboseLevel = 0);
 
   void PrintSummary();
 
@@ -131,21 +144,11 @@ public:
   FinalState GetFinalState(){return final_state;}
   PassedSelectionStep GetSelectionLevel() { return selection_level;}
   
-
-//     float pt[leptonNumber]={cWZ->pt1, cWZ->pt2, cWZ->pt3, cWZ->pt4};
-//     float bdt[leptonNumber]={cWZ->bdt1, cWZ->bdt2, cWZ->bdt3, cWZ->bdt4};
-//     float ch[leptonNumber]={cWZ->ch1, cWZ->ch2, cWZ->ch3, cWZ->ch4};
-//     float eta[leptonNumber]={cWZ->eta1, cWZ->eta2, cWZ->eta3, cWZ->eta4};
-//     float phi[leptonNumber]={cWZ->phi1, cWZ->phi2, cWZ->phi3, cWZ->phi4};
-//     int pass2012ICHEP[leptonNumber]={cWZ->pass2012ICHEP1, cWZ->pass2012ICHEP2, cWZ->pass2012ICHEP3, cWZ->pass2012ICHEP4};
-//     float iso[leptonNumber]={cWZ->iso1, cWZ->iso2, cWZ->iso3, cWZ->iso4};
-//     float isomva[leptonNumber]={cWZ->isomva1, cWZ->isomva2, cWZ->isomva3, cWZ->isomva4};
-
-
-//  std::vector<TLorentzVector> genLeptons;
+#ifdef _ISWZMC_
   std::vector<GenS1Lepton> genLeptons;
   std::vector<int> genLeptonsIds;
   std::vector<TLorentzVector> genJets;
+#endif
   std::vector<TLorentzVector> recoJets;
 
   std::vector<RecoLepton>  leptons;
