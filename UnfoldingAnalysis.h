@@ -1,8 +1,8 @@
 #ifndef UnfoldingAnalysis_h
 #define UnfoldingAnalysis_h
 
-
 #include "RooUnfoldResponse.h"
+
 #include "WZEvent.h"
 
 #include "TFile.h"
@@ -10,6 +10,7 @@
 
 
 #include <string>
+
 
 
 class UnfoldingAnalysis {
@@ -61,7 +62,6 @@ protected:
   double * recoValue;
 
 };
-
 
 class  UnfoldingLeadingJetPt : public UnfoldingAnalysis {
 
