@@ -209,8 +209,11 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
   FinalState recoChannel = wzevt->GetFinalState();
   int wzGenChannel = wzevt->WZchan;
   float pileUpWeight=wzevt->puW;
+  float mcEfficiency=wzevt->GetMCWeight();
+
   // IMPORTANT: here goes, PU, efficiencies / scale factors, ...
-  double weight = pileUpWeight;
+  double genWeight     = pileUpWeight;
+  double recoWeight = pileUpWeight*mcEfficiency;
 
 
   // 
@@ -249,7 +252,7 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
   }
 
   if (wzGenChannel >=0 && wzGenChannel <4) {
-    hnGenJets[wzGenChannel+1]->Fill(nGenJets,weight);
+    hnGenJets[wzGenChannel+1]->Fill(nGenJets,genWeight);
   }
 
 
@@ -304,14 +307,14 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
       //      hnGenJets->Fill(nGenJets);
       if (nGenJets>0) {
 	if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (genHistos[wzGenChannel+1])->Fill(leadingGenJetPt,weight);
+	  (genHistos[wzGenChannel+1])->Fill(leadingGenJetPt,genWeight);
 	}
       }
       
       //      hnrecoJets->Fill(nRecoJets); 
       if (nRecoJets > 0 ) {
 	if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (recoHistos[wzGenChannel+1])->Fill(leadingRecoJetPt,weight);
+	  (recoHistos[wzGenChannel+1])->Fill(leadingRecoJetPt,recoWeight);
 	}
       }
       
@@ -328,14 +331,14 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
 	
 	// Fake
 	//	if (nGenJets<1 && nRecoJets>0) responseJetPt[recoChannel-1]->Fake(leadingRecoJetPt, weight);
-	if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, weight);
+	if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, recoWeight);
 	
 	// Miss
-	if (nGenJets>0 && nRecoJets<1) response[ch]->Miss(leadingGenJetPt, weight);
+	if (nGenJets>0 && nRecoJets<1) response[ch]->Miss(leadingGenJetPt, genWeight);
 	
 	// Fill
 	if (nGenJets>0 && nRecoJets>0) {
-	  response[ch]->Fill(leadingRecoJetPt,leadingGenJetPt, weight);
+	  response[ch]->Fill(leadingRecoJetPt,leadingGenJetPt, recoWeight);
 	  if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
 	}
 	
@@ -346,10 +349,10 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
     if (wzevt->MZ>71. && wzevt->MZ<111.) {
       if (wzGenChannel >=0 && wzGenChannel <4) {
 	if (nGenJets>0) {
-	  controlGenHistos[wzGenChannel+1]->Fill(leadingGenJetPt, weight);
+	  controlGenHistos[wzGenChannel+1]->Fill(leadingGenJetPt, genWeight);
 	}
 	if ( nRecoJets>0) {
-	  controlRecoHistos[wzGenChannel+1]->Fill(leadingRecoJetPt, weight);
+	  controlRecoHistos[wzGenChannel+1]->Fill(leadingRecoJetPt, recoWeight);
 	}
       }
     }
@@ -414,7 +417,7 @@ TH1D * UnfoldingLeadingJetPt::createHistogram(std::string s,
 
 
 UnfoldingZPt::UnfoldingZPt(WZEvent * e) :
-  UnfoldingAnalysis("ZPt", e)
+  UnfoldingAnalysis("Zpt", e)
     
 {
   std::cout << "Entered constructor of Jet Pt unf. analysis \n";
@@ -447,8 +450,12 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
   FinalState recoChannel = wzevt->GetFinalState();
   int wzGenChannel = wzevt->WZchan;
   float pileUpWeight=wzevt->puW;
+  float mcEfficiency = wzevt->GetMCWeight();
   // IMPORTANT: here goes, PU, efficiencies / scale factors, ...
-  double weight = pileUpWeight;
+  //  double weight = pileUpWeight;
+  double genWeight     = pileUpWeight;
+  double recoWeight = pileUpWeight*mcEfficiency;
+
 
   if (eventPassed) {
     recoZPt = wzevt->SelectedZPt();
@@ -484,11 +491,11 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
     //    if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, weight);
     
     // Miss
-    if (!eventPassed ) response[wzGenChannel+1]->Miss(genZPt, weight);
+    if (!eventPassed ) response[wzGenChannel+1]->Miss(genZPt, genWeight);
 
     // Fill
     if (eventPassed  ) {
-      response[recoChannel]->Fill(recoZPt,genZPt, weight);
+      response[recoChannel]->Fill(recoZPt,genZPt, recoWeight);
       if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
     }
   }

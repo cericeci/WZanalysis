@@ -55,7 +55,8 @@ float RecoLepton::LeadTriggerEff() {
     }
     hlead = DoubleMuLeadEff;
   } else {
-    std::cout << "RecoLepton::LeadTriggerEff> UNKNOWN LEPTON ID \n";
+    std::cout << "RecoLepton::LeadTriggerEff> UNKNOWN LEPTON ID : " 
+	      << pdgid << std::endl;
     return -1;
   }
   if (hlead) {
@@ -609,6 +610,14 @@ bool WZEvent::PassesGenCuts(){
 
 
 float  WZEvent::GetMCWeight() {
+
+  // The following makes sense only for accepted reco events
+  //   MC weight is zero otherwise
+
+  if (! passesSelection() ) {
+    return 0.;
+  }
+
 
   float trigEff = GetTriggerEfficiency();
 
