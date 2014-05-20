@@ -1,14 +1,12 @@
 #LDFLAGS=`root-config --libs`
 #CPPFLAGS= -Wall -Wno-long-long  -pthread -DCTHREAD_POSIX -D_THREAD_SAFE -D_REENTRANT -I$(ROOTSYS)/include 
 
-CPPFLAGS=`root-config --cflags` 
-#-IRooUnfold-1.1.1/src/   -g 
+CPPFLAGS=`root-config --cflags` -IRooUnfold-1.1.1/src/   -g 
 #If running in CMSSW42...
 #LDFLAGS = -L$(ROOTSYS)/lib -lNew -lRint -lTree -lTreePlayer -lCint -lThread -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMinuit -lPostscript -lProof -lThread -lCore -lGX11 -lPhysics -lGpad -lGui -lTreeViewer -L/usr/X11R6/lib -lm -ldl -L/usr/lib -lpthread -rdynamic 
 
 #if running in CMSSW53...
-LDFLAGS =$(shell root-config --libs) 
-# RooUnfold-1.1.1/libRooUnfold.so
+LDFLAGS =$(shell root-config --libs)  RooUnfold-1.1.1/libRooUnfold.so
 
 
 # FOR DATA
@@ -37,13 +35,16 @@ wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C
 wzMCSignalAnalysis: wzMCSignalAnalysis.C wzToolsNew.C WZ.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C  UnfoldingAnalysis.h
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h
+wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h UnfoldingHistogramFactory.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzExampleAnalysis: wzExampleAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C WZAnalysis.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 unfold: unfold.C 
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+wzDataUnfold: wzDataUnfold.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 
