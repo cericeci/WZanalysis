@@ -31,9 +31,14 @@
 // >>>>>>> 70fa253f99ebb78c063c3656e7c573b6bc6f7b8b
 #endif
 #ifdef NEWMC
+//#define WZTREE WZEvent
+//#include "WZEvent.h"
 #define WZTREE WZGenEvent
 #include "WZGenEvent.h"
 #endif
+
+#define WZTEST WZEvent
+#include "WZEvent.h"
 
 //#include "WZ.h"
 void readChainFromList(TString fileList, TChain * chain)
@@ -494,7 +499,7 @@ float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, in
   float eta3=eta[index3];
   float p1(0), p2(0), p3(0), e1(0), e2(0), e3(0);
   float ee1(0), ee2(0), ee3(0), ep1(0), ep2(0), ep3(0);
-  float errorEvent(0);
+  double errorEvent(0);
 
   //eee
   if (type==0){
@@ -682,3 +687,90 @@ float AxeError(float weight, TH2F * MuonSF, TH2F * ElecSF, float pileUpWeight, i
   error= weight*weight+ pow(pileUpWeight*factorError1*factor2*factor3*TriggerEff,2)+ pow(pileUpWeight*factor1*factorError2*factor3*TriggerEff,2)+ pow(pileUpWeight*factor1*factor2*factorError3*TriggerEff,2)+ pow(pileUpWeight*factor1*factor2*factor3*triggerError,2);
   return error;
 }
+
+double ReturnBranchingWeight(int type){
+  
+  //PDG values:
+  
+    //type: 0-(eee), 1-(eem), 2-(mme), 3-(mmm), 4-(tte), 5-(ttm), 6-(ttt), 7-(eet), 8-(mmt)
+  
+  if (type==-999) return 0;
+  double ratioPDG[9];
+  double numMad[9];
+  ratioPDG[0] = 0.03363*0.1075/ (0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[1] = 0.03363*0.1057/ (0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[2] = 0.03366*0.1075/ (0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[3] = 0.03366*0.1057/ (0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[4] = 0.03370*0.1075/(0.033658*3*(0.1075+0.1057+0.1125)); 
+  ratioPDG[5] = 0.03370*0.1057/(0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[6] = 0.03370*0.1125/(0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[7] = 0.03363*0.1125/(0.033658*3*(0.1075+0.1057+0.1125));
+  ratioPDG[8] = 0.03366*0.1125/(0.033658*3*(0.1075+0.1057+0.1125));
+
+  numMad[0]=196683;
+  numMad[1]=196780;
+  numMad[2]=194734;
+  numMad[3]=198591;
+  numMad[4]=28695;
+  numMad[5]=28869;
+  numMad[6]=4736;
+  numMad[7]=79653;
+  numMad[8]=78593;
+  
+  double all=1312388;
+
+  double BrMad=numMad[type]/all;
+  double weightBr= ratioPDG[type]/BrMad;
+    
+  return weightBr;
+  }
+
+#ifdef NEWMC
+int determineGenType(WZTEST * cWZ){
+  int genType=-999;
+  if (((cWZ->MZ)<71.1876) && ((cWZ->MZ>111.1876))) 
+    {
+      return genType;
+    }
+  double Wel(false), Wmu(false), Wtau(false), Zel(false), Zmu(false), Ztau(false);
+  int numW(0), numZ(0), indexW(-999), indexZ1(-999), indexZ2(-999);
+  for (int igl=0; igl<cWZ->genLeptons.size() ; igl++) {
+    int bosonId = cWZ->genLeptons[igl].MotherBoson();
+    //W
+    if (abs(bosonId) == 24) {
+      numW++;
+      indexW=igl;
+    }
+    //Z
+    if (abs(bosonId) == 23) {
+      numZ++;
+      if (numZ==2) indexZ2=igl;
+      if (numZ==1) indexZ1=igl;
+    }
+  }
+  if (numW != 1) return genType;
+  if (numZ != 2) return genType;
+
+  //W lepton
+  if (cWZ->genLeptons[indexW].ComesFromTau()) Wtau=true;
+  if ((abs(cWZ->genLeptons[indexW].Id()))==11) Wel=true;
+  if ((abs(cWZ->genLeptons[indexW].Id()))==13) Wmu=true;
+  
+  //Z lepton
+  if ((cWZ->genLeptons[indexZ1].ComesFromTau()) && (cWZ->genLeptons[indexZ2].ComesFromTau())) Ztau=true;;
+  if (((abs(cWZ->genLeptons[indexZ1].Id()))==11) && ((abs(cWZ->genLeptons[indexZ2].Id()))==11)) Zel=true;
+  if (((abs(cWZ->genLeptons[indexZ1].Id()))==13) && ((abs(cWZ->genLeptons[indexZ2].Id()))==13)) Zmu=true;
+  
+  if (Zel && Wel) genType=0;
+  if (Zel && Wmu) genType=1;
+  if (Zmu && Wel) genType=2;
+  if (Zmu && Wmu) genType=3;
+  if (Ztau && Wel) genType=4;
+  if (Ztau && Wmu) genType=5;
+  if (Ztau && Wtau) genType=6;
+  if (Zel && Wtau) genType=7;
+  if (Zmu && Wtau) genType=8;
+  
+  return genType;
+}
+#endif

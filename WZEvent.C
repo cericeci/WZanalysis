@@ -254,10 +254,10 @@ void WZEvent::ReadEvent()
 
   for (int i=0; i<genLeptons.size(); i++) {
     float ptl = genLeptons[i].Pt();
-    if (ptl>900.) {
-      std::cout << "Gen lepton " << i << " \t Pt = " << ptl
-		<< "\t channel: " << WZchan << std::endl;
-    }
+    //    if (ptl>900.) {
+      //      std::cout << "Gen lepton " << i << " \t Pt = " << ptl
+      //	<< "\t channel: " << WZchan << std::endl;
+    //}
   }
 
   float genJets_phi[5] = {genVV_jet1_phi, genVV_jet2_phi, genVV_jet3_phi, genVV_jet4_phi, genVV_jet5_phi};

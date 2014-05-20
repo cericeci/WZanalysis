@@ -23,13 +23,22 @@ LDFLAGS =$(shell root-config --libs)  RooUnfold-1.1.1/libRooUnfold.so
 wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C
+wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C WZEventMCOld.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisMCAll: wzAnalysisMCAll.C wzToolsNew.C WZ.C
+wzMatrixMethod: wzMatrixMethod.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C WZEventMCOld.C
+	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+wzAnalysisMCAll: wzAnalysisMCAll.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C WZEventMCOld.C
 	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C
+wzBackground: wzBackground.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C WZEventMCOld.C
+	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+wzWZ: wzWZ.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzMCSignalAnalysis: wzMCSignalAnalysis.C wzToolsNew.C WZ.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C  UnfoldingAnalysis.h
