@@ -6,7 +6,9 @@
 #include "TLorentzVector.h"
 
 // Replace this with the new tree
-#include "WZGenEvent.h"
+#include "WZEvent.h"
+//#include "WZGenEvent.h"
+#include "UnfoldingHistogramFactory.h"
 //#include "WZ.h"
 //#include "WZ2012Data.h"
 
@@ -34,7 +36,7 @@ float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax=-99
 
 TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
-float ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta);
+double ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta);
 
 float trigger3sameLeptons(int* eL, int* eT);
 
@@ -46,6 +48,10 @@ void readFileFromList(TString fileList, std::vector<TString>* inputFile);
 
 float AxeError(float weight, TH2F * MuonSF, TH2F * ElecSF, float pileUpWeight, int * WZCandidates,int type, float* pt, float* eta, float TriggerEff, float triggerError=0);
 
+double ReturnBranchingWeight(int type);
+
+int determineGenType(WZEvent * cWZ);
+
 //int genInformation(WZ *cWZ, int* Wdecay, int* Zdecay);
 
 int main()
@@ -53,13 +59,14 @@ int main()
   using namespace std;
 
   //write output numbers
-  bool writeOutputNumbers(false);
-  //  bool writeOutputNumbers(true);
+  //  bool writeOutputNumbers(false);
+  bool writeOutputNumbers(true);
 
   ofstream myfile3e, myfile3mu, myfile2e1mu, myfile1e2mu, myfileAll;
   ofstream fileNumGEN; 
   if (writeOutputNumbers){
-    fileNumGEN.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/numGEN.h");
+    fileNumGEN.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numGEN_met.h");
+    //    fileNumGEN.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numGEN.h");
     fileNumGEN<<"#ifndef numGEN_h"<<std::endl;
     fileNumGEN<<"#define numGEN_h"<<std::endl;
   }
@@ -78,12 +85,37 @@ int main()
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
   */
 
-  //TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/MCNew.root", "RECREATE");
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+   
+  const int nChannels(4);
+  TH1D * hZptCh[nChannels];
+  TH1D * hZptTau[nChannels];
+  TH1D * hZptTauFraction[nChannels];
+  TH1D * hLeadingJetCh[nChannels]; 
+  TH1D * hLeadingJetTau[nChannels]; 
+  TH1D * hLeadingJetTauFraction[nChannels]; 
 
-
+  
+  for (int hist=0; hist<nChannels; hist++){
+    std::ostringstream ZptChname,ZptTauname, LeadingJetChname,LeadingJetTau, LeadingJetTauFraction, ZptTauFraction;
+    LeadingJetTau<<"LeadingJetTau_"<<(hist+1);
+    LeadingJetChname<<"LeadingJetCh_"<<(hist+1);
+    LeadingJetTauFraction<<"LeadingJetPt_"<<(hist+1);
+    ZptChname<<"ZptCh_"<<(hist+1);
+    ZptTauname<<"ZptTau_"<<(hist+1);
+    ZptTauFraction<<"Zpt_"<<(hist+1);
+    
+    hZptCh[hist]     = UnfoldingHistogramFactory::createZPtHistogram(ZptChname.str().c_str(), ZptChname.str().c_str());
+    hZptTau[hist]     = UnfoldingHistogramFactory::createZPtHistogram(ZptTauname.str().c_str(), ZptTauname.str().c_str());
+    hZptTauFraction[hist]     = UnfoldingHistogramFactory::createZPtHistogram(ZptTauFraction.str().c_str(),ZptTauFraction.str().c_str());
+    hLeadingJetCh[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetChname.str().c_str(),LeadingJetChname.str().c_str());
+    hLeadingJetTau[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetTau.str().c_str(),LeadingJetTau.str().c_str());
+    hLeadingJetTauFraction[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetTauFraction.str().c_str(),LeadingJetTauFraction.str().c_str());
+  }
+  
   TH2F* MuonSF;
   TH2F* ElecSF;
   TH2F* DoubleElLead;
@@ -100,17 +132,36 @@ int main()
   DoubleMuTrail=LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleMuTrail", "DoubleMuTrail");
 
   const int leptonNumber(4);
-  const float electronMass(0.000511);
-  const float muonMass(0.106);
-  const float luminosity(19602);
-  float numZ(0), numW(0), numMET(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0), numMET2e1mu(0), numMET1e2mu(0), numMET3mu(0),numMET3e_1(0), numMET2e1mu_1(0), numMET1e2mu_1(0), numMET3mu_1(0);;
-  float errorAxe3e(0), errorAxe2e1mu(0), errorAxe1e2mu(0), errorAxe3mu(0);
-  float numMET3eGEN(0), numMET2e1muGEN(0), numMET1e2muGEN(0), numMET3muGEN(0), numMETSomethingGEN(0);
-  float numMET3e_2(0), numMET2e1mu_2(0), numMET1e2mu_2(0), numMET3mu_2(0);
+  const double electronMass(0.000511);
+  const double muonMass(0.106);
+  const double luminosity(19602);
+  double numZ(0), numW(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0), numMET2e1mu(0), numMET1e2mu(0), numMET3mu(0),numMET3e_1(0), numMET2e1mu_1(0), numMET1e2mu_1(0), numMET3mu_1(0), numMET3e_brCorr(0), numMET2e1mu_brCorr(0), numMET1e2mu_brCorr(0), numMET3mu_brCorr(0);
+  double errorAxe3e(0), errorAxe2e1mu(0), errorAxe1e2mu(0), errorAxe3mu(0);
+  double numMET3eGEN(0), numMET2e1muGEN(0), numMET1e2muGEN(0), numMET3muGEN(0), numMETSomethingGEN(0);
+  double numMET3eGEN_brCorr(0), numMET2e1muGEN_brCorr(0), numMET1e2muGEN_brCorr(0), numMET3muGEN_brCorr(0), numMETSomethingGEN_brCorr(0);
+  double numMET3e_2(0), numMET2e1mu_2(0), numMET1e2mu_2(0), numMET3mu_2(0);
+  int numGEN3e_test(0);
+ 
+  double errorTau[4],numMET[4], numMET_brCorr[4], numMET_brCorr2[4], numMET_1[4], numTau[4], numTau2[4], numMET_2[4], errorAxe[4], numMET_test[4], numTau_test[4], numMET2_test[4];
+  int outOfZmassWindow[4];
+  for (int ini=0; ini<4; ini++){
+    numMET[ini]=0;
+    numMET_brCorr[ini]=0;
+    numMET_brCorr2[ini]=0;
+    numMET_1[ini]=0;
+    numTau[ini]=0;
+    numTau2[ini]=0;
+    numMET_2[ini]=0;
+    errorAxe[ini]=0;
+    outOfZmassWindow[ini]=0;
+    numMET_test[ini]=0;
+    numTau_test[ini]=0;
+    numMET2_test[ini]=0;
+  }
 //  float numMET3eGEN2(0), numMET2e1muGEN2(0), numMET1e2muGEN2(0), numMET3muGEN2(0), numMETSomethingGEN2(0);
-  float numTau3e(0), numTau2e1mu(0), numTau1e2mu(0), numTau3mu(0);
+  double numTau3e(0), numTau2e1mu(0), numTau1e2mu(0), numTau3mu(0);
   //0=EEE, 1=EEM, 2=EMM, 3= MMM, 4=all
-  float gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[5], errorRest[5], errorSpanish[5];
+  double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[5], errorRest[5], errorSpanish[5];
   //  float sumPuWall[5], sumPuWsel[5], sumPuWfail[5], sumPuWallq[5], sumPuWselq[5], sumPuWfailq[5];
   for (int t=0; t<5; t++){
     gen[t]=0;
@@ -133,7 +184,9 @@ int main()
 
   int testEl(0), testMu(0);
   double numberPileUp(0.0);
-
+  int numGenChannels(9);
+  //type: 0-(eee), 1-(eem), 2-(mme), 3-(mmm), 4-(tte), 5-(ttm), 6-(ttt), 7-(eet), 8-(mmt), 9-all(denominator)
+  int numbersGen[10]={0,0,0,0,0,0,0,0,0,0};
   std::vector<TString>inputName;
   TChain wz("latino");
 
@@ -144,64 +197,108 @@ int main()
     wz.Add(inputName[input]);
   }
   TTree *wz_tTree=(TTree*)&wz;
-  WZGenEvent *cWZ= new WZGenEvent(wz_tTree);
+  WZEvent *cWZ= new WZEvent(wz_tTree);
+  //  WZGenEvent *cWZ= new WZGenEvent(wz_tTree);
   Int_t events= wz_tTree->GetEntries();
   
   std::cout<<"number of events: "<<events << std::endl;
   
 
-  for  (Int_t k = 0; k<events /*&& k<1000*/;k++) {
+  for  (Int_t k = 0; k<events /*&& k<10*/;k++) {
     wz_tTree->GetEntry(k);
-
-
+    
+    cWZ->ReadEvent();
     //*******various factors
     float pileUpWeight=cWZ->puW;
 
     numberPileUp+=pileUpWeight;
-    //rejecting run 201191   not needed for MC
-    //    if (cWZ->run==201191) continue;
-
-    //if (!(cWZ->trigger)) continue;
     
     ///////////////GEN YIELDS/////////////////
  
     //    double gen_channels[3][3]={{0,0,0}, {0,0,0}};
     bool isTau(false), is3e(false), is2e1mu(false), is1e2mu(false), is3mu(false);
+    bool genKind[5]={false,false, false,false};
+    int typeGen=-9999;
 
+
+   
+ 
+   
+    //wz    std::cout<<typeGen<<" : "<<weightBr<<std::endl;
+    
+    double inZmassWindow(false);
+    //    double weightBr=1;
+    if (((cWZ->MZ)>71.1876) && ((cWZ->MZ<111.1876)))
+      {
+	inZmassWindow=true;
+	typeGen= determineGenType(cWZ);
+      }
+    double weightBr(0);
+    if (typeGen>=0){
+      numbersGen[typeGen]++;
+      numbersGen[9]++;
+      weightBr=ReturnBranchingWeight(typeGen);
+    }    
+    else{
+      int typeGenOut=determineGenType(cWZ);
+      weightBr=ReturnBranchingWeight(typeGenOut);
+    }
+     if ((cWZ->WZchan)== 0){
+       numGEN3e_test++;
+     }
     //WZchan== 0/eee, 1/eemu, 2/emumu, 3/mumumu, 4/tau
     if (((cWZ->MZ)>71.1876) && ((cWZ->MZ<111.1876)))
-    {
+      {
+	//	typeGen= determineGenType(cWZ);
       if ((cWZ->WZchan)== 0){
 	numMET3eGEN+=pileUpWeight;
-	gen[0]+=pileUpWeight;
-	genq[0]+=(pileUpWeight*pileUpWeight);
-	is3e=true;
+	numMET3eGEN_brCorr+=pileUpWeight*weightBr;
+       gen[0]+=pileUpWeight;
+       genq[0]+=(pileUpWeight*pileUpWeight);
+       //       typeGen=0;
+       is3e=true;
       }
       if ((cWZ->WZchan)== 1){
 	numMET2e1muGEN+=pileUpWeight;
+	numMET2e1muGEN_brCorr+=pileUpWeight*weightBr;
 	gen[1]+=pileUpWeight;
 	genq[1]+=(pileUpWeight*pileUpWeight);
 	is2e1mu=true;
       }
       if ((cWZ->WZchan)== 2){
 	numMET1e2muGEN+=pileUpWeight;
+	numMET1e2muGEN_brCorr+=pileUpWeight*weightBr;
       	gen[2]+=pileUpWeight;
 	genq[2]+=(pileUpWeight*pileUpWeight);
 	is1e2mu=true;
       }
       if ((cWZ->WZchan)== 3){
-	  numMET3muGEN+=pileUpWeight;
-	  gen[3]+=pileUpWeight;
-	  genq[3]+=(pileUpWeight*pileUpWeight);
-	  is3mu=true;
+	numMET3muGEN+=pileUpWeight;
+	numMET3muGEN_brCorr+=pileUpWeight*weightBr;
+	gen[3]+=pileUpWeight;
+	genq[3]+=(pileUpWeight*pileUpWeight);
+	is3mu=true;
       }
       if ((cWZ->WZchan)==4){
 	numMETSomethingGEN+=pileUpWeight;
+	numMETSomethingGEN_brCorr+=pileUpWeight*weightBr;
 	gen[4]+=pileUpWeight;
 	genq[4]+=(pileUpWeight*pileUpWeight);
-	isTau=true;
-      }
 
+      }
+	      
+    }
+    if ((cWZ->WZchan)==4){
+      isTau=true;
+    }
+    int vrsta=cWZ->WZchan;
+    genKind[vrsta]=true;
+	
+    bool kindOfEvent[5]={false, false, false, false};
+    for (int kind=0; kind<5; kind++){
+      if ((cWZ->WZchan)==kind){
+	kindOfEvent[kind]=true;
+      }
     }
     //    int dummy=genInformation(cWZ, Wdecay, Zdecay);
     float pt[leptonNumber]={cWZ->pt1, cWZ->pt2, cWZ->pt3, cWZ->pt4};
@@ -278,6 +375,11 @@ int main()
     ///////////////////////////rejecting when found no Zel& no Zmu
     if ((!foundZel) && (!foundZmu))
       continue;
+    
+    double Zmass;
+    if (foundZel) Zmass=massEl;
+    else Zmass=massMu;
+
 
     numZ+=pileUpWeight;
 
@@ -387,36 +489,76 @@ int main()
     //deltaR condition
     if (!passDeltaRWleptZlept(WZcandidates, phi, eta)) continue;
     numW+=pileUpWeight;  
+
+    bool ev[4]={false, false, false, false};
     
     if (ev3e){
       num3e+=pileUpWeight;
       type=0; 
+      ev[0]=true;
     }
     if (ev2e1mu){
       num2e1mu+=pileUpWeight;
       type=1;
+      ev[1]=true;
     }
     if (ev1e2mu){
       num1e2mu+=pileUpWeight;
       type=2;
+      ev[2]=true;
     }
 
     if (ev3mu){
       num3mu+=pileUpWeight;
       type=3;
+      ev[3]=true;
     }
     //////////////////////////////////////MET CUT//////////////////////////
     
-    if ((cWZ->pfmet)<30) continue;
-    //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
+    //    if ((cWZ->pfmet)<30) continue;
+    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
 
-    float weight;
+    double weight;
+
+    for (int ch=0; ch<4; ch++){
+      if (ev[ch]){
+	weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, ch, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, ch, pt, eta);
+	numMET_test[ch]+=weightBr;
+	numMET[ch]+=weight;
+	numMET_brCorr[ch]+=weight*weightBr;
+	numMET_brCorr2[ch]+=weight*weight*weightBr*weightBr;
+	numMET_1[ch]++;
+	if (!inZmassWindow){
+	  outOfZmassWindow[ch]++;
+	}
+	if (isTau) 
+	  {
+	    numTau[ch]+=weight*weightBr;
+	    numTau2[ch]+=weight*weight*weightBr*weightBr;
+	    numTau_test[ch]+=weightBr;
+	  }
+	if (genKind[ch]) {
+	  numMET_2[ch]+=weight;
+	  numMET2_test[ch]+=weightBr;
+	  fact[ch]+=weight;
+	  factq[ch]+=(weight*weight);
+	  mixed[ch]+=(weight*pileUpWeight);
+      }
+	float triggerEff=TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, ch, pt, eta);
+	errorAxe[ch]+=AxeError(weight, MuonSF, ElecSF, pileUpWeight, WZcandidates, ch, pt, eta, triggerEff);
+	errorRest[ch]+=AxeError(weight, MuonSF, ElecSF, pileUpWeight, WZcandidates, ch, pt, eta, triggerEff);
+      //      myfile3e<<cWZ->run<<":"<<cWZ->event<<":"<<pileUpWeight<<":"<<ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)<<":"<<triggerEff<<":"<<std::endl;      
+      }
+    }
+    /*
     if (ev3e){
+      ev[0]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, pt, eta);
 
       numMET3e+=weight;
+      numMET3e_brCorr+=weight*weightBr;
       numMET3e_1++;
-      if (isTau) numTau3e+=weight;
+      if (isTau) numTau3e+=weight;//*weightBr;
       if (is3e) {
 	numMET3e_2+=weight;
 	fact[0]+=weight;
@@ -430,17 +572,20 @@ int main()
     }
     
     if (ev2e1mu){
+      ev[1]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, pt, eta);
       
       numMET2e1mu+=weight;
+      numMET2e1mu_brCorr+=weight*weightBr;
       numMET2e1mu_1++;;
 
-      if (isTau) numTau2e1mu+=weight;
+      if (isTau) numTau2e1mu+=weight;//*weightBr;
 
       float triggerEff=TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, pt, eta);
 	//      myfile2e1mu<<cWZ->run<<":"<<cWZ->event<<":"<<pileUpWeight<<":"<<ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, pt, eta, f1, f2, f3)<<":"<<f1<<":"<<f2<<":"<<f3<<":"<<std::endl;
-
+      //sto je ovo?????
       if (is2e1mu){
+	
 	numMET2e1mu_2+=weight;
 	fact[1]+=weight;
 	factq[1]+=(weight*weight);
@@ -452,12 +597,16 @@ int main()
     }
     
     if (ev1e2mu){
+      ev[2]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 2, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 2, pt, eta);
 
       numMET1e2mu+=weight;
+      numMET1e2mu_brCorr+=weight*weightBr;
       numMET1e2mu_1++;
-      if (isTau) numTau1e2mu+=weight;
+      if (kindOfEvent[4])       numTau1e2mu+=weight*weightBr;
+      //if (isTau)       numTau1e2mu+=weight;//*weightBr;
       if (is1e2mu) {
+      //      if (kindOfEvent[2]) {
 	numMET1e2mu_2+=weight;
 	fact[2]+=weight;
 	factq[2]+=(weight*weight);
@@ -470,10 +619,12 @@ int main()
     }
 
     if (ev3mu){
+      ev[3]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 3, pt, eta);
       numMET3mu+=weight;
+      numMET3mu_brCorr+=weight*weightBr;
       numMET3mu_1++;
-      if (isTau) numTau3mu+=weight;
+      if (isTau) numTau3mu+=weight;//*weightBr;
       if (is3mu) {
 	numMET3mu_2+=weight;
 	fact[3]+=weight;
@@ -485,83 +636,123 @@ int main()
       errorRest[3]+=AxeError(weight, MuonSF, ElecSF, pileUpWeight, WZcandidates, 3, pt, eta, triggerEff);
       myfile3mu<<cWZ->run<<":"<<cWZ->event<<":"<<pileUpWeight<<":"<<ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, pt, eta)<<":"<<triggerEff<<":"<<std::endl;
     }
- 
+    */
+    //jets part
+    int nRecoJets = 0;
+    float leadingRecoJetPt = -9999.;
+    int leadingRecojet = -1;
     
-  }
-  std::cout<<"Number of events pile up weighted: "<<numberPileUp<<std::endl;
+    
+    for (int i=0; i<cWZ->recoJets.size(); i++) {
 
-  float denominator=numMET3eGEN+numMET2e1muGEN+numMET1e2muGEN+numMET3muGEN+numMETSomethingGEN;
+      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<cWZ->leptons.size(); il++) {
+	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
+	  leadingRecojet = i;
+	}
+      }
+      
+    }
+
+
+    //filling histograms
+     
+    for (int filH=0; filH<nChannels; filH++){
+      if (ev[filH]){
+	hZptCh[filH]->Fill(Zpt, weight);
+	hLeadingJetCh[filH]->Fill(leadingRecoJetPt, weight);
+	if (isTau){
+	  hZptTau[filH]->Fill(Zpt, weight);
+	  hLeadingJetTau[filH]->Fill(leadingRecoJetPt, weight);
+	}
+      }
+      
+    }
+  }
+  //dividing histograms:
+
+  for (int divide=0; divide<nChannels; divide++){
+    hZptTau[divide]->Sumw2();
+    hZptCh[divide]->Sumw2();
+    hZptTauFraction[divide]->Divide(hZptTau[divide],hZptCh[divide],1,1,"B");
+
+    hLeadingJetTau[divide]->Sumw2();
+    hLeadingJetCh[divide]->Sumw2();
+    hLeadingJetTauFraction[divide]->Divide(hLeadingJetTau[divide],hLeadingJetCh[divide],1,1,"B");
+
+  }
+
+  float denominator=numMET3eGEN_brCorr+numMET2e1muGEN_brCorr+numMET1e2muGEN_brCorr+numMET3muGEN_brCorr+numMETSomethingGEN_brCorr;
   gen[5]=gen[0]+gen[1]+gen[2]+gen[3]+gen[4];
-
-  std::cout<<"**********************GEN**INFORMATION**********************"<<std::endl;
-  std::cout<<"****W decays*******"<<std::endl;
-  for (int w=0;w<6; w++){
-    std::cout<<w<<"  : "<<Wdecay[w]<<std::endl;
-  }
-
-
-
 
   for (int e=0; e<4; e++){
     error[e]=sqrt((gen[e]*gen[e]*factq[e]-2*gen[e]*fact[e]*mixed[e]+fact[e]*fact[e]*genq[e])/pow(gen[e],4));
     errorWholeZagreb[e]=sqrt(errorRest[e]/(gen[e]*gen[e])+(gen[e]*gen[e]*factq[e]-2*gen[e]*fact[e]*mixed[e]+fact[e]*fact[e]*genq[e])/pow(gen[e],4));
     errorSpanish[e]=sqrt((gen[4]*gen[4]*factq[e]-2*gen[4]*fact[e]*mixed[e]+fact[e]*fact[e]*genq[4])/pow(gen[4],4));
+    errorTau[e]=sqrt((numMET_brCorr[e]*numMET_brCorr[e]*numTau2[e]- 2*numMET_brCorr[e]*numTau[e]*numTau[e] + numTau[e]*numTau[e]*numMET_brCorr2[e])/(pow(numMET_brCorr[e],4)));
+    
   }
-  std::cout<<"Acceptance efficiancy: "<<std::endl;
-  std::cout<<"3e     "<< numMET3e/denominator    <<" nWZ: "<<numMET3e     <<" nGEN: "<<denominator<<std::endl;
-  std::cout<<"2e1mu  "<< numMET2e1mu/denominator <<" nWZ: "<<numMET2e1mu  <<" nGEN: "<<denominator<<std::endl;
-  std::cout<<"1e2mu  "<< numMET1e2mu/denominator <<" nWZ: "<<numMET1e2mu  <<" nGEN: "<<denominator<<std::endl;
-  std::cout<<"3mu    "<< numMET3mu/denominator   <<" nWZ: "<<numMET3mu    <<" nGEN: "<<denominator<<std::endl;
 
 
-  std::cout<<"test!!: "<<gen[5]<<"="<<denominator<<std::endl;
-  std::cout<<"errorZagreb"<<std::endl;
-  std::cout<<"3e:   "<<error[0]<<std::endl;
-  std::cout<<"2e1mu "<<error[1]<<std::endl;
-  std::cout<<"1e2mu "<<error[2]<<std::endl;
-  std::cout<<"3mu   "<<error[3]<<std::endl;
-  std::cout<<"complete..."<<std::endl;
+
+  ///*********OUTPUT
+
+  std::cout<<"CHECK!!!"<<std::endl;
+  std::cout<<"3e"<<std::endl;
+  std::cout<<numMET3e<<"="<<numTau3e<<"+"<<numMET3e_2<<std::endl;
+  std::cout<<"2e1m"<<std::endl;
+  std::cout<<numMET2e1mu<<"="<<numTau2e1mu<<"+"<<numMET2e1mu_2<<std::endl;
+  std::cout<<"1e2m"<<std::endl;
+  std::cout<<numMET1e2mu<<"="<<numTau1e2mu<<"+"<<numMET1e2mu_2<<std::endl;
+  std::cout<<"3m"<<std::endl;
+ std::cout<<numMET3mu<<"="<<numTau3mu<<"+"<<numMET3mu_2<<std::endl;
+
+  std::cout<<"****Numbers for Br correction:******"<<std::endl;
+  for (int gen2=0; gen2<numGenChannels; gen2++){
+    std::cout<<"numMad["<<gen2<<"]="<<numbersGen[gen2]<<";"<<std::endl;
+  }
+  std::cout<<"double all="<<numbersGen[9]<<";"<<std::endl;
   
-  std::cout<<"3e:   "<<errorWholeZagreb[0]<<std::endl;
-  std::cout<<"2e1mu "<<errorWholeZagreb[1]<<std::endl;
-  std::cout<<"1e2mu "<<errorWholeZagreb[2]<<std::endl;
-  std::cout<<"3mu   "<<errorWholeZagreb[3]<<std::endl;
+  std::cout<<"OUT OF Z MASS WINDOW"<<std::endl;
+  for (int nn=0; nn<4; nn++){
+    std::cout<<nn<<":"<<outOfZmassWindow[nn]<<std::endl;
+  }
 
-  std::cout<<"errorSpanish"<<std::endl;
-  std::cout<<"3e:   "<<errorSpanish[0]<<std::endl;
-  std::cout<<"2e1mu "<<errorSpanish[1]<<std::endl;
-  std::cout<<"1e2mu "<<errorSpanish[2]<<std::endl;
-  std::cout<<"3mu   "<<errorSpanish[3]<<std::endl;
-  std::cout<<"complete..."<<std::endl;
-
-  float normalization=(1.058*luminosity)/numberPileUp;
-  std::cout<<"YIELDS:"<<std::endl;
-  std::cout<<numMET3e*normalization<<" , "<<numMET3e<<" , "<<numMET3e_1<<std::endl;
-  std::cout<<numMET2e1mu*normalization<<" , "<<numMET2e1mu<<" , "<<numMET2e1mu_1<<std::endl;
-  std::cout<<numMET1e2mu*normalization<<" , "<<numMET1e2mu<<" , "<<numMET1e2mu_1<<std::endl;
-  std::cout<<numMET3mu*normalization<<" , "<<numMET3mu<<" , "<<numMET3mu_1<<std::endl;
-
-  //writing in file
+  std::cout<<"CHECKING TAU"<<std::endl;
+  for (int tau=0; tau<4; tau++){
+    std::cout<<tau<<":"<<numMET_test[tau]<<"="<<numTau_test[tau]<<"+"<<numMET2_test[tau]<<std::endl;
+  }
+  
+//writing in file
   if (writeOutputNumbers){
-    fileNumGEN<<"#define dAxe3eS "<< numMET3e/denominator<<std::endl;
-    fileNumGEN<<"#define dAxe2e1muS "<<numMET2e1mu/denominator<<std::endl;
-    fileNumGEN<<"#define dAxe1e2muS "<<numMET1e2mu/denominator<<std::endl;
-    fileNumGEN<<"#define dAxe3muS "<<numMET3mu/denominator<<std::endl;
+    //spnish numbers
+    fileNumGEN<<"#define dAxe3eS "<< numMET_brCorr[0]/denominator<<std::endl;
+    fileNumGEN<<"#define dAxe2e1muS "<<numMET_brCorr[1]/denominator<<std::endl;
+    fileNumGEN<<"#define dAxe1e2muS "<<numMET_brCorr[2]/denominator<<std::endl;
+    fileNumGEN<<"#define dAxe3muS "<<numMET_brCorr[3]/denominator<<std::endl;
     
-    fileNumGEN<<"#define dAxe3eZ "<< numMET3e/numMET3eGEN<<std::endl;
-    fileNumGEN<<"#define dAxe2e1muZ "<<numMET2e1mu/numMET2e1muGEN<<std::endl;
-    fileNumGEN<<"#define dAxe1e2muZ "<<numMET1e2mu/numMET1e2muGEN<<std::endl;
-    fileNumGEN<<"#define dAxe3muZ "<<numMET3mu/numMET3muGEN<<std::endl;
+
+    fileNumGEN<<"#define dAxe3eZ_2 "<< numMET_2[0]/numMET3eGEN<<std::endl;
+    fileNumGEN<<"#define dAxe2e1muZ_2 "<<numMET_2[1]/numMET2e1muGEN<<std::endl;
+    fileNumGEN<<"#define dAxe1e2muZ_2 "<<numMET_2[2]/numMET1e2muGEN<<std::endl;
+    fileNumGEN<<"#define dAxe3muZ_2 "<<numMET_2[3]/numMET3muGEN<<std::endl;
     
-    fileNumGEN<<"#define dAxe3eZ_2 "<< numMET3e_2/numMET3eGEN<<std::endl;
-    fileNumGEN<<"#define dAxe2e1muZ_2 "<<numMET2e1mu_2/numMET2e1muGEN<<std::endl;
-    fileNumGEN<<"#define dAxe1e2muZ_2 "<<numMET1e2mu_2/numMET1e2muGEN<<std::endl;
-    fileNumGEN<<"#define dAxe3muZ_2 "<<numMET3mu_2/numMET3muGEN<<std::endl;
-    
-    fileNumGEN<<"#define dtauFactor3e "<<numTau3e/numMET3e<<std::endl;
-    fileNumGEN<<"#define dtauFactor2e1mu "<<numTau2e1mu/numMET2e1mu<<std::endl;
-    fileNumGEN<<"#define dtauFactor1e2mu "<<numTau1e2mu/numMET1e2mu<<std::endl;
-    fileNumGEN<<"#define dtauFactor3mu "<<numTau3mu/numMET3mu<<std::endl;
+    fileNumGEN<<"#define dtauFactor3e "<<numTau[0]/numMET_brCorr[0]<<std::endl;
+    fileNumGEN<<"#define dtauFactor2e1mu "<<numTau[1]/numMET_brCorr[1]<<std::endl;
+    fileNumGEN<<"#define dtauFactor1e2mu "<<numTau[2]/numMET_brCorr[2]<<std::endl;
+    fileNumGEN<<"#define dtauFactor3mu "<<numTau[3]/numMET_brCorr[3]<<std::endl;
   
     fileNumGEN<<"#define dsAxe3eS "<< errorSpanish[0]<<std::endl;
     fileNumGEN<<"#define dsAxe2e1muS "<<errorSpanish[1]<<std::endl;
@@ -573,14 +764,17 @@ int main()
     fileNumGEN<<"#define dsAxe1e2muZ "<<error[2]<<std::endl;
     fileNumGEN<<"#define dsAxe3muZ "<<error[3]<<std::endl;
     
-    fileNumGEN<<"#define dstauFactor3e "<<0<<std::endl;
-    fileNumGEN<<"#define dstauFactor2e1mu "<<0<<std::endl;
-    fileNumGEN<<"#define dstauFactor1e2mu "<<0<<std::endl;
-    fileNumGEN<<"#define dstauFactor3mu "<<0<<std::endl;
+    fileNumGEN<<"#define dstauFactor3e "<<errorTau[0]<<std::endl;
+    fileNumGEN<<"#define dstauFactor2e1mu "<<errorTau[1]<<std::endl;
+    fileNumGEN<<"#define dstauFactor1e2mu "<<errorTau[2]<<std::endl;
+    fileNumGEN<<"#define dstauFactor3mu "<<errorTau[3]<<std::endl;
   
   
 
   fileNumGEN.close();
   }
 
+fout->cd();
+fout->Write();
+fout->Close();
 }

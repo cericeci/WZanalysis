@@ -4,10 +4,12 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TLorentzVector.h"
-
+#include "UnfoldingHistogramFactory.h"
 // Replace this with the new tree
-#include "WZ.h"
+//#include "WZEvent.h"
+//#include "WZ.h"
 //#include "WZ2012Data.h"
+#include "WZEventMCOld.h"
 
 #include <iostream>
 #include <fstream>
@@ -56,7 +58,7 @@ int main()
   bool writeOutputNumbers(true);
 
   if (writeOutputNumbers){
-    fileNumMC.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/numMC.h");
+    fileNumMC.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMC.h");
     fileNumMC<<"#ifndef numMC_h"<<std::endl;
     fileNumMC<<"#define numMC_h"<<std::endl;
   }
@@ -120,7 +122,7 @@ int main()
 
 
 
-  for (int file=0; file<files.size()/* && file<5*/; file++){
+  for (int file=0; file<files.size() /*&& file<1*/; file++){
 
     float numZ(0), numW(0), numMET(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0.0), numMET2e1mu(0.0), numMET1e2mu(0.0), numMET3mu(0.0);
     float numMET3ectrl(0), numMET2e1muctrl(0), numMET1e2muctrl(0), numMET3muctrl(0);
@@ -140,6 +142,22 @@ int main()
     TH1F * hMETEl1_s         = new TH1F("hMETEl1_s", "hMETEl1_s",150, 0, 150);
 
 
+    const int nChannels(4);
+    TH1D * hZpt[nChannels];
+    TH1D * hLeadingJetPt[nChannels]; 
+
+    //TH1D * hZpt= UnfoldingHistogramFactory::createZPtHistogram("name", "name");
+    //    LeadingJetname<<"LeadingJetPt_";
+    //Zptname<<"Zpt_";
+    
+    for (int hist=0; hist<nChannels; hist++){
+      std::ostringstream Zptname, LeadingJetname;
+      LeadingJetname<<"LeadingJetPt_"<<(hist+1);
+      Zptname<<"Zpt_"<<(hist+1);
+      hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
+      hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
+  }
+    
 //type: 0=EEE, 1=EEM, 2=EMM, 3=MMM
     
     int type(-999);
@@ -155,8 +173,11 @@ int main()
 
 
     TTree *wz_tTree=(TTree*)&wz;
-    WZ *cWZ= new WZ(wz_tTree);
+    //WZ *cWZ= new WZ(wz_tTree);
+    WZEventMCOld *cWZ= new WZEventMCOld(wz_tTree);
     Int_t events= wz_tTree->GetEntries();
+    
+    //    WZEventMCOld * wzevt;
 
     std::cout<<"number of events: "<<events << std::endl;
     
@@ -165,8 +186,10 @@ int main()
     
 
 
-    for  (Int_t k = 0; k<events/* && k<500*/;k++) {
-      wz_tTree->GetEntry(k);     
+    for  (Int_t k = 0; k<events /*&& k<10000*/;k++) {
+      wz_tTree->GetEntry(k);    
+      cWZ->ReadEvent();
+      
       float xs_weight(0);    
 
     //*******various factors
@@ -399,8 +422,11 @@ float weight;
     if ((cWZ->pfmet)<30) continue;
     //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
 
+    //improving this
+    bool ev[4]={false, false, false, false};
     
     if (ev3e){
+      ev[0]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, pt, eta)*xs_weight;
       numMET3e+=weight;
       error3e+=(weight*weight);
@@ -410,6 +436,7 @@ float weight;
     }
     
     if (ev2e1mu){
+      ev[1]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, pt, eta)*xs_weight;
       numMET2e1mu+=weight;
       error2e1mu+=(weight*weight);
@@ -418,6 +445,7 @@ float weight;
     }
     
     if (ev1e2mu){
+      ev[2]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 2, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 2, pt, eta)*xs_weight;
       numMET1e2mu+=weight;
       error1e2mu+=(weight*weight);
@@ -426,6 +454,7 @@ float weight;
     }
 
     if (ev3mu){
+      ev[3]=true;
       weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 3, pt, eta)*xs_weight;
       numMET3mu+=weight;
       error3mu+=(weight*weight);
@@ -433,84 +462,79 @@ float weight;
       hZmassMuWmu3->Fill(massMu,pileUpWeight*xs_weight);
     }
         
+
     
-    /*  
-    ///////////////GEN YIELDS/////////////////
+
+    int nRecoJets = 0;
+    float leadingRecoJetPt = -9999.;
+    int leadingRecojet = -1;
     
-    if (((cWZ->MZ)>71.1876) && ((cWZ->MZ<111.1876)))
-      {
-	if ((cWZ->WZchan)== 0){
-	  numMET3eGEN=+pileUpWeight;
+    
+    for (int i=0; i<cWZ->recoJets.size(); i++) {
+
+      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<cWZ->leptons.size(); il++) {
+	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
 	}
-	if ((cWZ->WZchan)== 1){
-	  numMET2e1muGEN=+pileUpWeight;
-	}
-	if ((cWZ->WZchan)== 2){
-	  numMET1e2muGEN=+pileUpWeight;
-	}
-	if ((cWZ->WZchan)== 3){
-	  numMET3muGEN=+pileUpWeight;
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
+	  leadingRecojet = i;
 	}
       }
-    */
+      
     }
-    //->to treba biti globalna varijabla
+    
+    //std::cout<<leadingRecoJetPt<<std::endl;
+    
+    for (int filH=0; filH<nChannels; filH++){
+      if (ev[filH]){
+	hZpt[filH]->Fill(Zpt, weight);
+	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, weight);
+      }
+    }
+    
 
-    //std::cout<<"baseW: "<<cWZ->baseW<<std::endl;
-    /*    std::cout<<"Zyield: "<<numZ<<std::endl;
-    std::cout<<"Wyield: "<<numW<<std::endl;
-  std::cout<<"W3e:     "<<num3e<<std::endl;
-  std::cout<<"W2e1mu:  "<<num2e1mu<<std::endl;
-  std::cout<<"W1e2mu:  "<<num1e2mu<<std::endl;
-  std::cout<<"W3mu:    "<<num3mu<<std::endl;*/
- 
-    /* std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
-  std::cout<<"3e:     "<<numMET3e*xs_weight<<std::endl;
-  std::cout<<"2e1mu:  "<<numMET2e1mu*xs_weight<<std::endl;
-  std::cout<<"1e2mu:  "<<numMET1e2mu*xs_weight<<std::endl;
-  std::cout<<"3mu:    "<<numMET3mu*xs_weight<<std::endl;*/
+    }
+    
+    
+    
+
     std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
     std::cout<<"3e:     "<<numMET3e<<"+/-"<<sqrt(error3e)<<std::endl;
     std::cout<<"2e1mu:  "<<numMET2e1mu<<"+/-"<<sqrt(error2e1mu)<<std::endl;
     std::cout<<"1e2mu:  "<<numMET1e2mu<<"+/-"<<sqrt(error1e2mu)<<std::endl;
     std::cout<<"3mu:    "<<numMET3mu<<"+/-"<<sqrt(error3mu)<<std::endl;
-  /* 
- std::cout<<"*********************CONTROL (without any factors, only xs and pu)"<<std::endl;
-  std::cout<<"3e:     "<<numMET3ectrl*xs_weight<<std::endl;
-  std::cout<<"2e1mu:  "<<numMET2e1muctrl*xs_weight<<std::endl;
-  std::cout<<"1e2mu:  "<<numMET1e2muctrl*xs_weight<<std::endl;
-  std::cout<<"3mu:    "<<numMET3muctrl*xs_weight<<std::endl;
-  std::cout<<"*********************GEN (without any factors, only xs and pu)"<<std::endl;
-  std::cout<<"3e:     "<<numMET3eGEN*xs_weight<<std::endl;
-  std::cout<<"2e1mu:  "<<numMET2e1muGEN*xs_weight<<std::endl;
-  std::cout<<"1e2mu:  "<<numMET1e2muGEN*xs_weight<<std::endl;
-  std::cout<<"3mu:    "<<numMET3muGEN*xs_weight<<std::endl;
-  
-  std::cout<<"/////////////ACCEPTANCE TIMES EFFICIENCY/////////////"<<std::endl;
-  std::cout<<"AxE3e:    "<<numMET3e/numMET3eGEN        <<std::endl;
-  std::cout<<"AxE2e1mu: "<<numMET2e1mu/numMET2e1muGEN  <<std::endl;
-  std::cout<<"AxE1e2mu: "<<numMET1e2mu/numMET1e2muGEN  <<std::endl;
-  std::cout<<"AxE3mu  : "<<numMET3mu/numMET3muGEN<<std::endl;
-  std::cout<<"*******************"<<std::endl;
-  */
-  //fout->cd();
+
 
      fout->cd();
      fout->Write();
 
-
-    
-    delete hZmassMu1;
-    delete hZmassEl1;
-    delete hZmassMuWel3;
-    delete hZmassMuWmu3;
-    delete hZmassElWmu3;
-    delete hZmassElWel3;
-    delete hMETMu1;
-    delete hMETEl1;
-    delete hMETMu1_s;
-    delete hMETEl1_s;
-    fout->Close();    
+     /*
+     for (int histDel=0; histDel<nChannels<4; histDel++){
+       delete hZpt[histDel];
+       delete hLeadingJetPt[histDel];
+     }
+     */
+     delete hZmassMu1;
+     delete hZmassEl1;
+     delete hZmassMuWel3;
+     delete hZmassMuWmu3;
+     delete hZmassElWmu3;
+     delete hZmassElWel3;
+     delete hMETMu1;
+     delete hMETEl1;
+     delete hMETMu1_s;
+     delete hMETEl1_s;
+     fout->Close();    
     //writing in file:
     if (writeOutputNumbers){
       if (file==1){

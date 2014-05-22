@@ -263,11 +263,11 @@ TH2F* LoadHistogram(TString filename, TString hname, TString cname){
   return hist;
 }
 
-float ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta){
+double ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta){
   int index1=WZCandidates[0];
   int index2=WZCandidates[1];
   int index3=WZCandidates[2];
-  float factor1(-999), factor2(-999), factor3(-999);
+  double factor1(-999), factor2(-999), factor3(-999);
 
   if (type==0) {
     factor1= GetFactor(ElecSF, pt[index1], eta[index1]);
@@ -707,33 +707,58 @@ double ReturnBranchingWeight(int type){
   ratioPDG[7] = 0.03363*0.1125/(0.033658*3*(0.1075+0.1057+0.1125));
   ratioPDG[8] = 0.03366*0.1125/(0.033658*3*(0.1075+0.1057+0.1125));
 
-  numMad[0]=196683;
-  numMad[1]=196780;
-  numMad[2]=194734;
-  numMad[3]=198591;
-  numMad[4]=28695;
-  numMad[5]=28869;
-  numMad[6]=4736;
-  numMad[7]=79653;
-  numMad[8]=78593;
+  double srecko[9];
+  srecko[0]=131706/1210189;
+  srecko[1]=131036.0/1210189.0;
+  srecko[2]=131745.0/1210189.0;
+  srecko[3]=131742.0/1210189.0;
+  srecko[4]=136564.0/1210189.0;
+  srecko[5]=136984.0/1210189.0;
+  srecko[6]=135828.0/1210189.0;
+  srecko[7]=137090.0/1210189.0;
+  srecko[8]=137090.0/1210189.0;
+
   
-  double all=1312388;
+  numMad[0]=135772;
+  numMad[1]=135591;
+  numMad[2]=134010;
+  numMad[3]=137417;
+  numMad[4]=152809;
+  numMad[5]=153569;
+  numMad[6]=151913;
+  numMad[7]=154520;
+  numMad[8]=154395;
+  double all=1309996;
+  
 
   double BrMad=numMad[type]/all;
-  double weightBr= ratioPDG[type]/BrMad;
+  //double BrMad=nu[type]/all;
     
+
+  /*  
+  for (int t=0; t<9; t++){
+    std::cout<<"PDG: "<<ratioPDG[t]<<std::endl;
+    std::cout<<"kod: "<<numMad[t]/all<<std::endl;
+    std::cout<<"sre: "<<srecko[t]<<std::endl;
+    std::cout<<"************"<<std::endl;
+  }
+
+  std::cout<<"********************"<<std::endl;
+  */
+  double weightBr= ratioPDG[type]/BrMad;
+  
+  //  if (type==6) weightBr=0.11528/0.1122376;
+  //  if (type==7) std::cout<<ratioPDG[type]<<"/"<<BrMad<<"="<<weightBr<<std::endl;  
   return weightBr;
   }
 
 #ifdef NEWMC
 int determineGenType(WZTEST * cWZ){
   int genType=-999;
-  if (((cWZ->MZ)<71.1876) && ((cWZ->MZ>111.1876))) 
-    {
-      return genType;
-    }
+  
   double Wel(false), Wmu(false), Wtau(false), Zel(false), Zmu(false), Ztau(false);
   int numW(0), numZ(0), indexW(-999), indexZ1(-999), indexZ2(-999);
+
   for (int igl=0; igl<cWZ->genLeptons.size() ; igl++) {
     int bosonId = cWZ->genLeptons[igl].MotherBoson();
     //W
@@ -748,19 +773,34 @@ int determineGenType(WZTEST * cWZ){
       if (numZ==1) indexZ1=igl;
     }
   }
-  if (numW != 1) return genType;
-  if (numZ != 2) return genType;
+  if (numW > 1) return genType;
+  if (numZ > 2) return genType;
+  /*
+  int Zid1=abs(cWZ->genLeptons[indexZ1].Id());
+  int Zid2=abs(cWZ->genLeptons[indexZ2].Id());
+  int wid=abs(cWZ->genLeptons[indexW].Id());
+  */
+
+  //hadronic decays
+  if (numW==0) Wtau=true;
+  if (numZ<2) Ztau=true;
 
   //W lepton
-  if (cWZ->genLeptons[indexW].ComesFromTau()) Wtau=true;
-  if ((abs(cWZ->genLeptons[indexW].Id()))==11) Wel=true;
-  if ((abs(cWZ->genLeptons[indexW].Id()))==13) Wmu=true;
-  
+  if (numW>0){
+    if (((cWZ->genLeptons[indexW].ComesFromTau()))) Wtau=true;
+    else {
+      if ((abs(cWZ->genLeptons[indexW].Id()))==11) Wel=true;
+      if ((abs(cWZ->genLeptons[indexW].Id()))==13) Wmu=true;
+    }
+  }
   //Z lepton
-  if ((cWZ->genLeptons[indexZ1].ComesFromTau()) && (cWZ->genLeptons[indexZ2].ComesFromTau())) Ztau=true;;
-  if (((abs(cWZ->genLeptons[indexZ1].Id()))==11) && ((abs(cWZ->genLeptons[indexZ2].Id()))==11)) Zel=true;
-  if (((abs(cWZ->genLeptons[indexZ1].Id()))==13) && ((abs(cWZ->genLeptons[indexZ2].Id()))==13)) Zmu=true;
-  
+  if (numZ>1){
+    if ((cWZ->genLeptons[indexZ1].ComesFromTau()) && (cWZ->genLeptons[indexZ2].ComesFromTau())) Ztau=true;
+    else {
+      if (((abs(cWZ->genLeptons[indexZ1].Id()))==11) && ((abs(cWZ->genLeptons[indexZ2].Id()))==11)) Zel=true;
+      if (((abs(cWZ->genLeptons[indexZ1].Id()))==13) && ((abs(cWZ->genLeptons[indexZ2].Id()))==13)) Zmu=true;
+    }
+  }
   if (Zel && Wel) genType=0;
   if (Zel && Wmu) genType=1;
   if (Zmu && Wel) genType=2;
