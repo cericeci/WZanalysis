@@ -27,8 +27,6 @@ float trigger2sameLeptons(float* eL, float* eT);
 
 float triggerDifferentLeptons(float* eL, float* eT);
 
-int determineGenType(WZBASECLASS * cWZ);
-
 double ReturnBranchingWeight(int type);
 
 // Initialize static data members
