@@ -27,6 +27,9 @@ float trigger2sameLeptons(float* eL, float* eT);
 
 float triggerDifferentLeptons(float* eL, float* eT);
 
+int determineGenType(WZBASECLASS * cWZ);
+
+double ReturnBranchingWeight(int type);
 
 // Initialize static data members
 TH2F * RecoLepton::MuonSF = 0;
@@ -96,6 +99,69 @@ float RecoLepton::TrailTriggerEff() {
   return eff;
 }
 
+float WZEvent::GetBrWeight(){
+  int genType=-999;
+  
+  double Wel(false), Wmu(false), Wtau(false), Zel(false), Zmu(false), Ztau(false);
+  int numW(0), numZ(0), indexW(-999), indexZ1(-999), indexZ2(-999);
+
+  for (int igl=0; igl<genLeptons.size() ; igl++) {
+    int bosonId = genLeptons[igl].MotherBoson();
+  //W
+    if (abs(bosonId) == 24) {
+      numW++;
+      indexW=igl;
+    }
+    //Z
+    if (abs(bosonId) == 23) {
+      numZ++;
+      if (numZ==2) indexZ2=igl;
+      if (numZ==1) indexZ1=igl;
+    }
+  }
+  if (numW > 1) return genType;
+  if (numZ > 2) return genType;
+  /*
+  int Zid1=abs(cWZ->genLeptons[indexZ1].Id());
+  int Zid2=abs(cWZ->genLeptons[indexZ2].Id());
+  int wid=abs(cWZ->genLeptons[indexW].Id());
+  */
+
+  //hadronic decays
+  if (numW==0) Wtau=true;
+  if (numZ<2) Ztau=true;
+
+  //W lepton
+  if (numW>0){
+    if (((genLeptons[indexW].ComesFromTau()))) Wtau=true;
+    else {
+      if ((abs(genLeptons[indexW].Id()))==11) Wel=true;
+      if ((abs(genLeptons[indexW].Id()))==13) Wmu=true;
+    }
+  }
+  //Z lepton
+  if (numZ>1){
+    if ((genLeptons[indexZ1].ComesFromTau()) && (genLeptons[indexZ2].ComesFromTau())) Ztau=true;
+    else {
+      if (((abs(genLeptons[indexZ1].Id()))==11) && ((abs(genLeptons[indexZ2].Id()))==11)) Zel=true;
+      if (((abs(genLeptons[indexZ1].Id()))==13) && ((abs(genLeptons[indexZ2].Id()))==13)) Zmu=true;
+    }
+  }
+  if (Zel && Wel) genType=0;
+  if (Zel && Wmu) genType=1;
+  if (Zmu && Wel) genType=2;
+  if (Zmu && Wmu) genType=3;
+  if (Ztau && Wel) genType=4;
+  if (Ztau && Wmu) genType=5;
+  if (Ztau && Wtau) genType=6;
+  if (Zel && Wtau) genType=7;
+  if (Zmu && Wtau) genType=8;
+  
+
+  float weight;
+  weight=ReturnBranchingWeight(genType);
+  return weight;
+}
 
 float RecoLepton::GetScaleFactor() {
 
@@ -331,7 +397,7 @@ void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
 	    << " Pt = " << leptons[index].Pt()
 	    << " Eta = " << leptons[index].Eta()
 	    << " SF = " << leptons[index].GetScaleFactor()
-	    << " effL = " << leptons[index].LeadTriggerEff()
+	    << " Effl = " << leptons[index].LeadTriggerEff()
 	    << " effT = " << leptons[index].TrailTriggerEff();
       }
     }
@@ -370,8 +436,7 @@ bool WZEvent::passesSelection(){
   if (this->run==201191) return passed;
   
   //  if (!(this->trigger)) return passed;
-    
-  float pts[leptonNumber]={pt1, pt2, pt3, pt4};
+      float pts[leptonNumber]={pt1, pt2, pt3, pt4};
   float charges[leptonNumber]={ch1, ch2, ch3, ch4};
   float phis[leptonNumber]={phi1, phi2, phi3, phi4};
   float etas[leptonNumber]={eta1, eta2, eta3, eta4};
