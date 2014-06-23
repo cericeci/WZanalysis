@@ -23,17 +23,17 @@
 //
 //
 //
-bool Z_muons(WZ2012Data *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt);
+bool Z_muons(WZ2012Data *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector * analysisLepton, float * ch,double & massMu, double & Zpt);
 
 bool passMVAiso(float isomva, float pt, float eta);
 
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 
 int determineLabel(int * pass2012ICHEP, int * WZcandidates);
 
-double weight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label);
+double weight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt,float * eta, int label);
 
 float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
 
@@ -60,17 +60,18 @@ int main()
   myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts3mu_Lucija.txt");
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
 
-  bool writeOutputNumbers(true);
+  //  bool writeOutputNumbers(true);
+  bool writeOutputNumbers(false);
+  bool latexOutput(true);
   if (writeOutputNumbers){
     fileNumMM<<"#ifndef numMM_h"<<std::endl;
     fileNumMM<<"#define numMM_h"<<std::endl;
   }
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_driven.root", "RECREATE");
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
-
 
 
   const int nChannels(4);
@@ -79,20 +80,36 @@ int main()
   TH1D * hLeadingJetPt[nChannels]; 
   TH1D * hLeadingJetPtError[nChannels]; 
   TH1D * hZpterror[nChannels];
+  TH1D * hZptFake[nChannels];
+  TH1D * hZptFake3sigmaUp[nChannels];
+  TH1D * hZptFake3sigmaDown[nChannels];
+  TH1D * hZptFakeError[nChannels];
+
+
 
   for (int hist=0; hist<nChannels; hist++){
-    std::ostringstream Zptname, LeadingJetname, Zpterrorname, Zpttest,LeadingJetError ;  
+    std::ostringstream Zptname, LeadingJetname, Zpterrorname, Zpttest,LeadingJetError, ZptFakename,ZptFakename3Up, ZptFakename3Down, ZptFakeErrorname ;  
     LeadingJetname<<"LeadingJetPt_"<<hist;
     LeadingJetError<<"LeadingJetError_"<<hist;
     Zpttest<<"Zpt_test_"<<hist;
     Zptname<<"Zpt_"<<(hist+1);
     Zpterrorname<<"Zpterror_"<<(hist+1);
+    ZptFakename<<"fake_"<<(hist+1);
+    ZptFakename3Up<<"fake_3sigmaUp_"<<(hist+1);
+    ZptFakename3Down<<"fake_3sigmaDown"<<(hist+1);
+    ZptFakeErrorname<<"error_fake_"<<(hist+1);
     hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
     hZpt_test[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zpttest.str().c_str(), Zpttest.str().c_str());
     hZpterror[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zpterrorname.str().c_str(), Zpterrorname.str().c_str());
     hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
     hLeadingJetPtError[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetError.str().c_str(),LeadingJetError.str().c_str());
-    
+    hZptFake[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename.str().c_str(), ZptFakename.str().c_str());
+
+    hZptFake3sigmaUp[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Up.str().c_str(), ZptFakename3Up.str().c_str());
+
+    hZptFake3sigmaDown[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Down.str().c_str(), ZptFakename3Down.str().c_str());
+
+    hZptFakeError[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakeErrorname.str().c_str(), ZptFakeErrorname.str().c_str());
   }
   TH2F* MuonFR;
   TH2F* MuonPR;
@@ -101,9 +118,20 @@ int main()
 
 
   
-  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet20_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet20_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR"); //nominal!!!
+  //syst
+  //  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet10_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet30_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet40_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet50_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+
   MuonPR=LoadHistogram("auxiliaryFiles/MuPR_Moriond13_2012.root", "h2inverted", "MuonPR");
-  ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet35_EWKcorr.root", "fakeElH2", "ElectronFR");
+  
+  ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet35_EWKcorr.root", "fakeElH2", "ElectronFR"); //nominal!!!
+  //syst:
+  //  ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet15_EWKcorr.root", "fakeElH2", "ElectronFR");
+  //ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet50_EWKcorr.root", "fakeElH2", "ElectronFR");
+
   ElectronPR=LoadHistogram("auxiliaryFiles/ElePR_Moriond13_2012.root", "h2inverted", "ElectronPR");
     
   const int leptonNumber(4);
@@ -115,6 +143,7 @@ int main()
   double ferror_3e(0),ferror_2e1mu(0), ferror_1e2mu(0), ferror_3mu(0);
   double error_3e(0),error_2e1mu(0), error_1e2mu(0), error_3mu(0);
 
+  double data_driven_syst[4]={0.027, 0.019, 0.027, 0.026};
   //test variables
   int numZ1(0), numZ2(0), numZ3(0), numZ4(0), numZ5(0), numZ6(0);
   int electronCount(0);
@@ -197,21 +226,31 @@ int main()
     TLorentzVector v_nizEl[9];
     TLorentzVector v_nizMu[9];
     TLorentzVector v_3Lepton(0.,0.,0.,0.);
+
+    TLorentzVector analysisLepton[leptonNumber];
     
     int WZcandidates[3]; //->here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
-    
+    for (int i1=0; i1<leptonNumber; i1++){
+      if ((bdt[i1]<100) && (pt[i1]>10)){    
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
+      }
+      if ((bdt[i1]>100) && (pt[i1]>10)){
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+      }
+    }
+
     int lepNum(0);
     for (int i=0; i<leptonNumber; i++){
-      if ((pt[i]>10) && (pt[i]!=-9999))
+      if ((analysisLepton[i].Pt()>10) && (analysisLepton[i].Pt()!=-9999))
 	lepNum++;
-      if ((bdt[i]<100) && (pt[i]>10)){
+      if ((bdt[i]<100) && (analysisLepton[i].Pt()>10)){
 	good_electrons.push_back(i);
-	v_nizEl[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], electronMass);
+	v_nizEl[i].SetPtEtaPhiM(analysisLepton[i].Pt(),eta[i], phi[i], electronMass);
 	v_3Lepton=v_3Lepton+v_nizEl[i];
       }
-      if ((bdt[i]>100) && (pt[i]>10)){
+      if ((bdt[i]>100) && (analysisLepton[i].Pt()>10)){
 	good_muons.push_back(i);
-	v_nizMu[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], muonMass);
+	v_nizMu[i].SetPtEtaPhiM(analysisLepton[i].Pt(),eta[i], phi[i], muonMass);
 	v_3Lepton=v_3Lepton+v_nizMu[i];
       }
     }
@@ -223,12 +262,12 @@ int main()
     bool foundZel(false), foundZmu(false);
     double massMu(-999), massEl(0), Zpt(0);
 
-    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, pt, ch, massMu, Zpt);
+    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, analysisLepton, ch, massMu, Zpt);
     if (foundZmu){
       hZmassMu1->Fill(massMu);
     }
     
-    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, pt, ch, massEl, Zpt);
+    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, analysisLepton, ch, massEl, Zpt);
 
     // reject all events without Z boson--and candidates with double Z boson
         
@@ -358,7 +397,7 @@ int main()
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
 
     //deltaR condition
-    if (!passDeltaRWleptZlept(WZcandidates, phi, eta)) continue;
+    if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW++;  
     
     int type;
@@ -391,6 +430,8 @@ int main()
     bool ev[4]={false, false, false, false};
     double MMweights[4]={.0,.0,.0,.0};
     double MMerrors[4]={.0,.0,.0,.0};
+    double MMweights_fake[4]={.0,.0,.0,.0};
+    double MMerrors_fake[4]={.0,.0,.0,.0};
 
     int label= determineLabel(pass2012ICHEP, WZcandidates);
     float Nttt(0);
@@ -408,8 +449,10 @@ int main()
       error_3e+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3e);
       MMerrors[0]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3e);
       N_fake_3e+=(Nttt-w_event_3e);
+      MMweights_fake[0]=(Nttt-w_event_3e);
       //      ferror_3e+=(Nttt-w_event_3e)*(Nttt-w_event_3e);
       ferror_3e+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3e));
+      MMerrors_fake[0]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3e));
     }
 
  
@@ -425,9 +468,10 @@ int main()
       error_2e1mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_2e1mu);
       MMerrors[1]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_2e1mu);
       N_fake_2e1mu+=(Nttt-w_event_2e1mu);
+      MMweights_fake[1]=(Nttt-w_event_2e1mu);
       //      ferror_2e1mu+=(Nttt-w_event_2e1mu)*(Nttt-w_event_2e1mu);
       ferror_2e1mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_2e1mu));
-      
+      MMerrors_fake[1]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_2e1mu));
     }
   
     if (ev1e2mu){
@@ -442,8 +486,10 @@ int main()
       error_1e2mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_1e2mu);
       MMerrors[2]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_1e2mu);
       N_fake_1e2mu+=(Nttt-w_event_1e2mu);
+      MMweights_fake[2]=(Nttt-w_event_1e2mu);
       //      ferror_1e2mu+=(Nttt-w_event_1e2mu)*(Nttt-w_event_1e2mu);
       ferror_1e2mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_1e2mu));
+      MMerrors_fake[2]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_1e2mu));
     }
     
     if (ev3mu){
@@ -458,8 +504,10 @@ int main()
       error_3mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3mu);
       MMerrors[3]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3mu);
       N_fake_3mu+=(Nttt-w_event_3mu);
+      MMweights_fake[3]=(Nttt-w_event_3mu);
       //      ferror_3mu+=(Nttt-w_event_3mu)*(Nttt-w_event_3mu);
       ferror_3mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3mu));
+      MMerrors_fake[3]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3mu));
     }
     //    std::cout<<MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label)<<std::endl;
      
@@ -481,7 +529,7 @@ int main()
     float leadingRecoJetPt = -9999.;
     int leadingRecojet = -1;
     
-    
+
     for (int i=0; i<cWZ->recoJets.size(); i++) {
 
       if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
@@ -514,8 +562,12 @@ int main()
 	hZpterror[filH]->Fill(Zpt, MMerrors[filH]);
 	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, MMweights[filH]);
 	hLeadingJetPtError[filH]->Fill(leadingRecoJetPt, MMerrors[filH]);
+	hZptFake[filH]->Fill(Zpt, MMweights_fake[filH]);
+	hZptFakeError[filH]->Fill(Zpt, MMerrors_fake[filH]);
       }
-    }        
+    }
+    //filling Zpt and errors
+    
   }
     //filling histogram errors
   
@@ -532,6 +584,22 @@ int main()
     for (int ljet=0; ljet<(hLeadingJetPtError[er]->GetNbinsX()+1); ljet++){
       double binError2=hLeadingJetPtError[er]->GetBinContent(ljet);
       hLeadingJetPt[er]->SetBinError(ljet, sqrt(binError2));
+    }
+    //for Senka TGC
+    for (int zpt2=0; zpt2<(hZptFakeError[er]->GetNbinsX()+1); zpt2++){
+      double binErrorStat2=hZptFakeError[er]->GetBinContent(zpt2);
+      double binContent=hZptFake[er]->GetBinContent(zpt2);
+      double binErrorSyst2= pow(data_driven_syst[er]*binContent,2);
+      double binError2=binErrorStat2+binErrorSyst2;
+      hZptFake[er]->SetBinError(zpt2, sqrt(binError2));
+
+      hZptFake3sigmaUp[er]-> SetBinContent(zpt2, (binContent+3*sqrt(binError2)));
+      //      hZptFake3sigmaUp[er]->SetBinError(zpt2, sqrt(binError2));
+      if ((binContent-3*sqrt(binError2))>0)
+	hZptFake3sigmaDown[er]-> SetBinContent(zpt2, (binContent-3*sqrt(binError2)));
+      else
+	hZptFake3sigmaDown[er]-> SetBinContent(zpt2, 0);
+      //      hZptFake3sigmaDown[er]->SetBinError(zpt2, sqrt(binError2));
     }
   }
   
@@ -573,6 +641,19 @@ int main()
   std::cout<<"N_fake_3mu:    "<<N_fake_3mu<<std::endl;
   std::cout<<"ferror_3mu:    "<<sqrt(ferror_3mu)<<std::endl;  
 
+  if (latexOutput)
+    {
+      std::cout<<"channel & Ngood & Nfake \\\\ "<<std::endl;
+      std::cout<<"\\hline"<<std::endl;
+      std::cout<<"3e     & $"<<N_good_3e    <<"\\pm"<<sqrt(error_3e)    <<"$ & $"<<N_fake_3e    <<"\\pm"<<sqrt(ferror_3e)    <<"$ \\\\"<<std::endl;
+      std::cout<<"\\hline"<<std::endl;
+      std::cout<<"2e1mu  & $"<<N_good_2e1mu <<"\\pm"<<sqrt(error_2e1mu) <<"$ & $"<<N_fake_2e1mu <<"\\pm"<<sqrt(ferror_2e1mu) <<"$ \\\\"<<std::endl;
+      std::cout<<"\\hline"<<std::endl;
+      std::cout<<"1e2mu  & $"<<N_good_1e2mu <<"\\pm"<<sqrt(error_1e2mu) <<"$ & $"<<N_fake_1e2mu <<"\\pm"<<sqrt(ferror_1e2mu) <<"$ \\\\"<<std::endl;
+      std::cout<<"\\hline"<<std::endl;
+      std::cout<<"3mu    & $"<<N_good_3mu   <<"\\pm"<<sqrt(error_3mu)   <<"$ & $"<<N_fake_3mu   <<"\\pm"<<sqrt(ferror_3mu)   <<"$ \\\\"<<std::endl;
+      std::cout<<"\\hline"<<std::endl;
+    }
   //write in file:
   if (writeOutputNumbers){
     fileNumMM<<"#define dN_fake3e "<<N_fake_3e<<std::endl;

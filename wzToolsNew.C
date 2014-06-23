@@ -3,10 +3,11 @@
 #include "TChain.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TGraphErrors.h"
 #include "TLorentzVector.h"
 //#include "ThirdMuons.h"
 #include "TString.h"
-
+#include "constants.h"
 
 #include <iostream>
 #include <sstream>
@@ -71,7 +72,7 @@ void readFileFromList(TString fileList, std::vector<TString>* inputFile)
   }
 }
 
-bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt)
+bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector* analysisLepton, float * ch,double & massMu, double & Zpt)
 {
   TLorentzVector v;  
   float diff= 500;
@@ -88,8 +89,8 @@ bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLore
     for (int imu2=imu1+1; imu2<good_muons->size(); imu2++) {
       int mu1=(*good_muons)[imu1];
       int mu2=(*good_muons)[imu2];
-      float pt1= pt[mu1];
-      float pt2= pt[mu2];
+      float pt1= analysisLepton[mu1].Pt();
+      float pt2= analysisLepton[mu2].Pt();
       v= v_niz[mu1]+v_niz[mu2];
 
       mass.push_back(v.M());
@@ -113,14 +114,14 @@ bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLore
   if (((diff<20)) && (Z_muon_charge1 != 0) 
       && (Z_muon_charge2 != 0)
       && ((-1)*Z_muon_charge1== Z_muon_charge2)
-      && (((pt[Z_muonIndex1]>20 ) && (pt[Z_muonIndex2])>10 ) 
-      || ((pt[Z_muonIndex2]>20 ) && ((pt[Z_muonIndex1])>10 )))) 
+      && (((analysisLepton[Z_muonIndex1].Pt()>20 ) && (analysisLepton[Z_muonIndex2].Pt())>10 ) 
+	  || ((analysisLepton[Z_muonIndex2].Pt()>20 ) && ((analysisLepton[Z_muonIndex1].Pt())>10 )))) 
     {
       //      if (diff>20) std::cout<<diff<<std::endl;
       massMu=mass1;
       Zpt=ZtransIm;
       //first goes lepton with bigger pt
-      if (pt[Z_muonIndex1]>pt[Z_muonIndex2]){
+      if (analysisLepton[Z_muonIndex1].Pt()>analysisLepton[Z_muonIndex2].Pt()){
 	WZcandidates[0] = Z_muonIndex1;
 	WZcandidates[1] = Z_muonIndex2;
       }
@@ -211,16 +212,16 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
   }
 }
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta ){
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector* analysisLepton){
   int z1=WZcandidates[0];
   int z2=WZcandidates[1];
   int w=WZcandidates[2];
-  float phi1=phi[z1];
-  float phi2=phi[z2];
-  float phi3=phi[w];
-  float eta1=eta[z1];
-  float eta2=eta[z2];
-  float eta3=eta[w];
+  float phi1=analysisLepton[z1].Phi();
+  float phi2=analysisLepton[z2].Phi();
+  float phi3=analysisLepton[w].Phi();
+  float eta1=analysisLepton[z1].Eta();
+  float eta2=analysisLepton[z2].Eta();
+  float eta3=analysisLepton[w].Eta();
   float deltaPhiZ1W=acos(cos(phi1-phi3));
   float deltaEtaZ1W= eta1-eta3;
   float deltaPhiZ2W=acos(cos(phi2-phi3));
@@ -263,32 +264,59 @@ TH2F* LoadHistogram(TString filename, TString hname, TString cname){
   return hist;
 }
 
-double ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta){
+double ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, TLorentzVector* analysisLepton, double syst=0.0){
   int index1=WZCandidates[0];
   int index2=WZCandidates[1];
   int index3=WZCandidates[2];
   double factor1(-999), factor2(-999), factor3(-999);
-
+  double error1(0), error2(0), error3(0);
+  //  std::cout<<pt[index1]<<":"<<pt[index2]<<":"<<pt[index3]<<std::endl;
+  //  std::cout<<syst<<std::endl;
   if (type==0) {
-    factor1= GetFactor(ElecSF, pt[index1], eta[index1]);
-    factor2= GetFactor(ElecSF, pt[index2], eta[index2]);
-    factor3= GetFactor(ElecSF, pt[index3], eta[index3]);
+    error1= GetError(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    error2= GetError(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    error3= GetError(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+
+    factor1= GetFactor(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta()); + syst*error1;
+    factor2= GetFactor(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta()); + syst*error2;
+    factor3= GetFactor(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta()); + syst*error3;
   }
+
   if (type==1){
-    factor1= GetFactor(ElecSF, pt[index1], eta[index1]);
-    factor2= GetFactor(ElecSF, pt[index2], eta[index2]);
-    factor3= GetFactor(MuonSF, pt[index3], eta[index3]);
+    error1= GetError(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    error2= GetError(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    error3= GetError(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+
+    factor1= GetFactor(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta()) + syst*error1;
+    factor2= GetFactor(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta()) + syst*error2;
+    factor3= GetFactor(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta()) + syst*error3;
   }
   if (type==2){
-   factor1= GetFactor(MuonSF, pt[index1], eta[index1]);
-   factor2= GetFactor(MuonSF, pt[index2], eta[index2]);
-   factor3= GetFactor(ElecSF, pt[index3], eta[index3]);
+    error1= GetError(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    error2= GetError(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    error3= GetError(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    
+    factor1= GetFactor(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta()) + syst*error1;
+    factor2= GetFactor(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta()) + syst*error2;
+    factor3= GetFactor(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta()) + syst*error3;
   }
   if (type==3){
-    factor1= GetFactor(MuonSF, pt[index1], eta[index1]);
-    factor2= GetFactor(MuonSF, pt[index2], eta[index2]);
-    factor3= GetFactor(MuonSF, pt[index3], eta[index3]);
+    error1= GetError(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    error2= GetError(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    error3= GetError(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+
+    factor1= GetFactor(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta()) + syst*error1;
+    factor2= GetFactor(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta()) + syst*error2;
+    factor3= GetFactor(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta()) + syst*error3;
+    //    std::cout<<factor1<<":"<<factor2<<":"<<factor3<<std::endl;
+    // std::cout<<error1<<":"<<error2<<":"<<error3<<std::endl;  
+    //std::cout<<"*********"<<std::endl;
   }
+  
+  //  std::cout<<"********************"<<std::endl;
+  //  std::cout<<factor1*factor2*factor3<<std::endl;
+  double factor=factor1*factor2*factor3;
+
   return (factor1*factor2*factor3);
 }
 
@@ -318,7 +346,7 @@ float triggerDifferentLeptons(float* eL, float* eT){
 }
 
 
-float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, TH2F* DoubleElTrail, TH2F* DoubleMuTrail, int type,float* pt, float* eta){
+float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, TH2F* DoubleElTrail, TH2F* DoubleMuTrail, int type,TLorentzVector * analysisLepton){
   int index1=WZcandidates[0];
   int index2=WZcandidates[1];
   int index3=WZcandidates[2];
@@ -326,46 +354,46 @@ float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, T
   float eL[3]={0,0,0};
   float eT[3]={0,0,0};
   if (type==0){
-    eL[0]=GetFactor(DoubleElLead, pt[index1], eta[index1]);
-    eL[1]=GetFactor(DoubleElLead, pt[index2], eta[index2]);
-    eL[2]=GetFactor(DoubleElLead, pt[index3], eta[index3]);
-    eT[0]=GetFactor(DoubleElTrail, pt[index1], eta[index1]);
-    eT[1]=GetFactor(DoubleElTrail, pt[index2], eta[index2]);
-    eT[2]=GetFactor(DoubleElTrail, pt[index3], eta[index3]);
+    eL[0]=GetFactor(DoubleElLead, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eL[1]=GetFactor(DoubleElLead, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eL[2]=GetFactor(DoubleElLead, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    eT[0]=GetFactor(DoubleElTrail, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eT[1]=GetFactor(DoubleElTrail, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eT[2]=GetFactor(DoubleElTrail, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
     factor=trigger3sameLeptons(eL, eT);
     
   }
   if (type==1){
     //Jonatan's way
-    eL[0]=GetFactor(DoubleElLead, pt[index1], eta[index1]);
-    eL[1]=GetFactor(DoubleElLead, pt[index2], eta[index2]);
-    eL[2]=GetFactor(DoubleMuLead, pt[index3], eta[index3]);
-    eT[0]=GetFactor(DoubleElTrail, pt[index1], eta[index1]);
-    eT[1]=GetFactor(DoubleElTrail, pt[index2], eta[index2]);
-    eT[2]=GetFactor(DoubleMuTrail, pt[index3], eta[index3]);
+    eL[0]=GetFactor(DoubleElLead, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eL[1]=GetFactor(DoubleElLead, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eL[2]=GetFactor(DoubleMuLead, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    eT[0]=GetFactor(DoubleElTrail, analysisLepton[index1].Pt(),analysisLepton[index1].Eta());
+    eT[1]=GetFactor(DoubleElTrail, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eT[2]=GetFactor(DoubleMuTrail, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
     
     //    factor=trigger2sameLeptons(eL, eT);
     factor=trigger3sameLeptons(eL, eT);
   }
   if (type==2){
     //Jonatan's way
-    eL[0]=GetFactor(DoubleMuLead, pt[index1], eta[index1]);
-    eL[1]=GetFactor(DoubleMuLead, pt[index2], eta[index2]);
-    eL[2]=GetFactor(DoubleElLead, pt[index3], eta[index3]);
-    eT[0]=GetFactor(DoubleMuTrail, pt[index1], eta[index1]);
-    eT[1]=GetFactor(DoubleMuTrail, pt[index2], eta[index2]);
-    eT[2]=GetFactor(DoubleElTrail, pt[index3], eta[index3]);
+    eL[0]=GetFactor(DoubleMuLead, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eL[1]=GetFactor(DoubleMuLead, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eL[2]=GetFactor(DoubleElLead, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    eT[0]=GetFactor(DoubleMuTrail, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eT[1]=GetFactor(DoubleMuTrail, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eT[2]=GetFactor(DoubleElTrail, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
     
     //factor=trigger2sameLeptons(eL, eT);
     factor=trigger3sameLeptons(eL, eT);
   }
   if (type==3){
-    eL[0]=GetFactor(DoubleMuLead, pt[index1], eta[index1]);
-    eL[1]=GetFactor(DoubleMuLead, pt[index2], eta[index2]);
-    eL[2]=GetFactor(DoubleMuLead, pt[index3], eta[index3]);
-    eT[0]=GetFactor(DoubleMuTrail, pt[index1], eta[index1]);
-    eT[1]=GetFactor(DoubleMuTrail, pt[index2], eta[index2]);
-    eT[2]=GetFactor(DoubleMuTrail, pt[index3], eta[index3]);
+    eL[0]=GetFactor(DoubleMuLead, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eL[1]=GetFactor(DoubleMuLead, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eL[2]=GetFactor(DoubleMuLead, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    eT[0]=GetFactor(DoubleMuTrail, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    eT[1]=GetFactor(DoubleMuTrail, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    eT[2]=GetFactor(DoubleMuTrail, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
     factor=trigger3sameLeptons(eL, eT);
   }
   return factor;
@@ -644,45 +672,45 @@ float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, in
   return errorEvent;
 }
 
-float AxeError(float weight, TH2F * MuonSF, TH2F * ElecSF, float pileUpWeight, int * WZCandidates, int type, float* pt, float* eta, float TriggerEff, float triggerError=0){
+float AxeError(float weight, TH2F * MuonSF, TH2F * ElecSF, float pileUpWeight, int * WZCandidates, int type,TLorentzVector* analysisLepton, float TriggerEff, float triggerError=0){
   float error(0);
   int index1=WZCandidates[0];
   int index2=WZCandidates[1];
   int index3=WZCandidates[2];
   float factor1(-999), factor2(-999), factor3(-999);
-  float factorError1(-999), factorError2(-999), factorError3(-999);
+  float factorError1(100000), factorError2(100000), factorError3(100000);
 
   if (type==0) {
-    factor1= GetFactor(ElecSF, pt[index1], eta[index1]);
-    factorError1= GetError(ElecSF, pt[index1], eta[index1]);
-    factor2= GetFactor(ElecSF, pt[index2], eta[index2]);
-    factorError2= GetError(ElecSF, pt[index2], eta[index2]);
-    factor3= GetFactor(ElecSF, pt[index3], eta[index3]);
-    factorError3= GetError(ElecSF, pt[index3], eta[index3]);
+    factor1= GetFactor(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factorError1= GetError(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factor2= GetFactor(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factorError2= GetError(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factor3= GetFactor(ElecSF, analysisLepton[index3].Pt(),analysisLepton[index3].Eta());
+    factorError3= GetError(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
   }
   if (type==1){
-    factor1= GetFactor(ElecSF, pt[index1], eta[index1]);
-    factorError1= GetError(ElecSF, pt[index1], eta[index1]);
-    factor2= GetFactor(ElecSF, pt[index2], eta[index2]);
-    factorError2= GetError(ElecSF, pt[index2], eta[index2]);
-    factor3= GetFactor(MuonSF, pt[index3], eta[index3]);
-    factorError3= GetError(MuonSF, pt[index3], eta[index3]);
+    factor1= GetFactor(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factorError1= GetError(ElecSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factor2= GetFactor(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factorError2= GetError(ElecSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factor3= GetFactor(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    factorError3= GetError(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
   }
   if (type==2){
-    factor1= GetFactor(MuonSF, pt[index1], eta[index1]);
-    factorError1= GetError(MuonSF, pt[index1], eta[index1]);
-    factor2= GetFactor(MuonSF, pt[index2], eta[index2]);
-    factorError2= GetError(MuonSF, pt[index2], eta[index2]);
-    factor3= GetFactor(ElecSF, pt[index3], eta[index3]);
-    factorError3= GetError(ElecSF, pt[index3], eta[index3]);
+    factor1= GetFactor(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factorError1= GetError(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factor2= GetFactor(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factorError2= GetError(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factor3= GetFactor(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    factorError3= GetError(ElecSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
   }
   if (type==3){
-    factor1= GetFactor(MuonSF, pt[index1], eta[index1]);
-    factorError1= GetError(MuonSF, pt[index1], eta[index1]);
-    factor2= GetFactor(MuonSF, pt[index2], eta[index2]);
-    factorError2= GetError(MuonSF, pt[index2], eta[index2]);
-    factor3= GetFactor(MuonSF, pt[index3], eta[index3]);
-    factorError3= GetError(MuonSF, pt[index3], eta[index3]);
+    factor1= GetFactor(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factorError1= GetError(MuonSF, analysisLepton[index1].Pt(), analysisLepton[index1].Eta());
+    factor2= GetFactor(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factorError2= GetError(MuonSF, analysisLepton[index2].Pt(), analysisLepton[index2].Eta());
+    factor3= GetFactor(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
+    factorError3= GetError(MuonSF, analysisLepton[index3].Pt(), analysisLepton[index3].Eta());
   }
   error= weight*weight+ pow(pileUpWeight*factorError1*factor2*factor3*TriggerEff,2)+ pow(pileUpWeight*factor1*factorError2*factor3*TriggerEff,2)+ pow(pileUpWeight*factor1*factor2*factorError3*TriggerEff,2)+ pow(pileUpWeight*factor1*factor2*factor3*triggerError,2);
   return error;
@@ -695,8 +723,9 @@ double ReturnBranchingWeight(int type){
     //type: 0-(eee), 1-(eem), 2-(mme), 3-(mmm), 4-(tte), 5-(ttm), 6-(ttt), 7-(eet), 8-(mmt)
   
   if (type==-999) return 0;
-  double ratioPDG[9];
+  double ratioPDG[9], ratioMad[9];
   double numMad[9];
+  /*
   ratioPDG[0] = 0.03363*0.1075/ (0.033658*3*(0.1075+0.1057+0.1125));
   ratioPDG[1] = 0.03363*0.1057/ (0.033658*3*(0.1075+0.1057+0.1125));
   ratioPDG[2] = 0.03366*0.1075/ (0.033658*3*(0.1075+0.1057+0.1125));
@@ -718,7 +747,7 @@ double ReturnBranchingWeight(int type){
   srecko[7]=137090.0/1210189.0;
   srecko[8]=137090.0/1210189.0;
 
-  
+    
   numMad[0]=135772;
   numMad[1]=135591;
   numMad[2]=134010;
@@ -729,28 +758,61 @@ double ReturnBranchingWeight(int type){
   numMad[7]=154520;
   numMad[8]=154395;
   double all=1309996;
+  */
+
+  ratioPDG[0]= eee_pdg;
+  ratioPDG[1]= eem_pdg;
+  ratioPDG[2]= mme_pdg;
+  ratioPDG[3]= mmm_pdg;
+  ratioPDG[4]= tte_pdg;
+  ratioPDG[5]= ttm_pdg;
+  ratioPDG[6]= ttt_pdg;
+  ratioPDG[7]= eet_pdg;
+  ratioPDG[8]= mmt_pdg;
+
+  ratioMad[0]= eee_madgraph;
+  ratioMad[1]= eem_madgraph;
+  ratioMad[2]= mme_madgraph;
+  ratioMad[3]= mmm_madgraph;
+  ratioMad[4]= tte_madgraph;
+  ratioMad[5]= ttm_madgraph;
+  ratioMad[6]= ttt_madgraph;
+  ratioMad[7]= eet_madgraph;
+  ratioMad[8]= mmt_madgraph;
+  
   
 
-  double BrMad=numMad[type]/all;
-  //double BrMad=nu[type]/all;
+  //double BrMad=numMad[type]/all;
     
 
-  /*  
+  /*   
   for (int t=0; t<9; t++){
     std::cout<<"PDG: "<<ratioPDG[t]<<std::endl;
     std::cout<<"kod: "<<numMad[t]/all<<std::endl;
-    std::cout<<"sre: "<<srecko[t]<<std::endl;
+//    std::cout<<"sre: "<<srecko[t]<<std::endl;
     std::cout<<"************"<<std::endl;
   }
 
   std::cout<<"********************"<<std::endl;
   */
-  double weightBr= ratioPDG[type]/BrMad;
+  //  double weightBr= ratioPDG[type]/BrMad;
+  double weightBr= ratioPDG[type]/ratioMad[type];
   
   //  if (type==6) weightBr=0.11528/0.1122376;
   //  if (type==7) std::cout<<ratioPDG[type]<<"/"<<BrMad<<"="<<weightBr<<std::endl;  
   return weightBr;
-  }
+}
+
+TLorentzVector GetMET(Float_t metModule, Float_t metPhi)
+{
+  Float_t px = metModule * cos(metPhi);
+  Float_t py = metModule * sin(metPhi);
+  
+  TLorentzVector metv(px, py, 0., metModule);
+
+  return metv;
+}
+
 
 #ifdef NEWMC
 int determineGenType(WZTEST * cWZ){
@@ -811,6 +873,51 @@ int determineGenType(WZTEST * cWZ){
   if (Zel && Wtau) genType=7;
   if (Zmu && Wtau) genType=8;
   
+
   return genType;
 }
+
+
 #endif
+
+TH1F* GetHistogramFromGraph(TString hname, TString gname)
+{
+  TString path = "../AuxiliaryFilesWZXS8TeV/";
+
+  TFile* inputfile = TFile::Open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/auxiliaryFiles/gScaleSyst-8TeV.root");
+
+  TGraphErrors* graph = (TGraphErrors*)inputfile->Get(gname);
+
+  UInt_t nbins = graph->GetN();
+
+  Double_t* xx = graph->GetX();
+  Double_t* yy = graph->GetY();
+
+  Float_t* range = new Float_t[nbins+1];
+
+  for (UInt_t i=0; i<nbins; i++)
+    {
+      range[i+1] = (xx[i] + xx[i+1]) / 2.;
+    }
+
+  range[0]     = xx[0]       - (xx[1]       - xx[0]      ) / 2.;
+  range[nbins] = xx[nbins-1] + (xx[nbins-1] - xx[nbins-2]) / 2.;
+
+  TH1F* hist = new TH1F(hname, hname, nbins, range);
+  
+  hist->SetDirectory(0);
+
+  for (UInt_t i=1; i<=nbins; i++)
+    {
+      hist->SetBinContent(i, fabs(yy[i-1]));
+    }
+
+  inputfile->Close();
+
+  delete [] range;
+
+  return hist;
+}
+
+
+

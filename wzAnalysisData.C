@@ -20,13 +20,13 @@
 //
 //
 //
-bool Z_muons(WZ2012Data *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt);
+bool Z_muons(WZ2012Data *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector * analysisLepton, float * ch,double & massMu, double & Zpt);
 
 bool passMVAiso(float isomva, float pt, float eta);
 
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 int main()
 {
   using namespace std;
@@ -34,19 +34,28 @@ int main()
   ofstream fileNumData;
 
   fileNumData.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numData_met.h");
-  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts3e_Lucija.txt");
-  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts2e1mu_Lucija.txt");
-  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts1e2mu_Lucija.txt");
-  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts3mu_Lucija.txt");
+  //  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3e_Lucija.txt");
+  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3e_Lucija.txt");
+  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts2e1mu_Lucija.txt");
+  //  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts2e1mu_Lucija.txt");
+  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts1e2mu_Lucija.txt");
+  //  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts1e2mu_Lucija.txt");
+  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3mu_Lucija.txt");
+  //  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3mu_Lucija.txt");
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
 
+  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+
+  //  bool writeOutputNumbers(false);
   bool writeOutputNumbers(true);
   if (writeOutputNumbers){
     fileNumData<<"#ifndef numData_h"<<std::endl;
     fileNumData<<"#define numData_h"<<std::endl;
   }
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+  TH1F * hZmassFinal[4];
+  
+  //  for (int histos=0; histos<4; histos++)
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
@@ -79,7 +88,7 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_113_DoubleMuon2012A.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_114_MuEG2012A.root");
 
-  
+    
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_202_DoubleElectron2012B.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_203_DoubleMuon2012B.root ");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_204_MuEG2012B.root");
@@ -108,8 +117,30 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_307_DoubleElectron2012C.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_403_DoubleMuon2012D.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_404_MuEG2012D.root");
+  
+
 
   
+  TFile * forSenka1= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_3e_1.root", "RECREATE");
+  TFile * forSenka2= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_2e_1.root", "RECREATE");
+  TFile * forSenka3= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_2mu_1.root", "RECREATE");  
+  TFile * forSenka4= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_3mu_1.root", "RECREATE");
+
+  //  TTree* wz_aTGC = new TTree("T", "wz_aTGC");
+  forSenka1->cd();
+  TTree* wz_aTGC1 = new TTree("tgcTree", "wz_aTGC1");
+  forSenka2->cd();
+  TTree* wz_aTGC2 = new TTree("tgcTree", "tgcTree");
+  forSenka3->cd();
+  TTree* wz_aTGC3 = new TTree("tgcTree", "tgcTree");
+  forSenka4->cd();
+  TTree* wz_aTGC4 = new TTree("tgcTree", "tgcTree");
+  // double PtZ(0);
+  float PtZ_eee(0), PtZ_eem(0), PtZ_emm(0), PtZ_mmm(0);
+  wz_aTGC1->Branch("PtZ", &PtZ_eee, "PtZ/F");
+  wz_aTGC2->Branch("PtZ", &PtZ_eem, "PtZ/F");
+  wz_aTGC3->Branch("PtZ", &PtZ_emm, "PtZ/F");
+  wz_aTGC4->Branch("PtZ", &PtZ_mmm, "PtZ/F");
   
   for (int input=0; input< inputName.size(); input++){
     wz.Add(inputName[input]);
@@ -118,10 +149,11 @@ int main()
   WZ2012Data *cWZ= new WZ2012Data(wz_tTree);
   Int_t events= wz_tTree->GetEntries();
   
+
   std::cout<<"number of events: "<<events << std::endl;
 
 
-  for  (Int_t k = 0; k<events /*&& k<5000*/;k++) {
+  for  (Int_t k = 0; k<events /*&& k<5000000*/;k++) {
     wz_tTree->GetEntry(k);
 
     //rejecting run 201191
@@ -142,9 +174,19 @@ int main()
     TLorentzVector v_nizEl[9];
     TLorentzVector v_nizMu[9];
     TLorentzVector v_3Lepton(0.,0.,0.,0.);
-    
+
+    TLorentzVector analysisLepton[leptonNumber];    
     int WZcandidates[3]; //->here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
     
+    for (int i1=0; i1<leptonNumber; i1++){
+      if ((bdt[i1]<100) && (pt[i1]>10)){    
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
+      }
+      if ((bdt[i1]>100) && (pt[i1]>10)){
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+      }
+    }
+
     int lepNum(0);
     for (int i=0; i<leptonNumber; i++){
       if ((pt[i]>10) && (pt[i]!=-9999))
@@ -170,10 +212,12 @@ int main()
     bool foundZel(false), foundZmu(false);
     double massMu(-999), massEl(0), Zpt(0);
 
-    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, pt, ch, massMu, Zpt);
 
 
-    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, pt, ch, massEl, Zpt);
+    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, analysisLepton, ch, massMu, Zpt);
+
+
+    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, analysisLepton, ch, massEl, Zpt);
 
     // reject all events without Z boson--and candidates with double Z boson
         
@@ -314,7 +358,7 @@ int main()
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
 
     //deltaR condition
-    if (!passDeltaRWleptZlept(WZcandidates, phi, eta)) continue;
+    if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW++;  
     
     if (ev3e){
@@ -334,34 +378,46 @@ int main()
     
     //    if ((cWZ->pfmet)<30) continue;
     if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
-    
+    //    PtZ=Zpt;
 
+  
     if (ev3e){
       numMET3e++;
-      myfile3e<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
+      myfile3e<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       hZmassElWel3->Fill(massEl);
+      forSenka1->cd();
+      PtZ_eee=Zpt;
+      wz_aTGC1->Fill();    
     }
     if (ev2e1mu){
-      myfile2e1mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
+      myfile2e1mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET2e1mu++;
       hZmassElWmu3->Fill(massEl);
+      forSenka2->cd();
+      PtZ_eem=Zpt;
+      wz_aTGC2->Fill();    
 
     }
     if (ev1e2mu){
-      myfile1e2mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
+      myfile1e2mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET1e2mu++;
       hZmassMuWel3->Fill(massMu);
+      forSenka3->cd();
+      PtZ_emm=Zpt;
+      wz_aTGC3->Fill();    
     }
 
     if (ev3mu){
-      myfile3mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
+      myfile3mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET3mu++;
       hZmassMuWmu3->Fill(massMu);
+      PtZ_mmm=Zpt;
+      forSenka4->cd();
+      wz_aTGC4->Fill();    
     }
         
     myfileAll<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
-    
-   
+
   }
   std::cout<<"Zyield: "<<numZ<<std::endl;
   std::cout<<"Wyield: "<<numW<<std::endl;
@@ -377,11 +433,34 @@ int main()
 
   std::cout<<justCount<<std::endl;
   
+
+  
+
   fout->cd();
   fout->Write();
   fout->Close();
 
-    if (writeOutputNumbers){
+
+  forSenka1->cd();
+  wz_aTGC1->Write();
+  forSenka1->Close();
+  
+
+  forSenka2->cd();
+  wz_aTGC2->Write();
+  forSenka2->Close();
+  
+
+  forSenka3->cd();
+  wz_aTGC3->Write();
+  forSenka3->Close();
+  
+
+  forSenka4->cd();
+  wz_aTGC4->Write();
+  forSenka4->Close();
+  
+  if (writeOutputNumbers){
     fileNumData<<"#define dN_data3e "<<numMET3e<<std::endl;
     fileNumData<<"#define dN_data2e1mu "<<numMET2e1mu<<std::endl;
     fileNumData<<"#define dN_data1e2mu "<<numMET1e2mu<<std::endl;

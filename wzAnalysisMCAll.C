@@ -25,27 +25,32 @@
 //
 void readChainFromList(TString fileList, TChain * chain);
 
-bool Z_muons(WZ *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt);
+bool Z_muons(WZ *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector* analysisLepton, float * ch,double & massMu, double & Zpt);
 
 bool passMVAiso(float isomva, float pt, float eta);
 
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 
 float GetFactor(TH2F* h2, float leptonPt, float leptonEta);
 
 TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
-float ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, float *pt, float * eta);
+double ScaleFactors(TH2F* MuonSF, TH2F* ElecSF,int type, int * WZCandidates, TLorentzVector* analysisLepton, double syst=0.0);
 
 float trigger3sameLeptons(int* eL, int* eT);
 
 float trigger2sameLeptons(int* eL, int* eT);
 
-float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, TH2F* DoubleElTrail, TH2F* DoubleMuTrail, int type,float* pt, float* eta);
+float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, TH2F* DoubleElTrail, TH2F* DoubleMuTrail, int type,TLorentzVector* analysisLepton);
 
 void readFileFromList(TString fileList,std::vector<TString> * inputFile);
+
+TH1F * GetHistogramFromGraph(TString hname, TString gname);
+
+TLorentzVector GetMET(Float_t metModule, Float_t metPhi);
+
 
 int main()
 {
@@ -89,6 +94,9 @@ int main()
   TH2F* DoubleElTrail;
   TH2F* DoubleMuLead;
   TH2F* DoubleMuTrail;
+  TH1F* hScaleInEB;
+  TH1F* hScaleOutEB;
+  TH1F* hScaleEE;
 
   MuonSF=LoadHistogram("auxiliaryFiles/MuSF_2012.root", "h2inverted", "MuonSF");
   ElecSF=LoadHistogram("auxiliaryFiles/EleSF_2012.root", "h2inverted", "ElecSF");
@@ -97,10 +105,22 @@ int main()
   DoubleElTrail=LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleElTrail", "DoubleElTrail");
   DoubleMuTrail=LoadHistogram("auxiliaryFiles/triggerEfficiencies.root", "DoubleMuTrail", "DoubleMuTrail");
 
+  hScaleInEB  = GetHistogramFromGraph("hScaleInEB",  "gScaleInEB");
+  hScaleOutEB = GetHistogramFromGraph("hScaleOutEB", "gScaleOutEB");
+  hScaleEE    = GetHistogramFromGraph("hScaleEE",    "gScaleEE");
+
   std::vector<TString>name;
   std::vector<TChain*> chain;
   std::vector<TString> files;
-
+  std::vector<double> errorMC;
+  
+  errorMC.push_back(0);
+  errorMC.push_back(0.15);
+  errorMC.push_back(0.15);
+  errorMC.push_back(1);
+  errorMC.push_back(0.2);
+  errorMC.push_back(0);
+  errorMC.push_back(0);
   
   files.push_back("WZ.files");
   files.push_back("ZZ.files");
@@ -120,15 +140,14 @@ int main()
 
 
 
-
-
-  for (int file=0; file<files.size() /*&& file<1*/; file++){
+  for (int file=0; file<(files.size()-2) /*&& file<1*/; file++){
 
     float numZ(0), numW(0), numMET(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0.0), numMET2e1mu(0.0), numMET1e2mu(0.0), numMET3mu(0.0);
     float numMET3ectrl(0), numMET2e1muctrl(0), numMET1e2muctrl(0), numMET3muctrl(0);
     float numMET3eGEN(0), numMET2e1muGEN(0), numMET1e2muGEN(0), numMET3muGEN(0);
     float error3e(0), error2e1mu(0), error1e2mu(0), error3mu(0);
     TFile * fout = new TFile(name[file],"RECREATE");
+    int numTest(0);
 
     TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
     TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
@@ -145,18 +164,28 @@ int main()
     const int nChannels(4);
     TH1D * hZpt[nChannels];
     TH1D * hLeadingJetPt[nChannels]; 
-
-    //TH1D * hZpt= UnfoldingHistogramFactory::createZPtHistogram("name", "name");
-    //    LeadingJetname<<"LeadingJetPt_";
-    //Zptname<<"Zpt_";
+    TH1D * hZptAll[nChannels];
+    TH1D * hZptAllError[nChannels];
+    TH1D * hZptAll3sigmaUp[nChannels];
+    TH1D * hZptAll3sigmaDown[nChannels];
     
     for (int hist=0; hist<nChannels; hist++){
-      std::ostringstream Zptname, LeadingJetname;
+      std::ostringstream Zptname, LeadingJetname, ZptfSname, ZptfSnameError, ZptfSname3Up, ZptfSname3Down ;
       LeadingJetname<<"LeadingJetPt_"<<(hist+1);
       Zptname<<"Zpt_"<<(hist+1);
+      ZptfSname<<"total_bkg_rebined_"<<(hist);
+      ZptfSnameError<<"total_bkg_rebined_error_"<<(hist);
+      ZptfSname3Up<<"total_bkg_rebined_3sigmaUp_"<<(hist);
+      ZptfSname3Down<<"total_bkg_rebined_3sigmaDown_"<<(hist);
+
       hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
       hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
-  }
+      hZptAll[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname.str().c_str(), ZptfSname.str().c_str());
+      hZptAllError[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSnameError.str().c_str(), ZptfSnameError.str().c_str());
+      hZptAll3sigmaUp[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname3Up.str().c_str(), ZptfSname3Up.str().c_str());
+      hZptAll3sigmaDown[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname3Down.str().c_str(), ZptfSname3Down.str().c_str());
+      
+    }
     
 //type: 0=EEE, 1=EEM, 2=EMM, 3=MMM
     
@@ -186,14 +215,15 @@ int main()
     
 
 
-    for  (Int_t k = 0; k<events /*&& k<10000*/;k++) {
+    for  (Int_t k = 0; k<events /*&& k<1000*/;k++) {
       wz_tTree->GetEntry(k);    
       cWZ->ReadEvent();
       
       float xs_weight(0);    
 
     //*******various factors
-    float pileUpWeight=cWZ->puW;
+      float pileUpWeight=cWZ->puW;
+      // float pileUpWeight=1.0;
     
     //rejecting run 201191
     //    if (cWZ->run==201191) continue;
@@ -215,9 +245,13 @@ int main()
     TLorentzVector v_nizMu[9];
     TLorentzVector v_3Lepton(0.,0.,0.,0.);
     
+    TLorentzVector analysisLepton[leptonNumber];
+    TLorentzVector analysisLeptonOld[leptonNumber];
+    TLorentzVector EventMET;
+
     int WZcandidates[3]; 
 
-float weight;
+    float weight;
     //xs_weight=(cWZ->baseW)*luminosity;
     xs_weight=(1.0 + 0.6 * ((cWZ->dataset) >= 82 && (cWZ->dataset) <= 84)) * (cWZ->baseW) * luminosity;
     if ((cWZ->dataset)==89) xs_weight *= (0.01968  / 0.0192);
@@ -226,22 +260,72 @@ float weight;
     if ((cWZ->dataset)==92) xs_weight *= (0.08058  / 0.0822);
     if ((cWZ->dataset)==93) xs_weight *= (0.232    / 0.232);
     if ((cWZ->dataset)==94) xs_weight *= (0.2057 / 0.174);
-
     
-    //here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
+    bool muScaleSyst(false);
+    bool elScaleSyst(true);
+    double muScale(0.002);
+    double elScale(-1.0);
+
+    double pfmet=cWZ->pfmet;
+    double pfmetphi=cWZ->pfmetphi;
+    EventMET = GetMET(pfmet, pfmetphi);
+
+    for (int i1=0; i1<leptonNumber; i1++){
+      if ((bdt[i1]<100) && (pt[i1]>10)){
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
+      	analysisLeptonOld[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
+	if (elScaleSyst){
+	  double scale;
+	  const Float_t InEBMax  = hScaleInEB ->GetXaxis()->GetBinCenter(hScaleInEB ->GetNbinsX());
+	  const Float_t OutEBMax = hScaleOutEB->GetXaxis()->GetBinCenter(hScaleOutEB->GetNbinsX());
+	  const Float_t EEMax    = hScaleEE   ->GetXaxis()->GetBinCenter(hScaleEE   ->GetNbinsX());
+	  const Float_t scaleInEB  = hScaleInEB ->GetBinContent(hScaleInEB ->FindBin(min(pt[i1], InEBMax)));
+	  const Float_t scaleOutEB = hScaleOutEB->GetBinContent(hScaleOutEB->FindBin(min(pt[i1], OutEBMax)));
+	  const Float_t scaleEE    = hScaleEE   ->GetBinContent(hScaleEE   ->FindBin(min(pt[i1], EEMax)));
+	  const Float_t aeta = fabs(eta[i1]);
+	  if (aeta < 0.8)
+	    {
+	      scale = scaleInEB;
+	    }
+	  else if (aeta >= 0.8 && aeta < 1.479)
+	    {
+	      scale = scaleOutEB;
+	    }
+	  else
+	    {
+	      scale = scaleEE;
+	    }
+	  double spt=pt[i1]+ pt[i1]*scale*elScale;
+	  double factScale=pt[i1]/spt;
+	  analysisLepton[i1]*=factScale;
+	  EventMET +=(analysisLepton[i1]-analysisLeptonOld[i1]);
+	}
+      }
+      if ((bdt[i1]>100) && (pt[i1]>10)){
+	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+	analysisLeptonOld[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+	if (muScaleSyst){
+	  double spt=pt[i1]+ pt[i1]*muScale;
+	  double factScale=pt[i1]/spt;
+	  analysisLepton[i1]*=factScale;
+	  EventMET +=(analysisLepton[i1]-analysisLeptonOld[i1]);
+	}
+      }
+    }
+//here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
     
     int lepNum(0);
     for (int i=0; i<leptonNumber; i++){
-      if ((pt[i]>10) && (pt[i]!=-9999))
+      if ((analysisLepton[i].Pt()>10) && (analysisLepton[i].Pt()!=-9999))
 	lepNum++;
-      if ((bdt[i]<100) && (pass2012ICHEP[i]) && (pt[i]>10)){
+      if ((bdt[i]<100) && (pass2012ICHEP[i]) && (analysisLepton[i].Pt()>10)){
 	good_electrons.push_back(i);
-	v_nizEl[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], electronMass);
+	v_nizEl[i].SetPtEtaPhiM(analysisLepton[i].Pt(),analysisLepton[i].Eta(), analysisLepton[i].Phi(), electronMass);
 	v_3Lepton=v_3Lepton+v_nizEl[i];
       }
-      if ((bdt[i]>100) && (pass2012ICHEP[i]) && (pt[i]>10)){
+      if ((bdt[i]>100) && (pass2012ICHEP[i]) && (analysisLepton[i].Pt()>10)){
 	good_muons.push_back(i);
-	v_nizMu[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], muonMass);
+	v_nizMu[i].SetPtEtaPhiM(analysisLepton[i].Pt(),analysisLepton[i].Eta(), analysisLepton[i].Phi(), muonMass);
 	v_3Lepton=v_3Lepton+v_nizMu[i];
       }
     }
@@ -252,12 +336,12 @@ float weight;
     bool foundZel(false), foundZmu(false);
     double massMu(-999), massEl(0), Zpt(0);
 
-    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, pt, ch, massMu, Zpt);
+    foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, analysisLepton, ch, massMu, Zpt);
     //    if (foundZmu){
     //hZmassMu1->Fill(massMu, pileUpWeight*xs_weight);
     //}
 
-    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, pt, ch, massEl, Zpt);
+    foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, analysisLepton, ch, massEl, Zpt);
 
     // reject all events without Z boson--and candidates with double Z boson
         
@@ -310,7 +394,7 @@ float weight;
     if (foundZmu){
       for (int iel1=0; iel1< (good_electrons.size()); iel1++){
 	int elIndex1= good_electrons[iel1];
-	if (pt[elIndex1]>20){
+	if (analysisLepton[elIndex1].Pt()>20){
 	  ZmuWelCounter++;
 	  ZmuWel_index=elIndex1; 
 	  testEl1=true;  
@@ -322,7 +406,7 @@ float weight;
       for (int imu1=0; imu1< (good_muons.size());imu1++){
 	int muIndex1=good_muons[imu1];
 	if ((muIndex1==WZcandidates[0]) || (muIndex1==WZcandidates[1])) continue;
-	if (pt[muIndex1]>20){
+	if (analysisLepton[muIndex1].Pt()>20){
 	  ZmuWmuCounter++;
 	  ZmuWmu_index=muIndex1;
 	  testMu1=true;
@@ -353,7 +437,7 @@ float weight;
       for (int iel2=0; iel2< (good_electrons.size()); iel2++){
 	int elIndex2=good_electrons[iel2];
 	if ((elIndex2==WZcandidates[0]) || (elIndex2==WZcandidates[1])) continue;
-	if (pt[elIndex2]>20)
+	if (analysisLepton[elIndex2].Pt()>20)
 	  {
 	    ZelWelCounter++;
 	    ZelWel_index=elIndex2;
@@ -367,7 +451,7 @@ float weight;
       int ZelWmuCounter(0);
       for (int imu2=0; imu2<(good_muons.size()); imu2++){
 	int muIndex2=good_muons[imu2];
-	if (pt[muIndex2]>20)
+	if (analysisLepton[muIndex2].Pt()>20)
 	  {
 	    ZelWmuCounter++;
 	    ZelWmu_index=muIndex2;
@@ -397,7 +481,7 @@ float weight;
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
 
     //deltaR condition
-    if (!passDeltaRWleptZlept(WZcandidates, phi, eta)) continue;
+    if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW+=pileUpWeight;  
     
     if (ev3e){
@@ -419,7 +503,8 @@ float weight;
     }
     //////////////////////////////////////MET CUT//////////////////////////
     
-    if ((cWZ->pfmet)<30) continue;
+    if (EventMET.Et()<30) continue;
+    //    if ((cWZ->pfmet)<30) continue;
     //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
 
     //improving this
@@ -427,7 +512,13 @@ float weight;
     
     if (ev3e){
       ev[0]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, pt, eta)*xs_weight;
+      //      std::cout<<pt[0]<<":"<<eta[0]<<std::endl;
+      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, analysisLepton)*xs_weight;
+      //      std::cout<<pileUpWeight<<":"<<ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)<<":"<<TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, pt, eta)<<":"<<xs_weight<<std::endl;
+      double factorTest=ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, analysisLepton);
+
+      //      if ((factorTest<0) || (factorTest>5)) std::cout<<factorTest<<std::endl;
+      //      std::cout<<factorTest<<std::endl;
       numMET3e+=weight;
       error3e+=(weight*weight);
       numMET3ectrl+=pileUpWeight;
@@ -437,7 +528,7 @@ float weight;
     
     if (ev2e1mu){
       ev[1]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, pt, eta)*xs_weight;
+      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, analysisLepton)*xs_weight;
       numMET2e1mu+=weight;
       error2e1mu+=(weight*weight);
       numMET2e1muctrl+=pileUpWeight;
@@ -446,7 +537,7 @@ float weight;
     
     if (ev1e2mu){
       ev[2]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 2, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 2, pt, eta)*xs_weight;
+      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 2, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 2, analysisLepton)*xs_weight;
       numMET1e2mu+=weight;
       error1e2mu+=(weight*weight);
       numMET1e2muctrl+=pileUpWeight;
@@ -455,7 +546,7 @@ float weight;
 
     if (ev3mu){
       ev[3]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, pt, eta)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 3, pt, eta)*xs_weight;
+      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 3, analysisLepton)*xs_weight;
       numMET3mu+=weight;
       error3mu+=(weight*weight);
       numMET3muctrl+=pileUpWeight;
@@ -499,25 +590,41 @@ float weight;
       if (ev[filH]){
 	hZpt[filH]->Fill(Zpt, weight);
 	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, weight);
+	hZptAll[filH]->Fill(Zpt, weight);
       }
     }
+
+
+    } //end of loop over all events
     
-
-    }
+    //filling other histos and errors
     
-    
-    
-
-    std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
-    std::cout<<"3e:     "<<numMET3e<<"+/-"<<sqrt(error3e)<<std::endl;
-    std::cout<<"2e1mu:  "<<numMET2e1mu<<"+/-"<<sqrt(error2e1mu)<<std::endl;
-    std::cout<<"1e2mu:  "<<numMET1e2mu<<"+/-"<<sqrt(error1e2mu)<<std::endl;
-    std::cout<<"3mu:    "<<numMET3mu<<"+/-"<<sqrt(error3mu)<<std::endl;
-
-
-     fout->cd();
-     fout->Write();
-
+    for (int er=0; er< nChannels; er++){
+      //double binError(0);
+      for (int zpt2=0; zpt2<(hZptAll[er]->GetNbinsX()+1); zpt2++){
+	double binContent=hZptAll[er]->GetBinContent(zpt2);	
+	double binError=errorMC[file]*binContent;
+	hZptAll[er]->SetBinError(zpt2, binError);
+	hZptAll3sigmaUp[er]-> SetBinContent(zpt2, (binContent+3*binError));
+	//	hZptAll3sigmaUp[er]->SetBinError(zpt2, binError);
+	if ((binContent-3*binError)>0)
+	  hZptAll3sigmaDown[er]-> SetBinContent(zpt2, (binContent-3*binError));
+	else
+	  hZptAll3sigmaDown[er]-> SetBinContent(zpt2, 0);
+	//	hZptAll3sigmaDown[er]->SetBinError(zpt2, binError);
+      }
+  }
+   
+  std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
+  std::cout<<"3e:     "<<numMET3e<<"+/-"<<sqrt(error3e)<<std::endl;
+  std::cout<<"2e1mu:  "<<numMET2e1mu<<"+/-"<<sqrt(error2e1mu)<<std::endl;
+  std::cout<<"1e2mu:  "<<numMET1e2mu<<"+/-"<<sqrt(error1e2mu)<<std::endl;
+  std::cout<<"3mu:    "<<numMET3mu<<"+/-"<<sqrt(error3mu)<<std::endl;
+  std::cout<<"numTest:"<< numTest<<std::endl;
+  
+  fout->cd();
+  fout->Write();
+  
      /*
      for (int histDel=0; histDel<nChannels<4; histDel++){
        delete hZpt[histDel];
@@ -579,8 +686,10 @@ float weight;
 	fileNumMC<<"#define dsNVVV_3mu "<<error3mu<<std::endl;
       }
     }
+    
   }
+
+
   fileNumMC.close();
-    //fout->Write();
-  //fout->Close();
+
 }
