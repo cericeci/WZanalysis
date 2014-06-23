@@ -9,13 +9,13 @@
 //  Exteran function declarations
 //
 
-bool Z_muons(WZBASECLASS *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt);
+bool Z_muons(WZBASECLASS *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector* analysisLepton, float * ch,double & massMu, double & Zpt);
 
 bool passMVAiso(float isomva, float pt, float eta);
 
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 
 TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
@@ -438,6 +438,14 @@ bool WZEvent::passesSelection(){
   float charges[leptonNumber]={ch1, ch2, ch3, ch4};
   float phis[leptonNumber]={phi1, phi2, phi3, phi4};
   float etas[leptonNumber]={eta1, eta2, eta3, eta4};
+  TLorentzVector analysisLepton[leptonNumber];
+  for (int i1=0; i1<leptonNumber; i1++){
+     if ((fabs(pdgid[i1])==11)&& (pt[i1]>0))
+       analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
+     if ((fabs(pdgid[i1])==13) && pt[i1]>0)
+       analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+  }
+  
   //find Z boson, save the index of it
   std::vector<int> good_muons;
   std::vector<int> good_electrons;
@@ -474,9 +482,9 @@ bool WZEvent::passesSelection(){
   bool foundZel(false), foundZmu(false);
   double massMu(-999), massEl(0), Zpt(0);
   
-  foundZmu=  Z_muons(this, &good_muons, WZcandidates, v_nizMu, pts, charges, massMu, Zpt);
+  foundZmu=  Z_muons(this, &good_muons, WZcandidates, v_nizMu, analysisLepton, charges, massMu, Zpt);
   
-  foundZel= Z_muons(this, &good_electrons, WZcandidates, v_nizEl, pts, charges, massEl, Zpt);
+  foundZel= Z_muons(this, &good_electrons, WZcandidates, v_nizEl, analysisLepton, charges, massEl, Zpt);
   
   // reject all events without Z boson--and candidates with double Z boson
   
@@ -614,7 +622,7 @@ bool WZEvent::passesSelection(){
   if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) return false;
   
   //deltaR condition
-  if (!passDeltaRWleptZlept(WZcandidates, phis, etas)) return false;
+  if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) return false;
   numW+=pileUpWeight;  
   
   selection_level = passesWSelection;
