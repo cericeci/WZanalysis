@@ -440,10 +440,10 @@ bool WZEvent::passesSelection(){
   float etas[leptonNumber]={eta1, eta2, eta3, eta4};
   TLorentzVector analysisLepton[leptonNumber];
   for (int i1=0; i1<leptonNumber; i1++){
-     if ((fabs(pdgid[i1])==11)&& (pt[i1]>0))
-       analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
-     if ((fabs(pdgid[i1])==13) && pt[i1]>0)
-       analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], muonMass);
+     if ((fabs(*pdgid[i1])==11)&& (*pt[i1]>0))
+       analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
+     if ((fabs(*pdgid[i1])==13) && (*pt[i1]>0))
+       analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], muonMass);
   }
   
   //find Z boson, save the index of it
