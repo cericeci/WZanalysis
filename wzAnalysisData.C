@@ -3,7 +3,7 @@
 #include "TChain.h"
 #include "TH1F.h"
 #include "TLorentzVector.h"
-
+#include "HistogramFactory.h"
 // Replace this with the new tree
 //#include "WZ.h"
 #include "WZ2012Data.h"
@@ -56,17 +56,70 @@ int main()
   TH1F * hZmassFinal[4];
   
   //  for (int histos=0; histos<4; histos++)
+  //numbering convention: 2-after W selection, 3-after MET cut(final selection)
 
+  const int nChannels1(4);
+
+  TH1F * hZmass1[nChannels1];
+  TH1F * hZmass2[nChannels1];
+  TH1F * hMET1[nChannels1];
+  TH1F * hMET2[nChannels1];
+  TH1F * hZpt_my1[nChannels1];
+  TH1F * hZpt_my2[nChannels1];
+  TH1F * hLeadingJetPt_my1[nChannels1];
+  TH1F * hLeadingJetPt_my2[nChannels1];
+  TH1F * hNjets[nChannels1];
+  TH1F * hDeltaPhi[nChannels1];
+  
+  for (int myhist=0; myhist<nChannels1; myhist++){
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+    nZmass1<<"hZmass1_"<<myhist;
+    nZmass2<<"hZmass2_"<<myhist;
+    nMET1<<"hMET1_"<<myhist;
+    nMET2<<"hMET2_"<<myhist;
+    nZpt1<<"hZpt1_"<<myhist;
+    nZpt2<<"hZpt2_"<<myhist;
+    nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
+    nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
+    nNjets<<"hNjets_"<<myhist;
+    nDeltaPhi<<"hDeltaPhi"<<myhist;
+    
+    hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
+    hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
+    hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
+    hMET2[myhist]             = HistogramFactory::createMETHisto(nMET2.str().c_str(), nMET2.str().c_str());
+    hZpt_my1[myhist]          = HistogramFactory::createZptHisto(nZpt1.str().c_str(), nZpt1.str().c_str());
+    hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
+    hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
+    hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
+    hNjets[myhist]           =  HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
+    hDeltaPhi[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
+    
+  }
+
+  /*
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+  TH1F * hZmassMuWel2      = new TH1F ("hZmassMuWel2", "hZmassMuWel2", 40, 60, 120);
+  TH1F * hZmassMuWmu2      = new TH1F ("hZmassMuWmu2", "hZmassMuWmu2", 40, 60, 120);
+  TH1F * hZmassElWmu2      = new TH1F ("hZmassElWmu2", "hZmassElWmu2", 40, 60, 120);
+  TH1F * hZmassElWel2      = new TH1F ("hZmassElWel2", "hZmassElWel2", 40, 60, 120);
+  
   TH1F * hZmassMuWel3      = new TH1F ("hZmassMuWel3", "hZmassMuWel3", 40, 60, 120);
   TH1F * hZmassMuWmu3      = new TH1F ("hZmassMuWmu3", "hZmassMuWmu3", 40, 60, 120);
   TH1F * hZmassElWmu3      = new TH1F ("hZmassElWmu3", "hZmassElWmu3", 40, 60, 120);
   TH1F * hZmassElWel3      = new TH1F ("hZmassElWel3", "hZmassElWel3", 40, 60, 120);
-  TH1F * hMETMu1                = new TH1F("hMETMu1", "hMETMu1",150, 0, 300);
-  TH1F * hMETEl1                = new TH1F("hMETEl1", "hMETEl1",150, 0, 300);
   TH1F * hMETMu1_s         = new TH1F("hMETMu1_s", "hMETMu1_s",150, 0, 150);
   TH1F * hMETEl1_s         = new TH1F("hMETEl1_s", "hMETEl1_s",150, 0, 150);
+
+  TH1F * hZptMu            = new TH1F("hZptMu", "hZptMu",40, 0, 400);
+  TH1F * hZptEl            = new TH1F("hZptEl", "hZptEl",40, 0, 400);
+  TH1F * hZpt3e            = new TH1F("hZpt3e", "hZpt3e",40, 0, 400);
+  TH1F * hZpt2e1mu         = new TH1F("hZpt2e1mu", "hZpt2e1mu",40, 0, 400);
+  TH1F * hZpt1e2mu         = new TH1F("hZpt1e2mu", "hZpt1e2mu",40, 0, 400);
+  TH1F * hZpt3mu           = new TH1F("hZpt3mu", "hZpt3mu",40, 0, 400);
+  */
     
     const int leptonNumber(4);
   const float electronMass(0.000511);
@@ -156,6 +209,7 @@ int main()
   for  (Int_t k = 0; k<events /*&& k<5000000*/;k++) {
     wz_tTree->GetEntry(k);
 
+    double met= cWZ->pfmetTypeI;
     //rejecting run 201191
     if (cWZ->run==201191) continue;
     if (!(cWZ->trigger)) continue;
@@ -242,20 +296,12 @@ int main()
 
     numZ++;
 
+    double Zmass;
+    if (foundZel) Zmass=massEl;
+    else Zmass=massMu;
     ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
     //later...
 
-    if (foundZmu){
-      hZmassMu1->Fill(massMu);
-      hMETMu1->Fill(cWZ->pfmet);
-      hMETMu1_s->Fill(cWZ->pfmet);   
-    } 
-
-    if (foundZel){
-      hZmassEl1->Fill(massEl);
-      hMETEl1->Fill(cWZ->pfmet);
-      hMETEl1_s->Fill(cWZ->pfmet);
-    }
     //jet number...
 
     
@@ -353,14 +399,29 @@ int main()
 	  ev3e=true;
 	}
     }
+    bool ev[4]={false, false, false, false};    
+    if (ev3e) ev[0]=true;
+    if (ev2e1mu) ev[1]=true;
+    if (ev1e2mu) ev[2]=true;
+    if (ev3mu) ev[3]=true;
     
+
 
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
 
     //deltaR condition
     if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW++;  
-    
+
+    for (int fill1=0; fill1<4; fill1++){
+      if (!ev[fill1]) continue;
+      hZmass1[fill1]->Fill(Zmass);
+      hMET1[fill1]->Fill(met);
+      hZpt_my1[fill1]->Fill(Zpt);
+      //      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt);
+    }    
+
+
     if (ev3e){
       num3e++;
     }
@@ -379,12 +440,18 @@ int main()
     //    if ((cWZ->pfmet)<30) continue;
     if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
     //    PtZ=Zpt;
+    for (int fill2=0; fill2<4; fill2++){
+      if (!ev[fill2]) continue;
+      hZmass2[fill2]->Fill(Zmass);
+      hMET2[fill2]->Fill(met);
+      hZpt_my2[fill2]->Fill(Zpt);
+      //      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+    }    
 
-  
     if (ev3e){
       numMET3e++;
       myfile3e<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
-      hZmassElWel3->Fill(massEl);
+      //      hZmassElWel3->Fill(massEl);
       forSenka1->cd();
       PtZ_eee=Zpt;
       wz_aTGC1->Fill();    
@@ -392,7 +459,7 @@ int main()
     if (ev2e1mu){
       myfile2e1mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET2e1mu++;
-      hZmassElWmu3->Fill(massEl);
+      //     hZmassElWmu3->Fill(massEl);
       forSenka2->cd();
       PtZ_eem=Zpt;
       wz_aTGC2->Fill();    
@@ -401,7 +468,7 @@ int main()
     if (ev1e2mu){
       myfile1e2mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET1e2mu++;
-      hZmassMuWel3->Fill(massMu);
+      //      hZmassMuWel3->Fill(massMu);
       forSenka3->cd();
       PtZ_emm=Zpt;
       wz_aTGC3->Fill();    
@@ -410,7 +477,7 @@ int main()
     if (ev3mu){
       myfile3mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET3mu++;
-      hZmassMuWmu3->Fill(massMu);
+      //      hZmassMuWmu3->Fill(massMu);
       PtZ_mmm=Zpt;
       forSenka4->cd();
       wz_aTGC4->Fill();    

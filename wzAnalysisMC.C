@@ -9,6 +9,7 @@
 #include "WZEvent.h"
 //#include "WZGenEvent.h"
 #include "UnfoldingHistogramFactory.h"
+#include "HistogramFactory.h"
 //#include "WZ.h"
 //#include "WZ2012Data.h"
 
@@ -90,15 +91,15 @@ int main()
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
   */
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/MCNew.root", "RECREATE");
-  //TFile * forSenka= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/wz-8TeV.root", "RECREATE");
-  TFile * forInv= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/scaleFact.root", "RECREATE");
+  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WZ.root", "RECREATE");
+  //  TFile * forSenka= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/wz-8TeV.root", "RECREATE");
+  // !!! TFile * forInv= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/scaleFact.root", "RECREATE");
   //TTree* wz_aTGC = new TTree("tgcTree", "tgcTree");
-  TTree* wz_scale = new TTree("scaleFactors", "scaleFactors");
+  //TTree* wz_scale = new TTree("scaleFactors", "scaleFactors");
   float gen_channel(-999), gen_mZ(0), gen_ptZ(0), reco_channel(-999), reco_mZ(0), reco_ptZ(0), efficiency_weight(0), xs_weight(0), pu_weight(0), br_weight(0); 
   //creating tree for investigation
+  /*
   float muonScaleF(0), eleScaleF(0), muonError(0), eleError(0), muonPt(0), elePt(0), muonEta(0), eleEta(0);
-  
   wz_scale->Branch("muonScaleF", &muonScaleF, "muonScaleF/F");
   wz_scale->Branch("eleScaleF", &eleScaleF, "eleScaleF/F");
   wz_scale->Branch("muonError", &muonError, "muonError/F");
@@ -107,9 +108,9 @@ int main()
   wz_scale->Branch("elePt", &elePt, "elePt/F");
   wz_scale->Branch("muonEta", &muonEta, "muonEta/F");
   wz_scale->Branch("eleEta", &eleEta, "eleEta/F");
-  
+  */
   //creating tree for Senka
-  /*  
+  /*
   wz_aTGC->Branch("gen_channel", &gen_channel, "gen_channel/F");
   wz_aTGC->Branch("gen_mZ", &gen_mZ, "gen_mZ/F");
   wz_aTGC->Branch("gen_ptZ", &gen_ptZ, "gen_ptZ/F");
@@ -122,12 +123,9 @@ int main()
   wz_aTGC->Branch("br_weight", &br_weight, "br_weight/F");
   */
 
-  TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
-  TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
-  TH2F * hScaleMu      = new TH2F ("hScaleMu", "hScaleMu", 10, 0, 1, 30, 0, 3);
-  TH2F * hScaleEl      = new TH2F ("hScaleEl", "hScaleEl", 10, 0, 1, 30, 0, 3);
-
   const int nChannels(4);
+  const int nChannels1(4);
+  
   TH1D * hZptCh[nChannels];
   TH1D * hZptTau[nChannels];
   TH1D * hZptTauFraction[nChannels];
@@ -135,7 +133,45 @@ int main()
   TH1D * hLeadingJetTau[nChannels]; 
   TH1D * hLeadingJetTauFraction[nChannels]; 
 
+  TH1F * hZmass1[nChannels1];
+  TH1F * hZmass2[nChannels1];
+  TH1F * hMET1[nChannels1];
+  TH1F * hMET2[nChannels1];
+  TH1F * hZpt_my1[nChannels1];
+  TH1F * hZpt_my2[nChannels1];
+  TH1F * hLeadingJetPt_my1[nChannels1];
+  TH1F * hLeadingJetPt_my2[nChannels1];
+  TH1F * hNjets[nChannels1];
+  TH1F * hDeltaPhi[nChannels1];
   
+  for (int myhist=0; myhist<nChannels1; myhist++){
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+    nZmass1<<"hZmass1_"<<myhist;
+    nZmass2<<"hZmass2_"<<myhist;
+    nMET1<<"hMET1_"<<myhist;
+    nMET2<<"hMET2_"<<myhist;
+    nZpt1<<"hZpt1_"<<myhist;
+    nZpt2<<"hZpt2_"<<myhist;
+    nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
+    nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
+    nNjets<<"hNjets_"<<myhist;
+    nDeltaPhi<<"hDeltaPhi"<<myhist;
+    
+    hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
+    hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
+    hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
+    hMET2[myhist]             = HistogramFactory::createMETHisto(nMET2.str().c_str(), nMET2.str().c_str());
+    hZpt_my1[myhist]          = HistogramFactory::createZptHisto(nZpt1.str().c_str(), nZpt1.str().c_str());
+    hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
+    hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
+    hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
+    hNjets[myhist]           =  HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
+    hDeltaPhi[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
+    
+  }
+  
+
   for (int hist=0; hist<nChannels; hist++){
     std::ostringstream ZptChname,ZptTauname, LeadingJetChname,LeadingJetTau, LeadingJetTauFraction, ZptTauFraction;
     LeadingJetTau<<"LeadingJetTau_"<<(hist+1);
@@ -230,13 +266,15 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 
   int testEl(0), testMu(0);
   double numberPileUp(0.0);
+  double numberPileupDown(0.0);
   int numGenChannels(9);
   //type: 0-(eee), 1-(eem), 2-(mme), 3-(mmm), 4-(tte), 5-(ttm), 6-(ttt), 7-(eet), 8-(mmt), 9-all(denominator)
   int numbersGen[10]={0,0,0,0,0,0,0,0,0,0};
   std::vector<TString>inputName;
   TChain wz("latino");
 
-  readFileFromList("wzNoSkim.files", &inputName);
+  readFileFromList("wzNewPu.files", &inputName);
+  //    readFileFromList("wzNoSkim.files", &inputName);
   //  readFileFromList("wzNoFilter10.files", &inputName);
 
   for (int input=0; input< inputName.size(); input++){
@@ -249,16 +287,22 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
   
   std::cout<<"number of events: "<<events << std::endl;
   
-
   for  (Int_t k = 0; k<events /*&& k<2000*/;k++) {
     wz_tTree->GetEntry(k);
     
     cWZ->ReadEvent();
     //*******various factors
-    float pileUpWeight=cWZ->puW;
+    float pileUpWeight=cWZ->puW_new;
+    //    float pileUpWeight=1;
     //float pileUpWeight=1;
-    numberPileUp+=pileUpWeight;
     
+    numberPileUp+=pileUpWeight;
+    numberPileupDown++;
+    
+    xs_weight= (1.058* luminosity)/1.82755e+06;    //this is pileup weighted number of events
+    //xs_weight= (1.058* luminosity)/1.82798e+06; //this is number of events   
+
+    //    std::cout<<"XS WEIGHT: "<<xs_weight<<std::endl;
     ///////////////GEN YIELDS/////////////////
  
     //    double gen_channels[3][3]={{0,0,0}, {0,0,0}};
@@ -279,7 +323,8 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 	inZmassWindow=true;
 	typeGen= determineGenType(cWZ);
       }
-    double weightBr(0);
+    double weightBr(1);
+    
     if (typeGen>=0){
       numbersGen[typeGen]++;
       numbersGen[9]++;
@@ -289,7 +334,10 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
       int typeGenOut=determineGenType(cWZ);
       weightBr=ReturnBranchingWeight(typeGenOut);
     }
-    float weightBr2=cWZ->GetBrWeight();
+
+    
+    //    weightBr=1;
+    //float weightBr2=cWZ->GetBrWeight();
     //    std::cout<<weightBr<<" =? "<<weightBr2<<std::endl;
      if ((cWZ->WZchan)== 0){
        numGEN3e_test++;
@@ -374,10 +422,10 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////scale syst:///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    bool muScaleSyst(false);
-    bool elScaleSyst(true);
+    bool muScaleSyst(false); 
+    bool elScaleSyst(false);
     double muScale(0.002);
-    double elScale(-1.0);
+    double elScale(1.0);
 
     double pfmet=cWZ->pfmetTypeI;
     double pfmetphi=cWZ->pfmetTypeIphi;
@@ -468,7 +516,7 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 
     foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, analysisLepton, ch, massMu, Zpt);
     if (foundZmu){
-      hZmassMu1->Fill(massMu);
+      //    hZmassMu1->Fill(massMu);
     }
 
     foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, analysisLepton, ch, massEl, Zpt);
@@ -501,11 +549,34 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 
     numZ+=pileUpWeight;
 
-    ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
-    //later...
- 
-    //jet number...
+    ///////////////////////JETS//////////////////////////////////
+    int nRecoJets = 0;
+    float leadingRecoJetPt = -9999.;
+    int leadingRecojet = -1;
 
+    
+    for (int i=0; i<cWZ->recoJets.size(); i++) {
+
+      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<cWZ->leptons.size(); il++) {
+	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
+	  leadingRecojet = i;
+	}
+      }
+      
+    }
     
     //////////////////////FIND W BOSON///////////////////////////////////////////
     int ZmuWelCounter(0),ZmuWmuCounter(0), ZelWelCounter(0), ZelWmuCounter(0); 
@@ -600,6 +671,13 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 	  ev3e=true;
 	}
     }
+    bool ev[4]={false, false, false, false};    
+    if (ev3e) ev[0]=true;
+    if (ev2e1mu) ev[1]=true;
+    if (ev1e2mu) ev[2]=true;
+    if (ev3mu) ev[3]=true;
+    
+    double weights[4]={0,0,0,0};
     
 
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
@@ -608,32 +686,38 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
     if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW+=pileUpWeight;  
 
-    bool ev[4]={false, false, false, false};
+    for (int fill1=0; fill1<4; fill1++){
+      //weights
+      weights[fill1]=pileUpWeight*ScaleFactors(MuonSF, ElecSF, fill1, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, fill1, analysisLepton)*xs_weight;
+      if (!ev[fill1]) continue;
+      hZmass1[fill1]->Fill(Zmass, weights[fill1]);
+      hMET1[fill1]->Fill(EventMET.Et(), weights[fill1]);
+      hZpt_my1[fill1]->Fill(Zpt, weights[fill1]);
+      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt, weights[fill1]);
+    }
+
+
     
     if (ev3e){
       num3e+=pileUpWeight;
       type=0; 
-      ev[0]=true;
     }
     if (ev2e1mu){
       num2e1mu+=pileUpWeight;
       type=1;
-      ev[1]=true;
     }
     if (ev1e2mu){
       num1e2mu+=pileUpWeight;
       type=2;
-      ev[2]=true;
     }
 
     if (ev3mu){
       num3mu+=pileUpWeight;
       type=3;
-      ev[3]=true;
     }
     //////////////////////////////////////MET CUT//////////////////////////
     
-    //if ((cWZ->pfmet)<30) continue;
+    //    if ((cWZ->pfmet)<30) continue;
     //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
     if ((EventMET.Et())<30) continue;   ///CHANGE THIS
 
@@ -651,22 +735,26 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 	  if (mass=electronMass){
 	    double factor= GetFactor(ElecSF, analysisLepton[index].Pt(), analysisLepton[index].Eta());
 	    double error= GetError(ElecSF, analysisLepton[index].Pt(), analysisLepton[index].Eta());
+	    /*
 	    eleScaleF=factor;
 	    eleError=error/factor;
 	    elePt= analysisLepton[index].Pt();
 	    eleEta=analysisLepton[index].Eta();
 	    hScaleEl->Fill(error/factor,analysisLepton[index].Eta());
-	  }
+	    */
+	    }
 	  if (mass=muonMass){
 	    double factor= GetFactor(MuonSF, analysisLepton[index].Pt(), analysisLepton[index].Eta());
 	    double error= GetError(MuonSF, analysisLepton[index].Pt(), analysisLepton[index].Eta());
+	    /*
 	    muonScaleF=factor;
 	    muonError=error/factor;
 	    muonPt= analysisLepton[index].Pt();
 	    muonEta=analysisLepton[index].Eta();
 	    hScaleMu->Fill(error/factor,analysisLepton[index].Eta());
-	  }
-	  wz_scale->Fill();
+	    */
+	    }
+	  //wz_scale->Fill();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -705,40 +793,22 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
     gen_ptZ=cWZ->PtZ;
     reco_mZ=Zmass;
     reco_ptZ=Zpt;
-    pu_weight=cWZ->puW;
+    pu_weight=cWZ->puW_new;
     //xs_weight:
-    xs_weight= (1.058* luminosity)/6.53698e+06;
+
     br_weight= weightBr;
     //    wz_aTGC->Fill();
 
-    //jets part
-    int nRecoJets = 0;
-    float leadingRecoJetPt = -9999.;
-    int leadingRecojet = -1;
-    
-    
-    for (int i=0; i<cWZ->recoJets.size(); i++) {
-
-      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
-
-	bool closeToLepton = false;
-	float drMin = 3.;
-	for (int il=0; il<cWZ->leptons.size(); il++) {
-	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
-	    closeToLepton = true;
-	  }
-	}
-	if (closeToLepton) continue;
-	
-	nRecoJets++;
-	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
-
-	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
-	  leadingRecojet = i;
-	}
-      }
-      
+    for (int fill2=0; fill2<4; fill2++){
+      if (!ev[fill2]) continue;
+      hZmass2[fill2]->Fill(Zmass, weights[fill2]);
+      hMET2[fill2]->Fill(EventMET.Et(), weights[fill2]);
+      hZpt_my2[fill2]->Fill(Zpt, weights[fill2]);
+      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt, weights[fill2]);
     }
+    
+
+    
 
 
     //filling histograms
@@ -786,15 +856,37 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
   
   ///*********OUTPUT
   //some tests:
+  std::cout<<"FOR NORMALIZATION: "<<numberPileUp<<std::endl<<" , "<<numberPileupDown<<std::endl;
   std::cout<<"3e: "<< numMET_2[0]<<std::endl;
   std::cout<<"2e1mu: "<<numMET_2[1]<<std::endl;
   std::cout<<"1e2mu: "<<numMET_2[2]<<std::endl;
   std::cout<<"3mu: "<<numMET_2[3]<<std::endl;
+  std::cout<<"***************"<<std::endl;;
 
-  std::cout<<"3e: "<< numMET3eGEN<<std::endl;
+  /*  std::cout<<"3e: "<< numMET3eGEN<<std::endl;
   std::cout<<"2e1mu: "<<numMET2e1muGEN<<std::endl;
   std::cout<<"1e2mu: "<<numMET1e2muGEN<<std::endl;
   std::cout<<"3mu: "<<numMET3muGEN<<std::endl;
+  */
+  std::cout<<"Normalized: "<<std::endl;
+  std::cout<<"3e: "<< numMET_2[0]*xs_weight<<std::endl;
+  std::cout<<"2e1mu: "<<numMET_2[1]*xs_weight<<std::endl;
+  std::cout<<"1e2mu: "<<numMET_2[2]*xs_weight<<std::endl;
+  std::cout<<"3mu: "<<numMET_2[3]*xs_weight<<std::endl;
+
+  std::cout<<"NumMET_brCorr"<<std::endl;
+  std::cout<<"3e: "<< numMET_brCorr[0]*xs_weight<<std::endl;
+  std::cout<<"2e1mu: "<<numMET_brCorr[1]*xs_weight<<std::endl;
+  std::cout<<"1e2mu: "<<numMET_brCorr[2]*xs_weight<<std::endl;
+  std::cout<<"3mu: "<<numMET_brCorr[3]*xs_weight<<std::endl;
+
+  std::cout<<"without corr"<<std::endl;
+  std::cout<<"3e: "<< numMET[0]*xs_weight<<std::endl;
+  std::cout<<"2e1mu: "<<numMET[1]*xs_weight<<std::endl;
+  std::cout<<"1e2mu: "<<numMET[2]*xs_weight<<std::endl;
+  std::cout<<"3mu: "<<numMET[3]*xs_weight<<std::endl;
+
+
 
   std::cout<<"Acceptance efficiency:"<<std::endl;
   std::cout<<"Zagreb: "<<std::endl;
@@ -810,6 +902,8 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
   std::cout<<"1e2mu:"<<numMET_brCorr[2]/denominator<<std::endl;
   std::cout<<"3mu: "<<numMET_brCorr[3]/denominator<<std::endl;
   */
+
+  std::cout<<numMET_brCorr[0]/denominator<<std::endl;
 //writing in file
   if (writeOutputNumbers){
     //spnish numbers
@@ -848,17 +942,19 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 
   fileNumGEN.close();
   }
-
+    
   fout->cd();
   fout->Write();
   fout->Close();
   
+  /*
   forInv->cd();
   wz_scale->Write();
   forInv->Close();
-  
+  */
   ////part for TGC
-  /*  forSenka->cd();
+  /*
+  forSenka->cd();
   wz_aTGC->Write();
   forSenka->Close();
   */

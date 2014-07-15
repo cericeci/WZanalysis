@@ -6,7 +6,7 @@
 #include "TH2F.h"
 #include "TLorentzVector.h"
 #include "UnfoldingHistogramFactory.h"
-
+#include "HistogramFactory.h"
 // Replace this with the new tree
 #include "WZEventMCOld.h"
 //#include "WZ2012Data.h"
@@ -61,7 +61,7 @@ int main()
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
 
   //  bool writeOutputNumbers(true);
-  bool writeOutputNumbers(false);
+  bool writeOutputNumbers(true);
   bool latexOutput(true);
   if (writeOutputNumbers){
     fileNumMM<<"#ifndef numMM_h"<<std::endl;
@@ -73,6 +73,45 @@ int main()
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
+  const int nChannels1(4);
+
+  TH1F * hZmass1[nChannels1];
+  TH1F * hZmass2[nChannels1];
+  TH1F * hMET1[nChannels1];
+  TH1F * hMET2[nChannels1];
+  TH1F * hZpt_my1[nChannels1];
+  TH1F * hZpt_my2[nChannels1];
+  TH1F * hLeadingJetPt_my1[nChannels1];
+  TH1F * hLeadingJetPt_my2[nChannels1];
+  TH1F * hNjets[nChannels1];
+  TH1F * hDeltaPhi[nChannels1];
+  
+  for (int myhist=0; myhist<nChannels1; myhist++){
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+    nZmass1<<"hZmass1_"<<myhist;
+    nZmass2<<"hZmass2_"<<myhist;
+    nMET1<<"hMET1_"<<myhist;
+    nMET2<<"hMET2_"<<myhist;
+    nZpt1<<"hZpt1_"<<myhist;
+    nZpt2<<"hZpt2_"<<myhist;
+    nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
+    nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
+    nNjets<<"hNjets_"<<myhist;
+    nDeltaPhi<<"hDeltaPhi"<<myhist;
+    
+    hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
+    hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
+    hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
+    hMET2[myhist]             = HistogramFactory::createMETHisto(nMET2.str().c_str(), nMET2.str().c_str());
+    hZpt_my1[myhist]          = HistogramFactory::createZptHisto(nZpt1.str().c_str(), nZpt1.str().c_str());
+    hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
+    hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
+    hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
+    hNjets[myhist]           =  HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
+    hDeltaPhi[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
+    
+  }
 
   const int nChannels(4);
   TH1D * hZpt[nChannels];
@@ -143,6 +182,11 @@ int main()
   double ferror_3e(0),ferror_2e1mu(0), ferror_1e2mu(0), ferror_3mu(0);
   double error_3e(0),error_2e1mu(0), error_1e2mu(0), error_3mu(0);
 
+  double N_good[4]={0,0,0,0};
+  double error[4]={0,0,0,0};
+  double N_fake[4]={0,0,0,0};
+  double ferror[4]={0,0,0,0};
+
   double data_driven_syst[4]={0.027, 0.019, 0.027, 0.026};
   //test variables
   int numZ1(0), numZ2(0), numZ3(0), numZ4(0), numZ5(0), numZ6(0);
@@ -207,6 +251,8 @@ int main()
   for  (Int_t k = 0; k<events /*&& k<10000*/;k++) {
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
+
+    double met= cWZ->pfmetTypeI;
     //rejecting run 201191
     if (cWZ->run==201191) continue;
     if (!(cWZ->trigger)) continue;
@@ -292,6 +338,9 @@ int main()
 
     numZ++;
 
+    double Zmass;
+    if (foundZel) Zmass=massEl;
+    else Zmass=massMu;
     ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
     //later...
  
@@ -402,115 +451,80 @@ int main()
     
     int type;
     //0-EEE, 1-EEM, 2-EMM, 3-MMM
-    
-    if (ev3e){
-      num3e++;
-      type=0;
-    }
-    if (ev2e1mu){
-      num2e1mu++;
-      type=1;
-    }
-    if (ev1e2mu){
-      num1e2mu++;
-      type=2;
-    }
-
-    if (ev3mu){
-      num3mu++;
-      type=3;
-    }
-    //////////////////////////////////////MET CUT//////////////////////////
-    
-    //    if ((cWZ->pfmet)<30) continue;
-    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
-
-    ////////////////////MATRIX METHOD PART//////////////////////////
 
     bool ev[4]={false, false, false, false};
     double MMweights[4]={.0,.0,.0,.0};
     double MMerrors[4]={.0,.0,.0,.0};
     double MMweights_fake[4]={.0,.0,.0,.0};
     double MMerrors_fake[4]={.0,.0,.0,.0};
-
+    
     int label= determineLabel(pass2012ICHEP, WZcandidates);
     float Nttt(0);
-    if (label==1) Nttt=1; 
+    if (label==1) Nttt=1;     
     
     if (ev3e){
+      num3e++;
+      type=0;
       ev[0]=true;
-      double w_event_3e=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label);
-      MMweights[0]=w_event_3e;;
-      N_good_3e+=w_event_3e;
-      
-      //      hZpt3e->Fill(Zpt, w_event_3e);
-      
-            //      error_3e+=(w_event_3e*w_event_3e);
-      error_3e+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3e);
-      MMerrors[0]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3e);
-      N_fake_3e+=(Nttt-w_event_3e);
-      MMweights_fake[0]=(Nttt-w_event_3e);
-      //      ferror_3e+=(Nttt-w_event_3e)*(Nttt-w_event_3e);
-      ferror_3e+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3e));
-      MMerrors_fake[0]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3e));
     }
-
- 
     if (ev2e1mu){
+      num2e1mu++;
+      type=1;
       ev[1]=true;
-
-      double w_event_2e1mu=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label);
-      MMweights[1]=w_event_2e1mu;
-      N_good_2e1mu+=w_event_2e1mu;
-      //      double tpe= thirdPartError(w_event_2e1mu, epsilon1, epsilon2, epsilon3, epsilonError1, epsilonError2, epsilonError3, p1, p2, p3);
-      // sigma2e1mu=fpe+spe+tpe;
-      //      error_2e1mu+=(w_event_2e1mu*w_event_2e1mu);
-      error_2e1mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_2e1mu);
-      MMerrors[1]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_2e1mu);
-      N_fake_2e1mu+=(Nttt-w_event_2e1mu);
-      MMweights_fake[1]=(Nttt-w_event_2e1mu);
-      //      ferror_2e1mu+=(Nttt-w_event_2e1mu)*(Nttt-w_event_2e1mu);
-      ferror_2e1mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_2e1mu));
-      MMerrors_fake[1]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_2e1mu));
     }
-  
     if (ev1e2mu){
-
+      num1e2mu++;
+      type=2;
       ev[2]=true;
-      double w_event_1e2mu=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label);
-      MMweights[2]=w_event_1e2mu;
-      N_good_1e2mu+=w_event_1e2mu;
-      //      double tpe= thirdPartError(w_event_1e2mu, epsilon1, epsilon2, epsilon3, epsilonError1, epsilonError2, epsilonError3, p1, p2, p3);
-      //sigma1e2mu=fpe+spe+tpe;
-      //      error_1e2mu+=(w_event_1e2mu*w_event_1e2mu);
-      error_1e2mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_1e2mu);
-      MMerrors[2]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_1e2mu);
-      N_fake_1e2mu+=(Nttt-w_event_1e2mu);
-      MMweights_fake[2]=(Nttt-w_event_1e2mu);
-      //      ferror_1e2mu+=(Nttt-w_event_1e2mu)*(Nttt-w_event_1e2mu);
-      ferror_1e2mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_1e2mu));
-      MMerrors_fake[2]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_1e2mu));
     }
-    
-    if (ev3mu){
-      ev[3]=true;
 
-      double w_event_3mu=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label);
-      MMweights[3]=w_event_3mu;
-      N_good_3mu+=w_event_3mu;
-      //      double tpe= thirdPartError(w_event_3mu, epsilon1, epsilon2, epsilon3, epsilonError1, epsilonError2, epsilonError3, p1, p2, p3);
-      //sigma3mu=fpe+spe+tpe;
-      //      error_3mu+=(w_event_3mu*w_event_3mu);
-      error_3mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3mu);
-      MMerrors[3]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, w_event_3mu);
-      N_fake_3mu+=(Nttt-w_event_3mu);
-      MMweights_fake[3]=(Nttt-w_event_3mu);
-      //      ferror_3mu+=(Nttt-w_event_3mu)*(Nttt-w_event_3mu);
-      ferror_3mu+=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3mu));
-      MMerrors_fake[3]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label, (Nttt-w_event_3mu));
+    if (ev3mu){
+      num3mu++;
+      type=3;
+      ev[3]=true;
     }
-    //    std::cout<<MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, type, pt, eta, label)<<std::endl;
-     
+    ////////////////////MATRIX METHOD PART//////////////////////////
+    
+    for (int matrix=0; matrix<4; matrix++){
+      if (!ev[matrix]) continue;
+      MMweights[matrix]=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label);
+      MMweights_fake[matrix]=(Nttt-MMweights[matrix]);
+      MMerrors[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, MMweights[matrix]);
+      MMerrors_fake[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, (Nttt-MMweights[matrix]));
+    }
+
+    for (int fill2=0; fill2<4; fill2++){
+      if (!ev[fill2]) continue;
+      hZmass1[fill2]->Fill(Zmass, MMweights_fake[fill2]);
+      hMET1[fill2]->Fill(met, MMweights_fake[fill2]);
+      hZpt_my1[fill2]->Fill(Zpt, MMweights_fake[fill2]);
+      //      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+    }    
+    //////////////////////////////////////MET CUT//////////////////////////
+
+    
+    if ((cWZ->pfmetTypeI)<30) continue;  
+
+
+    for (int fill3=0; fill3<4; fill3++){
+      if (!ev[fill3]) continue;
+      hZmass2[fill3]->Fill(Zmass, MMweights_fake[fill3]);
+      hMET2[fill3]->Fill(met, MMweights_fake[fill3]);
+      hZpt_my2[fill3]->Fill(Zpt, MMweights_fake[fill3]);
+      //      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+    }    
+    ////////////////////////////////////////////////////////////////////////
+    
+        
+    for (int final=0; final<4; final++){
+      if (!ev[final]) continue;
+      N_good[final]+=MMweights[final];
+      error[final]+=MMerrors[final];
+      N_fake[final]+=(Nttt-MMweights[final]);
+      ferror[final]+=MMerrors_fake[final];
+    }
+
+
     if (ev3e){
       numMET3e++;
     }
@@ -623,56 +637,56 @@ int main()
 
   std::cout<<justCount<<std::endl;
   std::cout<<"/////////////////MATRIX METHOD RESULT//////////////////"<<std::endl;
-  std::cout<<"N_good_3e:     "<<N_good_3e<<std::endl;
-  std::cout<<"error_3e:     "<<sqrt(error_3e)<<std::endl;
-  std::cout<<"N_good_2e1mu:  "<<N_good_2e1mu<<std::endl;
-  std::cout<<"error_2e1mu:  "<<sqrt(error_2e1mu)<<std::endl;
-  std::cout<<"N_good_1e2mu:  "<<N_good_1e2mu<<std::endl;
-  std::cout<<"error_1e2mu:  "<<sqrt(error_1e2mu)<<std::endl;
-  std::cout<<"N_good_3mu:    "<<N_good_3mu<<std::endl;
-  std::cout<<"error_3mu:    "<<sqrt(error_3mu)<<std::endl;
+  std::cout<<"N_good_3e:     "<<N_good[0]<<std::endl;
+  std::cout<<"error_3e:     "<<sqrt(error[0])<<std::endl;
+  std::cout<<"N_good_2e1mu:  "<<N_good[1]<<std::endl;
+  std::cout<<"error_2e1mu:  "<<sqrt(error[1])<<std::endl;
+  std::cout<<"N_good_1e2mu:  "<<N_good[2]<<std::endl;
+  std::cout<<"error_1e2mu:  "<<sqrt(error[2])<<std::endl;
+  std::cout<<"N_good_3mu:    "<<N_good[3]<<std::endl;
+  std::cout<<"error_3mu:    "<<sqrt(error[3])<<std::endl;
   std::cout<<"*****************************************************"<<std::endl;
-  std::cout<<"N_fake_3e:     "<<N_fake_3e<<std::endl;
-  std::cout<<"ferror_3e:     "<<sqrt(ferror_3e)<<std::endl;
-  std::cout<<"N_fake_2e1mu:  "<<N_fake_2e1mu<<std::endl;
-  std::cout<<"ferror_2e1mu:  "<<sqrt(ferror_2e1mu)<<std::endl;
-  std::cout<<"N_fake_1e2mu:  "<<N_fake_1e2mu<<std::endl;
-  std::cout<<"ferror_1e2mu:  "<<sqrt(ferror_1e2mu)<<std::endl;
-  std::cout<<"N_fake_3mu:    "<<N_fake_3mu<<std::endl;
-  std::cout<<"ferror_3mu:    "<<sqrt(ferror_3mu)<<std::endl;  
+  std::cout<<"N_fake_3e:     "<<N_fake[0]<<std::endl;
+  std::cout<<"ferror_3e:     "<<sqrt(ferror[0])<<std::endl;
+  std::cout<<"N_fake_2e1mu:  "<<N_fake[1]<<std::endl;
+  std::cout<<"ferror_2e1mu:  "<<sqrt(ferror[1])<<std::endl;
+  std::cout<<"N_fake_1e2mu:  "<<N_fake[2]<<std::endl;
+  std::cout<<"ferror_1e2mu:  "<<sqrt(ferror[2])<<std::endl;
+  std::cout<<"N_fake_3mu:    "<<N_fake[3]<<std::endl;
+  std::cout<<"ferror_3mu:    "<<sqrt(ferror[3])<<std::endl;  
 
   if (latexOutput)
     {
       std::cout<<"channel & Ngood & Nfake \\\\ "<<std::endl;
       std::cout<<"\\hline"<<std::endl;
-      std::cout<<"3e     & $"<<N_good_3e    <<"\\pm"<<sqrt(error_3e)    <<"$ & $"<<N_fake_3e    <<"\\pm"<<sqrt(ferror_3e)    <<"$ \\\\"<<std::endl;
+      std::cout<<"3e     & $"<<N_good[0]    <<"\\pm"<<sqrt(error[0])    <<"$ & $"<<N_fake[0]    <<"\\pm"<<sqrt(ferror[0])    <<"$ \\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
-      std::cout<<"2e1mu  & $"<<N_good_2e1mu <<"\\pm"<<sqrt(error_2e1mu) <<"$ & $"<<N_fake_2e1mu <<"\\pm"<<sqrt(ferror_2e1mu) <<"$ \\\\"<<std::endl;
+      std::cout<<"2e1mu  & $"<<N_good[1] <<"\\pm"<<sqrt(error[1]) <<"$ & $"<<N_fake[1] <<"\\pm"<<sqrt(ferror[1]) <<"$ \\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
-      std::cout<<"1e2mu  & $"<<N_good_1e2mu <<"\\pm"<<sqrt(error_1e2mu) <<"$ & $"<<N_fake_1e2mu <<"\\pm"<<sqrt(ferror_1e2mu) <<"$ \\\\"<<std::endl;
+      std::cout<<"1e2mu  & $"<<N_good[2] <<"\\pm"<<sqrt(error[2]) <<"$ & $"<<N_fake[2] <<"\\pm"<<sqrt(ferror[2]) <<"$ \\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
-      std::cout<<"3mu    & $"<<N_good_3mu   <<"\\pm"<<sqrt(error_3mu)   <<"$ & $"<<N_fake_3mu   <<"\\pm"<<sqrt(ferror_3mu)   <<"$ \\\\"<<std::endl;
+      std::cout<<"3mu    & $"<<N_good[3]   <<"\\pm"<<sqrt(error[3])   <<"$ & $"<<N_fake[3]   <<"\\pm"<<sqrt(ferror[3])   <<"$ \\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
     }
   //write in file:
   if (writeOutputNumbers){
-    fileNumMM<<"#define dN_fake3e "<<N_fake_3e<<std::endl;
-    fileNumMM<<"#define dN_fake2e1mu "<<N_fake_2e1mu<<std::endl;
-    fileNumMM<<"#define dN_fake1e2mu "<<N_fake_1e2mu<<std::endl;
-    fileNumMM<<"#define dN_fake3mu "<<N_fake_3mu<<std::endl;
-    fileNumMM<<"#define dsN_fake3e "<<sqrt(ferror_3e)<<std::endl;
-    fileNumMM<<"#define dsN_fake2e1mu "<<sqrt(ferror_2e1mu)<<std::endl;
-    fileNumMM<<"#define dsN_fake1e2mu "<<sqrt(ferror_1e2mu)<<std::endl;
-    fileNumMM<<"#define dsN_fake3mu "<<sqrt(ferror_3mu)<<std::endl;
+    fileNumMM<<"#define dN_fake3e "<<N_fake[0]<<std::endl;
+    fileNumMM<<"#define dN_fake2e1mu "<<N_fake[1]<<std::endl;
+    fileNumMM<<"#define dN_fake1e2mu "<<N_fake[2]<<std::endl;
+    fileNumMM<<"#define dN_fake3mu "<<N_fake[3]<<std::endl;
+    fileNumMM<<"#define dsN_fake3e "<<sqrt(ferror[0])<<std::endl;
+    fileNumMM<<"#define dsN_fake2e1mu "<<sqrt(ferror[1])<<std::endl;
+    fileNumMM<<"#define dsN_fake1e2mu "<<sqrt(ferror[2])<<std::endl;
+    fileNumMM<<"#define dsN_fake3mu "<<sqrt(ferror[3])<<std::endl;
 
-    fileNumMM<<"#define dN_good3e "<<N_good_3e<<std::endl;
-    fileNumMM<<"#define dN_good2e1mu "<<N_good_2e1mu<<std::endl;
-    fileNumMM<<"#define dN_good1e2mu "<<N_good_1e2mu<<std::endl;
-    fileNumMM<<"#define dN_good3mu "<<N_good_3mu<<std::endl;
-    fileNumMM<<"#define dsN_good3e "<<sqrt(error_3e)<<std::endl;
-    fileNumMM<<"#define dsN_good2e1mu "<<sqrt(error_2e1mu)<<std::endl;
-    fileNumMM<<"#define dsN_good1e2mu "<<sqrt(error_1e2mu)<<std::endl;
-    fileNumMM<<"#define dsN_good3mu "<<sqrt(error_3mu)<<std::endl;
+    fileNumMM<<"#define dN_good3e "<<N_good[0]<<std::endl;
+    fileNumMM<<"#define dN_good2e1mu "<<N_good[1]<<std::endl;
+    fileNumMM<<"#define dN_good1e2mu "<<N_good[2]<<std::endl;
+    fileNumMM<<"#define dN_good3mu "<<N_good[3]<<std::endl;
+    fileNumMM<<"#define dsN_good3e "<<sqrt(error[0])<<std::endl;
+    fileNumMM<<"#define dsN_good2e1mu "<<sqrt(error[1])<<std::endl;
+    fileNumMM<<"#define dsN_good1e2mu "<<sqrt(error[2])<<std::endl;
+    fileNumMM<<"#define dsN_good3mu "<<sqrt(error[3])<<std::endl;
 
 
     fileNumMM.close();

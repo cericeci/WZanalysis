@@ -5,6 +5,7 @@
 #include "TH2F.h"
 #include "TLorentzVector.h"
 #include "UnfoldingHistogramFactory.h"
+#include "HistogramFactory.h"
 // Replace this with the new tree
 //#include "WZEvent.h"
 //#include "WZ.h"
@@ -123,10 +124,10 @@ int main()
   errorMC.push_back(0);
   
   files.push_back("WZ.files");
-  files.push_back("ZZ.files");
-  files.push_back("Zgamma.files");
-  files.push_back("WV.files");
-  files.push_back("VVV.files");
+  files.push_back("ZZpu.files");
+  files.push_back("ZgammaPu.files");
+  files.push_back("WVpu.files");
+  files.push_back("VVVpu.files");
   files.push_back("top.files");
   files.push_back("Zjets.files");
 
@@ -140,35 +141,73 @@ int main()
 
 
 
-  for (int file=0; file<(files.size()-2) /*&& file<1*/; file++){
+  for (int file=1; file<(files.size()-2) /*&& file<1*/; file++){
 
-    float numZ(0), numW(0), numMET(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0.0), numMET2e1mu(0.0), numMET1e2mu(0.0), numMET3mu(0.0);
+    float numZ(0), numW(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0.0), numMET2e1mu(0.0), numMET1e2mu(0.0), numMET3mu(0.0);
     float numMET3ectrl(0), numMET2e1muctrl(0), numMET1e2muctrl(0), numMET3muctrl(0);
     float numMET3eGEN(0), numMET2e1muGEN(0), numMET1e2muGEN(0), numMET3muGEN(0);
     float error3e(0), error2e1mu(0), error1e2mu(0), error3mu(0);
     TFile * fout = new TFile(name[file],"RECREATE");
     int numTest(0);
-
-    TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
-    TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
-    TH1F * hZmassMuWel3      = new TH1F ("hZmassMuWel3", "hZmassMuWel3", 40, 60, 120);
-    TH1F * hZmassMuWmu3      = new TH1F ("hZmassMuWmu3", "hZmassMuWmu3", 40, 60, 120);
-    TH1F * hZmassElWmu3      = new TH1F ("hZmassElWmu3", "hZmassElWmu3", 40, 60, 120);
-    TH1F * hZmassElWel3      = new TH1F ("hZmassElWel3", "hZmassElWel3", 40, 60, 120);
-    TH1F * hMETMu1                = new TH1F("hMETMu1", "hMETMu1",150, 0, 300);
-    TH1F * hMETEl1                = new TH1F("hMETEl1", "hMETEl1",150, 0, 300);
-    TH1F * hMETMu1_s         = new TH1F("hMETMu1_s", "hMETMu1_s",150, 0, 150);
-    TH1F * hMETEl1_s         = new TH1F("hMETEl1_s", "hMETEl1_s",150, 0, 150);
-
+    double numMET[4], error[4];
+    
+    //initialization:
+    for (int ini=0; ini<4; ini++){
+      numMET[ini]=0;
+      error[ini]=0;
+    }
+    //old (erase?)
 
     const int nChannels(4);
+    const int nChannels1(4);
+    
     TH1D * hZpt[nChannels];
     TH1D * hLeadingJetPt[nChannels]; 
     TH1D * hZptAll[nChannels];
     TH1D * hZptAllError[nChannels];
     TH1D * hZptAll3sigmaUp[nChannels];
     TH1D * hZptAll3sigmaDown[nChannels];
-    
+
+    //naming convention: 0-after Z candidate, 1-after W candidate 2- after whole selection    
+    TH1F * hZmass1[nChannels1];
+    TH1F * hZmass2[nChannels1];
+    TH1F * hMET1[nChannels1];
+    TH1F * hMET2[nChannels1];
+    TH1F * hZpt_my1[nChannels1];
+    TH1F * hZpt_my2[nChannels1];
+    TH1F * hLeadingJetPt_my1[nChannels1];
+    TH1F * hLeadingJetPt_my2[nChannels1];
+    TH1F * hNjets[nChannels1];
+    TH1F * hDeltaPhi[nChannels1];
+
+
+    for (int myhist=0; myhist<nChannels1; myhist++){
+      std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
+      std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+      nZmass1<<"hZmass1_"<<myhist;
+      nZmass2<<"hZmass2_"<<myhist;
+      nMET1<<"hMET1_"<<myhist;
+      nMET2<<"hMET2_"<<myhist;
+      nZpt1<<"hZpt1_"<<myhist;
+      nZpt2<<"hZpt2_"<<myhist;
+      nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
+      nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
+      nNjets<<"hNjets_"<<myhist;
+      nDeltaPhi<<"hDeltaPhi"<<myhist;
+      
+      hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
+      hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
+      hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
+      hMET2[myhist]             = HistogramFactory::createMETHisto(nMET2.str().c_str(), nMET2.str().c_str());
+      hZpt_my1[myhist]          = HistogramFactory::createZptHisto(nZpt1.str().c_str(), nZpt1.str().c_str());
+      hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
+      hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
+      hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
+      hNjets[myhist]           = HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
+      hDeltaPhi[myhist]        = HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
+      
+      }
+
     for (int hist=0; hist<nChannels; hist++){
       std::ostringstream Zptname, LeadingJetname, ZptfSname, ZptfSnameError, ZptfSname3Up, ZptfSname3Down ;
       LeadingJetname<<"LeadingJetPt_"<<(hist+1);
@@ -221,9 +260,10 @@ int main()
       
       float xs_weight(0);    
 
-    //*******various factors
-      float pileUpWeight=cWZ->puW;
-      // float pileUpWeight=1.0;
+      //*******various factors
+      float pileUpWeight=cWZ->puW_new;
+      
+      //float pileUpWeight=1.0;
     
     //rejecting run 201191
     //    if (cWZ->run==201191) continue;
@@ -262,9 +302,9 @@ int main()
     if ((cWZ->dataset)==94) xs_weight *= (0.2057 / 0.174);
     
     bool muScaleSyst(false);
-    bool elScaleSyst(true);
+    bool elScaleSyst(false);
     double muScale(0.002);
-    double elScale(-1.0);
+    double elScale(1.0);
 
     double pfmet=cWZ->pfmet;
     double pfmetphi=cWZ->pfmetphi;
@@ -366,23 +406,40 @@ int main()
 
     numZ+=pileUpWeight;
 
-    ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
-    //later...
- 
-    if (foundZmu){
-      hZmassMu1->Fill(massMu, pileUpWeight*xs_weight);
-      hMETMu1->Fill(cWZ->pfmet, pileUpWeight*xs_weight);
-      hMETMu1_s->Fill(cWZ->pfmet, pileUpWeight*xs_weight);   
-    }    
-
-    if (foundZel){
-      hZmassEl1->Fill(massEl, pileUpWeight*xs_weight);
-      hMETEl1->Fill(cWZ->pfmet, pileUpWeight*xs_weight);
-      hMETEl1_s->Fill(cWZ->pfmet, pileUpWeight*xs_weight);
-    }
-    //jet number...
-
+    double Zmass;
+    if (foundZel) Zmass=massEl;
+    else Zmass=massMu;
     
+    /////////JETS//////////////////////////////////
+    int nRecoJets = 0;
+    float leadingRecoJetPt = -9999.;
+    int leadingRecojet = -1;
+    
+    
+    for (int i=0; i<cWZ->recoJets.size(); i++) {
+
+      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<cWZ->leptons.size(); il++) {
+	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
+	  leadingRecojet = i;
+	}
+      }
+      
+    }
+
+
     //////////////////////FIND W BOSON///////////////////////////////////////////
     int ZmuWelCounter(0),ZmuWmuCounter(0), ZelWelCounter(0), ZelWmuCounter(0); 
     int ZmuWel_index(0), ZmuWmu_index(0), ZelWel_index(0), ZelWmu_index(0);
@@ -477,30 +534,38 @@ int main()
 	}
     }
     
+    /////////////FILLING HISTOGRAMS//////////////////////////////
+    bool ev[4]={false, false, false, false};
+    if (ev3e) ev[0]=true;
+    if (ev2e1mu) ev[1]=true;
+    if (ev1e2mu) ev[2]=true;
+    if (ev3mu) ev[3]=true;
+    
+    double weights[4]={0,0,0,0};
+    
+
 
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
+
 
     //deltaR condition
     if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW+=pileUpWeight;  
-    
-    if (ev3e){
-      num3e+=pileUpWeight;
-      type=0; 
-    }
-    if (ev2e1mu){
-      num2e1mu+=pileUpWeight;
-      type=1;
-    }
-    if (ev1e2mu){
-      num1e2mu+=pileUpWeight;
-      type=2;
-    }
 
-    if (ev3mu){
-      num3mu+=pileUpWeight;
-      type=3;
+
+    /////////////FILLING HISTOGRAMS//////////////////////////////
+    for (int fill1=0; fill1<4; fill1++){
+      //weights
+      weights[fill1]=pileUpWeight*ScaleFactors(MuonSF, ElecSF, fill1, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, fill1, analysisLepton)*xs_weight;
+      if (!ev[fill1]) continue;
+      hZmass1[fill1]->Fill(Zmass, weights[fill1]);
+      hMET1[fill1]->Fill(EventMET.Et(), weights[fill1]);
+      hZpt_my1[fill1]->Fill(Zpt, weights[fill1]);
+      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt, weights[fill1]);
     }
+    
+
+
     //////////////////////////////////////MET CUT//////////////////////////
     
     if (EventMET.Et()<30) continue;
@@ -508,87 +573,29 @@ int main()
     //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
 
     //improving this
-    bool ev[4]={false, false, false, false};
     
-    if (ev3e){
-      ev[0]=true;
-      //      std::cout<<pt[0]<<":"<<eta[0]<<std::endl;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, analysisLepton)*xs_weight;
-      //      std::cout<<pileUpWeight<<":"<<ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, pt, eta)<<":"<<TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 0, pt, eta)<<":"<<xs_weight<<std::endl;
-      double factorTest=ScaleFactors(MuonSF, ElecSF, 0, WZcandidates, analysisLepton);
-
-      //      if ((factorTest<0) || (factorTest>5)) std::cout<<factorTest<<std::endl;
-      //      std::cout<<factorTest<<std::endl;
-      numMET3e+=weight;
-      error3e+=(weight*weight);
-      numMET3ectrl+=pileUpWeight;
-      hZmassElWel3->Fill(massEl, pileUpWeight*xs_weight);
-
-    }
-    
-    if (ev2e1mu){
-      ev[1]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 1, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 1, analysisLepton)*xs_weight;
-      numMET2e1mu+=weight;
-      error2e1mu+=(weight*weight);
-      numMET2e1muctrl+=pileUpWeight;
-      hZmassElWmu3->Fill(massEl, pileUpWeight*xs_weight);
-    }
-    
-    if (ev1e2mu){
-      ev[2]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 2, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 2, analysisLepton)*xs_weight;
-      numMET1e2mu+=weight;
-      error1e2mu+=(weight*weight);
-      numMET1e2muctrl+=pileUpWeight;
-      hZmassMuWel3->Fill(massMu,pileUpWeight*xs_weight);
-    }
-
-    if (ev3mu){
-      ev[3]=true;
-      weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, 3, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, 3, analysisLepton)*xs_weight;
-      numMET3mu+=weight;
-      error3mu+=(weight*weight);
-      numMET3muctrl+=pileUpWeight;
-      hZmassMuWmu3->Fill(massMu,pileUpWeight*xs_weight);
-    }
-        
-
-    
-
-    int nRecoJets = 0;
-    float leadingRecoJetPt = -9999.;
-    int leadingRecojet = -1;
-    
-    
-    for (int i=0; i<cWZ->recoJets.size(); i++) {
-
-      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
-
-	bool closeToLepton = false;
-	float drMin = 3.;
-	for (int il=0; il<cWZ->leptons.size(); il++) {
-	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
-	    closeToLepton = true;
-	  }
-	}
-	if (closeToLepton) continue;
-	
-	nRecoJets++;
-	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
-
-	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
-	  leadingRecojet = i;
-	}
+    for (int iEv=0; iEv<4; iEv++){
+      if (ev[iEv]){
+	weight=pileUpWeight*ScaleFactors(MuonSF, ElecSF, iEv, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, iEv, analysisLepton)*xs_weight;
+	numMET[iEv]+=weight;
+	error[iEv]+=(weight*weight);
+	//	numMETcrtl[iEv]+=pileUpWeight;
       }
-      
     }
-    
-    //std::cout<<leadingRecoJetPt<<std::endl;
+
+    for (int fill2=0; fill2<4; fill2++){
+      if (!ev[fill2]) continue;
+      hZmass2[fill2]->Fill(Zmass, weights[fill2]);
+      hMET2[fill2]->Fill(EventMET.Et(), weights[fill2]);
+      hZpt_my2[fill2]->Fill(Zpt, weights[fill2]);
+      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt, weights[fill2]);
+    }    
+
+
     
     for (int filH=0; filH<nChannels; filH++){
       if (ev[filH]){
-	hZpt[filH]->Fill(Zpt, weight);
+	//hZpt[filH]->Fill(Zpt, weight);
 	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, weight);
 	hZptAll[filH]->Fill(Zpt, weight);
       }
@@ -616,10 +623,10 @@ int main()
   }
    
   std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
-  std::cout<<"3e:     "<<numMET3e<<"+/-"<<sqrt(error3e)<<std::endl;
-  std::cout<<"2e1mu:  "<<numMET2e1mu<<"+/-"<<sqrt(error2e1mu)<<std::endl;
-  std::cout<<"1e2mu:  "<<numMET1e2mu<<"+/-"<<sqrt(error1e2mu)<<std::endl;
-  std::cout<<"3mu:    "<<numMET3mu<<"+/-"<<sqrt(error3mu)<<std::endl;
+  std::cout<<"3e:     "<<numMET[0]<<"+/-"<<sqrt(error[0])<<std::endl;
+  std::cout<<"2e1mu:  "<<numMET[1]<<"+/-"<<sqrt(error[1])<<std::endl;
+  std::cout<<"1e2mu:  "<<numMET[2]<<"+/-"<<sqrt(error[2])<<std::endl;
+  std::cout<<"3mu:    "<<numMET[3]<<"+/-"<<sqrt(error[3])<<std::endl;
   std::cout<<"numTest:"<< numTest<<std::endl;
   
   fout->cd();
@@ -631,6 +638,7 @@ int main()
        delete hLeadingJetPt[histDel];
      }
      */
+  /*
      delete hZmassMu1;
      delete hZmassEl1;
      delete hZmassMuWel3;
@@ -641,49 +649,50 @@ int main()
      delete hMETEl1;
      delete hMETMu1_s;
      delete hMETEl1_s;
-     fout->Close();    
+  */    
+ fout->Close();    
     //writing in file:
     if (writeOutputNumbers){
       if (file==1){
-	fileNumMC<<"#define dNZZ_3e "<<numMET3e<<std::endl;
-	fileNumMC<<"#define dNZZ_2e1mu "<<numMET2e1mu<<std::endl;
-	fileNumMC<<"#define dNZZ_1e2mu "<<numMET1e2mu<<std::endl;
-	fileNumMC<<"#define dNZZ_3mu "<<numMET3mu<<std::endl;
-	fileNumMC<<"#define dsNZZ_3e "<<error3e<<std::endl;
-	fileNumMC<<"#define dsNZZ_2e1mu "<<error2e1mu<<std::endl;
-	fileNumMC<<"#define dsNZZ_1e2mu "<<error1e2mu<<std::endl;
-	fileNumMC<<"#define dsNZZ_3mu "<<error3mu<<std::endl;
+	fileNumMC<<"#define dNZZ_3e "<<numMET[0]<<std::endl;
+	fileNumMC<<"#define dNZZ_2e1mu "<<numMET[1]<<std::endl;
+	fileNumMC<<"#define dNZZ_1e2mu "<<numMET[2]<<std::endl;
+	fileNumMC<<"#define dNZZ_3mu "<<numMET[3]<<std::endl;
+	fileNumMC<<"#define dsNZZ_3e "<<error[0]<<std::endl;
+	fileNumMC<<"#define dsNZZ_2e1mu "<<error[1]<<std::endl;
+	fileNumMC<<"#define dsNZZ_1e2mu "<<error[2]<<std::endl;
+	fileNumMC<<"#define dsNZZ_3mu "<<error[3]<<std::endl;
       }
       
       if (file==2){
-	fileNumMC<<"#define dNZgamma_3e "<<numMET3e<<std::endl;
-	fileNumMC<<"#define dNZgamma_2e1mu "<<numMET2e1mu<<std::endl;
-	fileNumMC<<"#define dNZgamma_1e2mu "<<numMET1e2mu<<std::endl;
-	fileNumMC<<"#define dNZgamma_3mu "<<numMET3mu<<std::endl;
-	fileNumMC<<"#define dsNZgamma_3e "<<error3e<<std::endl;
-	fileNumMC<<"#define dsNZgamma_2e1mu "<<error2e1mu<<std::endl;
-	fileNumMC<<"#define dsNZgamma_1e2mu "<<error1e2mu<<std::endl;
-	fileNumMC<<"#define dsNZgamma_3mu "<<error3mu<<std::endl;
+	fileNumMC<<"#define dNZgamma_3e "<<numMET[0]<<std::endl;
+	fileNumMC<<"#define dNZgamma_2e1mu "<<numMET[1]<<std::endl;
+	fileNumMC<<"#define dNZgamma_1e2mu "<<numMET[2]<<std::endl;
+	fileNumMC<<"#define dNZgamma_3mu "<<numMET[3]<<std::endl;
+	fileNumMC<<"#define dsNZgamma_3e "<<error[0]<<std::endl;
+	fileNumMC<<"#define dsNZgamma_2e1mu "<<error[1]<<std::endl;
+	fileNumMC<<"#define dsNZgamma_1e2mu "<<error[2]<<std::endl;
+	fileNumMC<<"#define dsNZgamma_3mu "<<error[3]<<std::endl;
       }
       if (file==3){
-	fileNumMC<<"#define dNWV_3e "<<numMET3e<<std::endl;
-	fileNumMC<<"#define dNWV_2e1mu "<<numMET2e1mu<<std::endl;
-	fileNumMC<<"#define dNWV_1e2mu "<<numMET1e2mu<<std::endl;
-	fileNumMC<<"#define dNWV_3mu "<<numMET3mu<<std::endl;
-	fileNumMC<<"#define dsNWV_3e "<<error3e<<std::endl;
-	fileNumMC<<"#define dsNWV_2e1mu "<<error2e1mu<<std::endl;
-	fileNumMC<<"#define dsNWV_1e2mu "<<error1e2mu<<std::endl;
-	fileNumMC<<"#define dsNWV_3mu "<<error3mu<<std::endl;
+	fileNumMC<<"#define dNWV_3e "<<numMET[0]<<std::endl;
+	fileNumMC<<"#define dNWV_2e1mu "<<numMET[1]<<std::endl;
+	fileNumMC<<"#define dNWV_1e2mu "<<numMET[2]<<std::endl;
+	fileNumMC<<"#define dNWV_3mu "<<numMET[3]<<std::endl;
+	fileNumMC<<"#define dsNWV_3e "<<error[0]<<std::endl;
+	fileNumMC<<"#define dsNWV_2e1mu "<<error[1]<<std::endl;
+	fileNumMC<<"#define dsNWV_1e2mu "<<error[2]<<std::endl;
+	fileNumMC<<"#define dsNWV_3mu "<<error[3]<<std::endl;
       }
       if (file==4){
-	fileNumMC<<"#define dNVVV_3e "<<numMET3e<<std::endl;
-	fileNumMC<<"#define dNVVV_2e1mu "<<numMET2e1mu<<std::endl;
-	fileNumMC<<"#define dNVVV_1e2mu "<<numMET1e2mu<<std::endl;
-	fileNumMC<<"#define dNVVV_3mu "<<numMET3mu<<std::endl;
-	fileNumMC<<"#define dsNVVV_3e "<<error3e<<std::endl;
-	fileNumMC<<"#define dsNVVV_2e1mu "<<error2e1mu<<std::endl;
-	fileNumMC<<"#define dsNVVV_1e2mu "<<error1e2mu<<std::endl;
-	fileNumMC<<"#define dsNVVV_3mu "<<error3mu<<std::endl;
+	fileNumMC<<"#define dNVVV_3e "<<numMET[0]<<std::endl;
+	fileNumMC<<"#define dNVVV_2e1mu "<<numMET[1]<<std::endl;
+	fileNumMC<<"#define dNVVV_1e2mu "<<numMET[2]<<std::endl;
+	fileNumMC<<"#define dNVVV_3mu "<<numMET[3]<<std::endl;
+	fileNumMC<<"#define dsNVVV_3e "<<error[0]<<std::endl;
+	fileNumMC<<"#define dsNVVV_2e1mu "<<error[1]<<std::endl;
+	fileNumMC<<"#define dsNVVV_1e2mu "<<error[2]<<std::endl;
+	fileNumMC<<"#define dsNVVV_3mu "<<error[3]<<std::endl;
       }
     }
     
