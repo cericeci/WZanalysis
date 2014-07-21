@@ -58,7 +58,12 @@ TLorentzVector GetMET(Float_t metModule, Float_t metPhi);
 
 float GetError(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
 
+double deltaRWleptMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentzVector EventMET);
+
+double deltaPhiWMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 //int genInformation(WZ *cWZ, int* Wdecay, int* Zdecay);
+
+double wTransverseMass(int index, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 
 int main()
 {
@@ -124,7 +129,7 @@ int main()
   */
 
   const int nChannels(4);
-  const int nChannels1(4);
+  const int nChannels1(5);
   
   TH1D * hZptCh[nChannels];
   TH1D * hZptTau[nChannels];
@@ -141,12 +146,22 @@ int main()
   TH1F * hZpt_my2[nChannels1];
   TH1F * hLeadingJetPt_my1[nChannels1];
   TH1F * hLeadingJetPt_my2[nChannels1];
-  TH1F * hNjets[nChannels1];
-  TH1F * hDeltaPhi[nChannels1];
-  
+  TH1F * hNjets1[nChannels1];
+  TH1F * hNjets2[nChannels1];
+  TH1F * hDeltaPhi1[nChannels1];
+  TH1F * hDeltaPhi2[nChannels1];
+  TH1F * hZlepton1pt1[nChannels1];
+  TH1F * hZlepton2pt1[nChannels1];
+  TH1F * hZlepton1pt2[nChannels1]; 
+  TH1F * hZlepton2pt2[nChannels1]; 
+  TH1F * hWleptonpt1[nChannels1];
+  TH1F * hWleptonpt2[nChannels1];
+  TH1F * hMTW1[nChannels1];
+  TH1F * hMTW2[nChannels1];
+
   for (int myhist=0; myhist<nChannels1; myhist++){
-    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
-    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2;
     nZmass1<<"hZmass1_"<<myhist;
     nZmass2<<"hZmass2_"<<myhist;
     nMET1<<"hMET1_"<<myhist;
@@ -155,9 +170,20 @@ int main()
     nZpt2<<"hZpt2_"<<myhist;
     nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
     nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
-    nNjets<<"hNjets_"<<myhist;
-    nDeltaPhi<<"hDeltaPhi"<<myhist;
-    
+    nNjets1<<"hNjets1_"<<myhist;
+    nNjets2<<"hNjets2_"<<myhist;
+    nDeltaPhi1<<"hDeltaPhi1_"<<myhist;
+    nDeltaPhi2<<"hDeltaPhi2_"<<myhist;
+    nZlepton1pt1<<"hZlepton1pt1_"<<myhist;
+    nZlepton2pt1<<"hZlepton2pt1_"<<myhist;
+    nZlepton1pt2<<"hZlepton1pt2_"<<myhist;
+    nZlepton2pt2<<"hZlepton2pt2_"<<myhist;
+    nWleptonpt1<<"hWleptonpt1_"<<myhist;
+    nWleptonpt2<<"hWleptonpt2_"<<myhist;
+    nMTW1<<"hMTW1_"<<myhist;
+    nMTW2<<"hMTW2_"<<myhist;
+ 
+
     hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
     hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
     hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
@@ -166,9 +192,18 @@ int main()
     hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
     hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
     hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
-    hNjets[myhist]           =  HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
-    hDeltaPhi[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
-    
+    hNjets1[myhist]           =  HistogramFactory::createNjetsHisto(nNjets1.str().c_str(), nNjets1.str().c_str());
+    hNjets2[myhist]           =  HistogramFactory::createNjetsHisto(nNjets2.str().c_str(), nNjets2.str().c_str());
+    hDeltaPhi1[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi1.str().c_str(), nDeltaPhi1.str().c_str());
+    hDeltaPhi2[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi2.str().c_str(), nDeltaPhi2.str().c_str());
+    hZlepton1pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt1.str().c_str(), nZlepton1pt1.str().c_str());
+    hZlepton2pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton2pt1.str().c_str(), nZlepton2pt1.str().c_str());
+    hZlepton1pt2[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt2.str().c_str(), nZlepton1pt2.str().c_str());
+    hZlepton2pt2[myhist]       = HistogramFactory::createZptHisto(nZlepton2pt2.str().c_str(), nZlepton2pt2.str().c_str());
+    hWleptonpt1[myhist]       = HistogramFactory::createZptHisto(nWleptonpt1.str().c_str(), nWleptonpt1.str().c_str());
+    hWleptonpt2[myhist]       = HistogramFactory::createZptHisto(nWleptonpt2.str().c_str(), nWleptonpt2.str().c_str());
+    hMTW1[myhist]              = HistogramFactory::createMTW(nMTW1.str().c_str(), nMTW1.str().c_str());
+    hMTW2[myhist]              = HistogramFactory::createMTW(nMTW2.str().c_str(), nMTW2.str().c_str());
   }
   
 
@@ -671,7 +706,7 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
 	  ev3e=true;
 	}
     }
-    bool ev[4]={false, false, false, false};    
+    bool ev[5]={false, false, false, false, true};    
     if (ev3e) ev[0]=true;
     if (ev2e1mu) ev[1]=true;
     if (ev1e2mu) ev[2]=true;
@@ -685,15 +720,37 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
     //deltaR condition
     if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW+=pileUpWeight;  
+    
+    double deltaPhi=deltaPhiWMET(WZcandidates,analysisLepton, EventMET);
+    
+    //double deltaPhi=1;    
+    int indW=WZcandidates[2];
+    int indZ1=WZcandidates[0];
+    int indZ2=WZcandidates[1];
+    double WleptPt= pt[indW];
+    double Zlept1Pt= pt[indZ1];
+    double Zlept2Pt= pt[indZ2];
+    double MTW= wTransverseMass(indW, analysisLepton,EventMET);
+    double weights_h(0);
+    for (int w=0; w<4; w++){
+      weights[w]=pileUpWeight*ScaleFactors(MuonSF, ElecSF, w, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, w, analysisLepton)*xs_weight;
+      weights_h=pileUpWeight*ScaleFactors(MuonSF, ElecSF, w, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, w, analysisLepton)*xs_weight;
+    }
 
-    for (int fill1=0; fill1<4; fill1++){
+    for (int fill1=0; fill1<5; fill1++){
       //weights
-      weights[fill1]=pileUpWeight*ScaleFactors(MuonSF, ElecSF, fill1, WZcandidates, analysisLepton)*TriggerWeight(WZcandidates, DoubleElLead, DoubleMuLead, DoubleElTrail, DoubleMuTrail, fill1, analysisLepton)*xs_weight;
+
       if (!ev[fill1]) continue;
-      hZmass1[fill1]->Fill(Zmass, weights[fill1]);
-      hMET1[fill1]->Fill(EventMET.Et(), weights[fill1]);
-      hZpt_my1[fill1]->Fill(Zpt, weights[fill1]);
-      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt, weights[fill1]);
+      hZmass1[fill1]->Fill(Zmass, weights_h);
+      hMET1[fill1]->Fill(EventMET.Et(), weights_h);
+      hZpt_my1[fill1]->Fill(Zpt, weights_h);
+      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt, weights_h);
+      hNjets1[fill1]->Fill(nRecoJets, weights_h);
+      hDeltaPhi1[fill1]->Fill(deltaPhi, weights_h);
+      hZlepton1pt1[fill1]->Fill(Zlept1Pt,weights_h);
+      hZlepton2pt1[fill1]->Fill(Zlept2Pt,weights_h);
+      hWleptonpt1[fill1]->Fill(WleptPt,weights_h);
+      hMTW1[fill1]->Fill(MTW, weights_h);
     }
 
 
@@ -799,12 +856,18 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
     br_weight= weightBr;
     //    wz_aTGC->Fill();
 
-    for (int fill2=0; fill2<4; fill2++){
+    for (int fill2=0; fill2<5; fill2++){
       if (!ev[fill2]) continue;
-      hZmass2[fill2]->Fill(Zmass, weights[fill2]);
-      hMET2[fill2]->Fill(EventMET.Et(), weights[fill2]);
-      hZpt_my2[fill2]->Fill(Zpt, weights[fill2]);
-      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt, weights[fill2]);
+      hZmass2[fill2]->Fill(Zmass, weights_h);
+      hMET2[fill2]->Fill(EventMET.Et(), weights_h);
+      hZpt_my2[fill2]->Fill(Zpt, weights_h);
+      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt, weights_h);
+      hNjets2[fill2]->Fill(nRecoJets, weights_h);
+      hDeltaPhi2[fill2]->Fill(deltaPhi, weights_h);
+      hZlepton1pt2[fill2]->Fill(Zlept1Pt,weights_h);
+      hZlepton2pt2[fill2]->Fill(Zlept2Pt,weights_h);
+      hWleptonpt2[fill2]->Fill(WleptPt,weights_h);
+      hMTW2[fill2]->Fill(MTW, weights_h);
     }
     
 
@@ -868,23 +931,13 @@ double gen[5], genq[5], fact[5], factq[5], mixed[5], error[5], errorWholeZagreb[
   std::cout<<"1e2mu: "<<numMET1e2muGEN<<std::endl;
   std::cout<<"3mu: "<<numMET3muGEN<<std::endl;
   */
-  std::cout<<"Normalized: "<<std::endl;
-  std::cout<<"3e: "<< numMET_2[0]*xs_weight<<std::endl;
-  std::cout<<"2e1mu: "<<numMET_2[1]*xs_weight<<std::endl;
-  std::cout<<"1e2mu: "<<numMET_2[2]*xs_weight<<std::endl;
-  std::cout<<"3mu: "<<numMET_2[3]*xs_weight<<std::endl;
 
   std::cout<<"NumMET_brCorr"<<std::endl;
-  std::cout<<"3e: "<< numMET_brCorr[0]*xs_weight<<std::endl;
-  std::cout<<"2e1mu: "<<numMET_brCorr[1]*xs_weight<<std::endl;
-  std::cout<<"1e2mu: "<<numMET_brCorr[2]*xs_weight<<std::endl;
-  std::cout<<"3mu: "<<numMET_brCorr[3]*xs_weight<<std::endl;
+  std::cout<<"3e: "<< numMET_brCorr[0]*xs_weight<<"+/-"<<sqrt(numMET_brCorr2[0])*xs_weight<<std::endl;
+  std::cout<<"2e1mu: "<<numMET_brCorr[1]*xs_weight<<"+/-"<<sqrt(numMET_brCorr2[1])*xs_weight<<std::endl;
+  std::cout<<"1e2mu: "<<numMET_brCorr[2]*xs_weight<<"+/-"<<sqrt(numMET_brCorr2[2])*xs_weight<<std::endl;
+  std::cout<<"3mu: "<<numMET_brCorr[3]*xs_weight<<"+/-"<<sqrt(numMET_brCorr2[3])*xs_weight<<std::endl;
 
-  std::cout<<"without corr"<<std::endl;
-  std::cout<<"3e: "<< numMET[0]*xs_weight<<std::endl;
-  std::cout<<"2e1mu: "<<numMET[1]*xs_weight<<std::endl;
-  std::cout<<"1e2mu: "<<numMET[2]*xs_weight<<std::endl;
-  std::cout<<"3mu: "<<numMET[3]*xs_weight<<std::endl;
 
 
 

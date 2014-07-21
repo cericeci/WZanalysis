@@ -43,7 +43,12 @@ TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
 float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label, float weight);
 
+TLorentzVector GetMET(Float_t metModule, Float_t metPhi);
+
+double deltaPhiWMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 //float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label);
+
+double wTransverseMass(int index, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 
 int main()
 {
@@ -73,7 +78,7 @@ int main()
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
-  const int nChannels1(4);
+  const int nChannels1(5);
 
   TH1F * hZmass1[nChannels1];
   TH1F * hZmass2[nChannels1];
@@ -83,12 +88,22 @@ int main()
   TH1F * hZpt_my2[nChannels1];
   TH1F * hLeadingJetPt_my1[nChannels1];
   TH1F * hLeadingJetPt_my2[nChannels1];
-  TH1F * hNjets[nChannels1];
-  TH1F * hDeltaPhi[nChannels1];
-  
+  TH1F * hNjets1[nChannels1];
+  TH1F * hNjets2[nChannels1];
+  TH1F * hDeltaPhi1[nChannels1];
+  TH1F * hDeltaPhi2[nChannels1]; 
+  TH1F * hZlepton1pt1[nChannels1];
+  TH1F * hZlepton2pt1[nChannels1];
+  TH1F * hZlepton1pt2[nChannels1]; 
+  TH1F * hZlepton2pt2[nChannels1]; 
+  TH1F * hWleptonpt1[nChannels1];
+  TH1F * hWleptonpt2[nChannels1];
+  TH1F * hMTW1[nChannels1];
+  TH1F * hMTW2[nChannels1];  
+
   for (int myhist=0; myhist<nChannels1; myhist++){
-    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets, nDeltaPhi;
-    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2;
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2;
     nZmass1<<"hZmass1_"<<myhist;
     nZmass2<<"hZmass2_"<<myhist;
     nMET1<<"hMET1_"<<myhist;
@@ -97,9 +112,19 @@ int main()
     nZpt2<<"hZpt2_"<<myhist;
     nLeadingJetPt1<<"hLeadingJetPt1_"<<myhist;
     nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
-    nNjets<<"hNjets_"<<myhist;
-    nDeltaPhi<<"hDeltaPhi"<<myhist;
-    
+    nNjets1<<"hNjets1_"<<myhist;
+    nNjets2<<"hNjets2_"<<myhist;
+    nDeltaPhi1<<"hDeltaPhi1_"<<myhist;
+    nDeltaPhi2<<"hDeltaPhi2_"<<myhist;
+    nZlepton1pt1<<"hZlepton1pt1_"<<myhist;
+    nZlepton2pt1<<"hZlepton2pt1_"<<myhist;
+    nZlepton1pt2<<"hZlepton1pt2_"<<myhist;
+    nZlepton2pt2<<"hZlepton2pt2_"<<myhist;
+    nWleptonpt1<<"hWleptonpt1_"<<myhist;
+    nWleptonpt2<<"hWleptonpt2_"<<myhist;    
+    nMTW1<<"hMTW1_"<<myhist;
+    nMTW2<<"hMTW2_"<<myhist;
+
     hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
     hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
     hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
@@ -108,9 +133,18 @@ int main()
     hZpt_my2[myhist]          = HistogramFactory::createZptHisto(nZpt2.str().c_str(), nZpt2.str().c_str());
     hLeadingJetPt_my1[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt1.str().c_str(), nLeadingJetPt1.str().c_str());
     hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
-    hNjets[myhist]           =  HistogramFactory::createNjetsHisto(nNjets.str().c_str(), nNjets.str().c_str());
-    hDeltaPhi[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi.str().c_str(), nDeltaPhi.str().c_str());
-    
+    hNjets1[myhist]           =  HistogramFactory::createNjetsHisto(nNjets1.str().c_str(), nNjets1.str().c_str());
+    hNjets2[myhist]           =  HistogramFactory::createNjetsHisto(nNjets2.str().c_str(), nNjets2.str().c_str());
+    hDeltaPhi1[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi1.str().c_str(), nDeltaPhi1.str().c_str());
+    hDeltaPhi2[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi2.str().c_str(), nDeltaPhi2.str().c_str());
+    hZlepton1pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt1.str().c_str(), nZlepton1pt1.str().c_str());
+    hZlepton2pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton2pt1.str().c_str(), nZlepton2pt1.str().c_str());
+    hZlepton1pt2[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt2.str().c_str(), nZlepton1pt2.str().c_str());
+    hZlepton2pt2[myhist]       = HistogramFactory::createZptHisto(nZlepton2pt2.str().c_str(), nZlepton2pt2.str().c_str());
+    hWleptonpt1[myhist]       = HistogramFactory::createZptHisto(nWleptonpt1.str().c_str(), nWleptonpt1.str().c_str());
+    hWleptonpt2[myhist]       = HistogramFactory::createZptHisto(nWleptonpt2.str().c_str(), nWleptonpt2.str().c_str());
+    hMTW1[myhist]              = HistogramFactory::createMTW(nMTW1.str().c_str(), nMTW1.str().c_str());
+    hMTW2[myhist]              = HistogramFactory::createMTW(nMTW2.str().c_str(), nMTW2.str().c_str());
   }
 
   const int nChannels(4);
@@ -187,7 +221,7 @@ int main()
   double N_fake[4]={0,0,0,0};
   double ferror[4]={0,0,0,0};
 
-  double data_driven_syst[4]={0.027, 0.019, 0.027, 0.026};
+  double data_driven_syst[4]={0.029, 0.022, 0.032, 0.028};
   //test variables
   int numZ1(0), numZ2(0), numZ3(0), numZ4(0), numZ5(0), numZ6(0);
   int electronCount(0);
@@ -248,7 +282,7 @@ int main()
   std::cout<<"number of events: "<<events << std::endl;
 
 
-  for  (Int_t k = 0; k<events /*&& k<10000*/;k++) {
+  for  (Int_t k = 0; k<events /*&& k<10000**/;k++) {
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
@@ -272,9 +306,13 @@ int main()
     TLorentzVector v_nizEl[9];
     TLorentzVector v_nizMu[9];
     TLorentzVector v_3Lepton(0.,0.,0.,0.);
-
+    TLorentzVector EventMET;
     TLorentzVector analysisLepton[leptonNumber];
     
+    double pfmet=cWZ->pfmetTypeI;
+    double pfmetphi=cWZ->pfmetTypeIphi;
+    EventMET = GetMET(pfmet, pfmetphi);
+
     int WZcandidates[3]; //->here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
     for (int i1=0; i1<leptonNumber; i1++){
       if ((bdt[i1]<100) && (pt[i1]>10)){    
@@ -341,6 +379,37 @@ int main()
     double Zmass;
     if (foundZel) Zmass=massEl;
     else Zmass=massMu;
+
+    int nRecoJets = 0;
+    float leadingRecoJetPt = -9999.;
+    int leadingRecojet = -1;
+    
+
+    for (int i=0; i<cWZ->recoJets.size(); i++) {
+
+      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<cWZ->leptons.size(); il++) {
+	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
+	  leadingRecojet = i;
+	}
+      }
+      
+    }
+    
+
+
     ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
     //later...
  
@@ -452,10 +521,10 @@ int main()
     int type;
     //0-EEE, 1-EEM, 2-EMM, 3-MMM
 
-    bool ev[4]={false, false, false, false};
+    bool ev[5]={false, false, false, false, true};
     double MMweights[4]={.0,.0,.0,.0};
     double MMerrors[4]={.0,.0,.0,.0};
-    double MMweights_fake[4]={.0,.0,.0,.0};
+    double MMweights_fake[5]={.0,.0,.0,.0};
     double MMerrors_fake[4]={.0,.0,.0,.0};
     
     int label= determineLabel(pass2012ICHEP, WZcandidates);
@@ -484,21 +553,38 @@ int main()
       ev[3]=true;
     }
     ////////////////////MATRIX METHOD PART//////////////////////////
+    double MMweights_fake_h(0);
     
     for (int matrix=0; matrix<4; matrix++){
       if (!ev[matrix]) continue;
       MMweights[matrix]=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label);
       MMweights_fake[matrix]=(Nttt-MMweights[matrix]);
+      MMweights_fake_h=(Nttt-MMweights[matrix]);
       MMerrors[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, MMweights[matrix]);
       MMerrors_fake[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, (Nttt-MMweights[matrix]));
     }
 
-    for (int fill2=0; fill2<4; fill2++){
+    double deltaPhi=deltaPhiWMET(WZcandidates,analysisLepton, EventMET);
+    int indW=WZcandidates[2];
+    int indZ1=WZcandidates[0];
+    int indZ2=WZcandidates[1];
+    double WleptPt= pt[indW];  
+    double Zlept1Pt= pt[indZ1];
+    double Zlept2Pt= pt[indZ2];
+    double MTW= wTransverseMass(indW, analysisLepton,EventMET);
+
+    for (int fill2=0; fill2<5; fill2++){
       if (!ev[fill2]) continue;
-      hZmass1[fill2]->Fill(Zmass, MMweights_fake[fill2]);
-      hMET1[fill2]->Fill(met, MMweights_fake[fill2]);
-      hZpt_my1[fill2]->Fill(Zpt, MMweights_fake[fill2]);
-      //      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+      hZmass1[fill2]->Fill(Zmass, MMweights_fake_h);
+      hMET1[fill2]->Fill(met, MMweights_fake_h);
+      hZpt_my1[fill2]->Fill(Zpt, MMweights_fake_h);
+      hLeadingJetPt_my1[fill2]->Fill(leadingRecoJetPt, MMweights_fake_h);
+      hNjets1[fill2]->Fill(nRecoJets, MMweights_fake_h);
+      hDeltaPhi1[fill2]->Fill(deltaPhi, MMweights_fake_h);
+      hZlepton1pt1[fill2]->Fill(Zlept1Pt,MMweights_fake_h);
+      hZlepton2pt1[fill2]->Fill(Zlept2Pt,MMweights_fake_h);
+      hWleptonpt1[fill2]->Fill(WleptPt,MMweights_fake_h);
+      hMTW1[fill2]->Fill(MTW, MMweights_fake_h);
     }    
     //////////////////////////////////////MET CUT//////////////////////////
 
@@ -506,12 +592,18 @@ int main()
     if ((cWZ->pfmetTypeI)<30) continue;  
 
 
-    for (int fill3=0; fill3<4; fill3++){
+    for (int fill3=0; fill3<5; fill3++){
       if (!ev[fill3]) continue;
-      hZmass2[fill3]->Fill(Zmass, MMweights_fake[fill3]);
-      hMET2[fill3]->Fill(met, MMweights_fake[fill3]);
-      hZpt_my2[fill3]->Fill(Zpt, MMweights_fake[fill3]);
-      //      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+      hZmass2[fill3]->Fill(Zmass, MMweights_fake_h);
+      hMET2[fill3]->Fill(met, MMweights_fake_h);
+      hZpt_my2[fill3]->Fill(Zpt, MMweights_fake_h);
+      hLeadingJetPt_my2[fill3]->Fill(leadingRecoJetPt, MMweights_fake_h);
+      hNjets2[fill3]->Fill(nRecoJets, MMweights_fake_h);
+      hDeltaPhi2[fill3]->Fill(deltaPhi, MMweights_fake_h);
+      hZlepton1pt2[fill3]->Fill(Zlept1Pt,MMweights_fake_h);
+      hZlepton2pt2[fill3]->Fill(Zlept2Pt,MMweights_fake_h);
+      hWleptonpt2[fill3]->Fill(WleptPt,MMweights_fake_h);
+      hMTW2[fill3]->Fill(MTW, MMweights_fake_h);
     }    
     ////////////////////////////////////////////////////////////////////////
     
@@ -539,34 +631,6 @@ int main()
       numMET3mu++;
     }
 
-    int nRecoJets = 0;
-    float leadingRecoJetPt = -9999.;
-    int leadingRecojet = -1;
-    
-
-    for (int i=0; i<cWZ->recoJets.size(); i++) {
-
-      if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
-
-	bool closeToLepton = false;
-	float drMin = 3.;
-	for (int il=0; il<cWZ->leptons.size(); il++) {
-	  if (cWZ->recoJets[i].DeltaR(cWZ->leptons[il])<0.5) {
-	    closeToLepton = true;
-	  }
-	}
-	if (closeToLepton) continue;
-	
-	nRecoJets++;
-	if (cWZ->recoJets[i].Pt() > leadingRecoJetPt) {
-
-	  leadingRecoJetPt = cWZ->recoJets[i].Pt();
-	  leadingRecojet = i;
-	}
-      }
-      
-    }
-    
     //std::cout<<leadingRecoJetPt<<std::endl;
     
     for (int filH=0; filH<nChannels; filH++){

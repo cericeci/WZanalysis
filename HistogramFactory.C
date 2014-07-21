@@ -25,7 +25,7 @@ TH1F *  HistogramFactory::createMETbigHisto(std::string s, std::string title) {
 
 TH1F *  HistogramFactory::createMETHisto(std::string s, std::string title) {
 
-  TH1F * h = new TH1F(s.c_str(),title.c_str(), 150,0., 150);
+  TH1F * h = new TH1F(s.c_str(),title.c_str(), 40,0., 200);
   return h;
 
 }
@@ -61,6 +61,13 @@ TH1F *  HistogramFactory::createNjetsHisto(std::string s, std::string title) {
 TH1F *  HistogramFactory::createDeltaPhi(std::string s, std::string title) {
 
   TH1F * h = new TH1F(s.c_str(),title.c_str(),32, 0, 3.2);
+  return h;
+
+}
+
+TH1F *  HistogramFactory::createMTW(std::string s, std::string title) {
+
+  TH1F * h = new TH1F(s.c_str(),title.c_str(),40, 0, 200);
   return h;
 
 }

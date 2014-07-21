@@ -16,6 +16,7 @@ public:
   static TH1F * createLeadingJetptHisto(std::string s, std::string title);
   static TH1F * createNjetsHisto(std::string s, std::string title);
   static TH1F * createDeltaPhi(std::string s, std::string title);
+  static TH1F * createMTW(std::string s, std::string title);
 }; 
 
 
