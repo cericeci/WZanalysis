@@ -2,14 +2,12 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TH1F.h"
-#include "TH1D.h"
-#include "TH2F.h"
 #include "TLorentzVector.h"
-#include "UnfoldingHistogramFactory.h"
 #include "HistogramFactory.h"
 // Replace this with the new tree
-#include "WZEventMCOld.h"
+//#include "WZ.h"
 //#include "WZ2012Data.h"
+#include "WZEventMCOld.h"
 
 #include <iostream>
 #include <fstream>
@@ -31,52 +29,42 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
 
 bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 
-int determineLabel(int * pass2012ICHEP, int * WZcandidates);
-
-double weight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt,float * eta, int label);
-
-float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
-
-float GetError(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
-
-TH2F* LoadHistogram(TString filename, TString hname, TString cname);
-
-float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label, float weight);
+double deltaPhiWMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 
 TLorentzVector GetMET(Float_t metModule, Float_t metPhi);
-
-double deltaPhiWMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentzVector EventMET);
-//float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label);
 
 double wTransverseMass(int index, TLorentzVector* analysisLepton, TLorentzVector EventMET);
 
 int main()
 {
   using namespace std;
-  
   ofstream myfile3e, myfile3mu, myfile2e1mu, myfile1e2mu, myfileAll;
-  ofstream fileNumMM;
-    
-  //fileNumMM.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMM.h");
-  fileNumMM.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMM_met.h");
-  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts3e_Lucija.txt");
-  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts2e1mu_Lucija.txt");
-  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts1e2mu_Lucija.txt");
-  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/WZ_evts3mu_Lucija.txt");
+  ofstream fileNumData;
+
+  fileNumData.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numData_met.h");
+  //  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3e_Lucija.txt");
+  myfile3e.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3e_Lucija.txt");
+  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts2e1mu_Lucija.txt");
+  //  myfile2e1mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts2e1mu_Lucija.txt");
+  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts1e2mu_Lucija.txt");
+  //  myfile1e2mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts1e2mu_Lucija.txt");
+  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3mu_Lucija.txt");
+  //  myfile3mu.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/METcomparison/WZ_evts3mu_Lucija.txt");
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
 
-  //  bool writeOutputNumbers(true);
+  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+
+  //  bool writeOutputNumbers(false);
   bool writeOutputNumbers(true);
-  bool latexOutput(true);
   if (writeOutputNumbers){
-    fileNumMM<<"#ifndef numMM_h"<<std::endl;
-    fileNumMM<<"#define numMM_h"<<std::endl;
+    fileNumData<<"#ifndef numData_h"<<std::endl;
+    fileNumData<<"#define numData_h"<<std::endl;
   }
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_driven.root", "RECREATE");
-
-  TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
-  TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+  TH1F * hZmassFinal[4];
+  
+  //  for (int histos=0; histos<4; histos++)
+  //numbering convention: 2-after W selection, 3-after MET cut(final selection)
 
   const int nChannels1(5);
 
@@ -91,15 +79,15 @@ int main()
   TH1F * hNjets1[nChannels1];
   TH1F * hNjets2[nChannels1];
   TH1F * hDeltaPhi1[nChannels1];
-  TH1F * hDeltaPhi2[nChannels1]; 
+  TH1F * hDeltaPhi2[nChannels1];
   TH1F * hZlepton1pt1[nChannels1];
-  TH1F * hZlepton2pt1[nChannels1];
   TH1F * hZlepton1pt2[nChannels1]; 
+  TH1F * hZlepton2pt1[nChannels1];
   TH1F * hZlepton2pt2[nChannels1]; 
   TH1F * hWleptonpt1[nChannels1];
   TH1F * hWleptonpt2[nChannels1];
   TH1F * hMTW1[nChannels1];
-  TH1F * hMTW2[nChannels1];  
+  TH1F * hMTW2[nChannels1];
 
   for (int myhist=0; myhist<nChannels1; myhist++){
     std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1;
@@ -121,10 +109,10 @@ int main()
     nZlepton1pt2<<"hZlepton1pt2_"<<myhist;
     nZlepton2pt2<<"hZlepton2pt2_"<<myhist;
     nWleptonpt1<<"hWleptonpt1_"<<myhist;
-    nWleptonpt2<<"hWleptonpt2_"<<myhist;    
+    nWleptonpt2<<"hWleptonpt2_"<<myhist;
     nMTW1<<"hMTW1_"<<myhist;
     nMTW2<<"hMTW2_"<<myhist;
-
+      
     hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
     hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
     hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
@@ -147,86 +135,39 @@ int main()
     hMTW2[myhist]              = HistogramFactory::createMTW(nMTW2.str().c_str(), nMTW2.str().c_str());
   }
 
-  const int nChannels(4);
-  TH1D * hZpt[nChannels];
-  TH1D * hZpt_test[nChannels];
-  TH1D * hLeadingJetPt[nChannels]; 
-  TH1D * hLeadingJetPtError[nChannels]; 
-  TH1D * hZpterror[nChannels];
-  TH1D * hZptFake[nChannels];
-  TH1D * hZptFake3sigmaUp[nChannels];
-  TH1D * hZptFake3sigmaDown[nChannels];
-  TH1D * hZptFakeError[nChannels];
-
-
-
-  for (int hist=0; hist<nChannels; hist++){
-    std::ostringstream Zptname, LeadingJetname, Zpterrorname, Zpttest,LeadingJetError, ZptFakename,ZptFakename3Up, ZptFakename3Down, ZptFakeErrorname ;  
-    LeadingJetname<<"LeadingJetPt_"<<hist;
-    LeadingJetError<<"LeadingJetError_"<<hist;
-    Zpttest<<"Zpt_test_"<<hist;
-    Zptname<<"Zpt_"<<(hist+1);
-    Zpterrorname<<"Zpterror_"<<(hist+1);
-    ZptFakename<<"fake_"<<(hist+1);
-    ZptFakename3Up<<"fake_3sigmaUp_"<<(hist+1);
-    ZptFakename3Down<<"fake_3sigmaDown"<<(hist+1);
-    ZptFakeErrorname<<"error_fake_"<<(hist+1);
-    hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
-    hZpt_test[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zpttest.str().c_str(), Zpttest.str().c_str());
-    hZpterror[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zpterrorname.str().c_str(), Zpterrorname.str().c_str());
-    hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
-    hLeadingJetPtError[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetError.str().c_str(),LeadingJetError.str().c_str());
-    hZptFake[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename.str().c_str(), ZptFakename.str().c_str());
-
-    hZptFake3sigmaUp[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Up.str().c_str(), ZptFakename3Up.str().c_str());
-
-    hZptFake3sigmaDown[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Down.str().c_str(), ZptFakename3Down.str().c_str());
-
-    hZptFakeError[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakeErrorname.str().c_str(), ZptFakeErrorname.str().c_str());
-  }
-  TH2F* MuonFR;
-  TH2F* MuonPR;
-  TH2F* ElectronFR;
-  TH2F* ElectronPR;
-
-
+  /*
+  TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
+  TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+  TH1F * hZmassMuWel2      = new TH1F ("hZmassMuWel2", "hZmassMuWel2", 40, 60, 120);
+  TH1F * hZmassMuWmu2      = new TH1F ("hZmassMuWmu2", "hZmassMuWmu2", 40, 60, 120);
+  TH1F * hZmassElWmu2      = new TH1F ("hZmassElWmu2", "hZmassElWmu2", 40, 60, 120);
+  TH1F * hZmassElWel2      = new TH1F ("hZmassElWel2", "hZmassElWel2", 40, 60, 120);
   
-  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet20_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR"); //nominal!!!
-  //syst
-  //  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet10_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
-  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet30_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
-  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet40_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
-  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet50_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  TH1F * hZmassMuWel3      = new TH1F ("hZmassMuWel3", "hZmassMuWel3", 40, 60, 120);
+  TH1F * hZmassMuWmu3      = new TH1F ("hZmassMuWmu3", "hZmassMuWmu3", 40, 60, 120);
+  TH1F * hZmassElWmu3      = new TH1F ("hZmassElWmu3", "hZmassElWmu3", 40, 60, 120);
+  TH1F * hZmassElWel3      = new TH1F ("hZmassElWel3", "hZmassElWel3", 40, 60, 120);
+  TH1F * hMETMu1_s         = new TH1F("hMETMu1_s", "hMETMu1_s",150, 0, 150);
+  TH1F * hMETEl1_s         = new TH1F("hMETEl1_s", "hMETEl1_s",150, 0, 150);
 
-  MuonPR=LoadHistogram("auxiliaryFiles/MuPR_Moriond13_2012.root", "h2inverted", "MuonPR");
-  
-  ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet35_EWKcorr.root", "fakeElH2", "ElectronFR"); //nominal!!!
-  //syst:
-  //  ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet15_EWKcorr.root", "fakeElH2", "ElectronFR");
-  //ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet50_EWKcorr.root", "fakeElH2", "ElectronFR");
-
-  ElectronPR=LoadHistogram("auxiliaryFiles/ElePR_Moriond13_2012.root", "h2inverted", "ElectronPR");
+  TH1F * hZptMu            = new TH1F("hZptMu", "hZptMu",40, 0, 400);
+  TH1F * hZptEl            = new TH1F("hZptEl", "hZptEl",40, 0, 400);
+  TH1F * hZpt3e            = new TH1F("hZpt3e", "hZpt3e",40, 0, 400);
+  TH1F * hZpt2e1mu         = new TH1F("hZpt2e1mu", "hZpt2e1mu",40, 0, 400);
+  TH1F * hZpt1e2mu         = new TH1F("hZpt1e2mu", "hZpt1e2mu",40, 0, 400);
+  TH1F * hZpt3mu           = new TH1F("hZpt3mu", "hZpt3mu",40, 0, 400);
+  */
     
-  const int leptonNumber(4);
+    const int leptonNumber(4);
   const float electronMass(0.000511);
   const float muonMass(0.106);
   int numZ(0), numW(0), numMET(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0), numMET2e1mu(0), numMET1e2mu(0), numMET3mu(0);
-  double N_good_3e(0), N_good_2e1mu(0), N_good_1e2mu(0), N_good_3mu(0);
-  double N_fake_3e(0), N_fake_2e1mu(0), N_fake_1e2mu(0), N_fake_3mu(0);
-  double ferror_3e(0),ferror_2e1mu(0), ferror_1e2mu(0), ferror_3mu(0);
-  double error_3e(0),error_2e1mu(0), error_1e2mu(0), error_3mu(0);
+  
 
-  double N_good[4]={0,0,0,0};
-  double error[4]={0,0,0,0};
-  double N_fake[4]={0,0,0,0};
-  double ferror[4]={0,0,0,0};
-
-  double data_driven_syst[4]={0.029, 0.022, 0.032, 0.028};
   //test variables
   int numZ1(0), numZ2(0), numZ3(0), numZ4(0), numZ5(0), numZ6(0);
   int electronCount(0);
   int justCount(0);
-  
   std::vector<TString>inputName;
   TChain wz("latino");
   
@@ -237,7 +178,7 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_113_DoubleMuon2012A.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_114_MuEG2012A.root");
 
-      
+    
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_202_DoubleElectron2012B.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_203_DoubleMuon2012B.root ");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_204_MuEG2012B.root");
@@ -267,22 +208,43 @@ int main()
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_403_DoubleMuon2012D.root");
   inputName.push_back("/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/latino_404_MuEG2012D.root");
   
+
+
   
+  TFile * forSenka1= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_3e_1.root", "RECREATE");
+  TFile * forSenka2= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_2e_1.root", "RECREATE");
+  TFile * forSenka3= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_2mu_1.root", "RECREATE");  
+  TFile * forSenka4= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data_aTGC_8TeV_3mu_1.root", "RECREATE");
+
+  //  TTree* wz_aTGC = new TTree("T", "wz_aTGC");
+  forSenka1->cd();
+  TTree* wz_aTGC1 = new TTree("tgcTree", "wz_aTGC1");
+  forSenka2->cd();
+  TTree* wz_aTGC2 = new TTree("tgcTree", "tgcTree");
+  forSenka3->cd();
+  TTree* wz_aTGC3 = new TTree("tgcTree", "tgcTree");
+  forSenka4->cd();
+  TTree* wz_aTGC4 = new TTree("tgcTree", "tgcTree");
+  // double PtZ(0);
+  float PtZ_eee(0), PtZ_eem(0), PtZ_emm(0), PtZ_mmm(0);
+  wz_aTGC1->Branch("PtZ", &PtZ_eee, "PtZ/F");
+  wz_aTGC2->Branch("PtZ", &PtZ_eem, "PtZ/F");
+  wz_aTGC3->Branch("PtZ", &PtZ_emm, "PtZ/F");
+  wz_aTGC4->Branch("PtZ", &PtZ_mmm, "PtZ/F");
   
   for (int input=0; input< inputName.size(); input++){
     wz.Add(inputName[input]);
   }
   TTree *wz_tTree=(TTree*)&wz;
-
-
   WZEventMCOld *cWZ= new WZEventMCOld(wz_tTree);
   //  WZ2012Data *cWZ= new WZ2012Data(wz_tTree);
   Int_t events= wz_tTree->GetEntries();
   
+
   std::cout<<"number of events: "<<events << std::endl;
 
 
-  for  (Int_t k = 0; k<events /*&& k<10000**/;k++) {
+  for  (Int_t k = 0; k<events /*&& k<50000*/;k++) {
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
@@ -290,7 +252,6 @@ int main()
     //rejecting run 201191
     if (cWZ->run==201191) continue;
     if (!(cWZ->trigger)) continue;
-
     
     float pt[leptonNumber]={cWZ->pt1, cWZ->pt2, cWZ->pt3, cWZ->pt4};
     float bdt[leptonNumber]={cWZ->bdt1, cWZ->bdt2, cWZ->bdt3, cWZ->bdt4};
@@ -306,14 +267,14 @@ int main()
     TLorentzVector v_nizEl[9];
     TLorentzVector v_nizMu[9];
     TLorentzVector v_3Lepton(0.,0.,0.,0.);
+
+    TLorentzVector analysisLepton[leptonNumber];    
     TLorentzVector EventMET;
-    TLorentzVector analysisLepton[leptonNumber];
-    
+    int WZcandidates[3]; //->here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
+
     double pfmet=cWZ->pfmetTypeI;
     double pfmetphi=cWZ->pfmetTypeIphi;
     EventMET = GetMET(pfmet, pfmetphi);
-
-    int WZcandidates[3]; //->here goes index of WZ candidate: 1. first Z, 2. second Z, 3. W lepton
     for (int i1=0; i1<leptonNumber; i1++){
       if ((bdt[i1]<100) && (pt[i1]>10)){    
 	analysisLepton[i1].SetPtEtaPhiM(pt[i1], eta[i1], phi[i1], electronMass);
@@ -325,32 +286,37 @@ int main()
 
     int lepNum(0);
     for (int i=0; i<leptonNumber; i++){
-      if ((analysisLepton[i].Pt()>10) && (analysisLepton[i].Pt()!=-9999))
+      if ((pt[i]>10) && (pt[i]!=-9999))
 	lepNum++;
-      if ((bdt[i]<100) && (analysisLepton[i].Pt()>10)){
+      if ((bdt[i]<100) && (pass2012ICHEP[i]) && (pt[i]>10)){
 	good_electrons.push_back(i);
-	v_nizEl[i].SetPtEtaPhiM(analysisLepton[i].Pt(),eta[i], phi[i], electronMass);
+	v_nizEl[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], electronMass);
 	v_3Lepton=v_3Lepton+v_nizEl[i];
       }
-      if ((bdt[i]>100) && (analysisLepton[i].Pt()>10)){
+      if ((bdt[i]>100) && (pass2012ICHEP[i]) && (pt[i]>10)){
 	good_muons.push_back(i);
-	v_nizMu[i].SetPtEtaPhiM(analysisLepton[i].Pt(),eta[i], phi[i], muonMass);
+	v_nizMu[i].SetPtEtaPhiM(pt[i],eta[i], phi[i], muonMass);
 	v_3Lepton=v_3Lepton+v_nizMu[i];
       }
     }
-    if (lepNum!=3) continue; ///???
+
+    //this maybe should be in the end
+    if (lepNum!=3) continue;
 
     if (v_3Lepton.M()<100) continue;
+
     
+
+
     justCount++;
     bool foundZel(false), foundZmu(false);
     double massMu(-999), massEl(0), Zpt(0);
 
+
+
     foundZmu=  Z_muons(cWZ, &good_muons, WZcandidates, v_nizMu, analysisLepton, ch, massMu, Zpt);
-    if (foundZmu){
-      hZmassMu1->Fill(massMu);
-    }
-    
+
+
     foundZel= Z_muons(cWZ, &good_electrons, WZcandidates, v_nizEl, analysisLepton, ch, massEl, Zpt);
 
     // reject all events without Z boson--and candidates with double Z boson
@@ -380,11 +346,13 @@ int main()
     if (foundZel) Zmass=massEl;
     else Zmass=massMu;
 
+
+    ///////////////////////JETS//////////////////////////////////
     int nRecoJets = 0;
     float leadingRecoJetPt = -9999.;
     int leadingRecojet = -1;
     
-
+    //    std::cout<<"RECOJETS SIZE:"<<cWZ->recoJets.size()<<std::endl;
     for (int i=0; i<cWZ->recoJets.size(); i++) {
 
       if (cWZ->recoJets[i].Pt() > 30 && fabs(cWZ->recoJets[i].Eta()) < 2.5) {
@@ -407,12 +375,12 @@ int main()
       }
       
     }
-    
+
 
 
     ///////////////////////FILLING HISTOGRAMS/////////////////////////////////////
     //later...
- 
+
     //jet number...
 
     
@@ -510,183 +478,115 @@ int main()
 	  ev3e=true;
 	}
     }
+    bool ev[5]={false, false, false, false, true};    
+    if (ev3e) ev[0]=true;
+    if (ev2e1mu) ev[1]=true;
+    if (ev1e2mu) ev[2]=true;
+    if (ev3mu) ev[3]=true;
     
+
 
     if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) continue;
 
     //deltaR condition
     if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) continue;
     numW++;  
-    
-    int type;
-    //0-EEE, 1-EEM, 2-EMM, 3-MMM
-
-    bool ev[5]={false, false, false, false, true};
-    double MMweights[4]={.0,.0,.0,.0};
-    double MMerrors[4]={.0,.0,.0,.0};
-    double MMweights_fake[5]={.0,.0,.0,.0};
-    double MMerrors_fake[4]={.0,.0,.0,.0};
-    
-    int label= determineLabel(pass2012ICHEP, WZcandidates);
-    float Nttt(0);
-    if (label==1) Nttt=1;     
-    
-    if (ev3e){
-      num3e++;
-      type=0;
-      ev[0]=true;
-    }
-    if (ev2e1mu){
-      num2e1mu++;
-      type=1;
-      ev[1]=true;
-    }
-    if (ev1e2mu){
-      num1e2mu++;
-      type=2;
-      ev[2]=true;
-    }
-
-    if (ev3mu){
-      num3mu++;
-      type=3;
-      ev[3]=true;
-    }
-    ////////////////////MATRIX METHOD PART//////////////////////////
-    double MMweights_fake_h(0);
-    
-    for (int matrix=0; matrix<4; matrix++){
-      if (!ev[matrix]) continue;
-      MMweights[matrix]=weight(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label);
-      MMweights_fake[matrix]=(Nttt-MMweights[matrix]);
-      MMweights_fake_h=(Nttt-MMweights[matrix]);
-      MMerrors[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, MMweights[matrix]);
-      MMerrors_fake[matrix]=MMerror(ElectronFR, ElectronPR, MuonFR, MuonPR, WZcandidates, matrix, pt, eta, label, (Nttt-MMweights[matrix]));
-    }
 
     double deltaPhi=deltaPhiWMET(WZcandidates,analysisLepton, EventMET);
     int indW=WZcandidates[2];
     int indZ1=WZcandidates[0];
     int indZ2=WZcandidates[1];
-    double WleptPt= pt[indW];  
+    double WleptPt= pt[indW];
     double Zlept1Pt= pt[indZ1];
     double Zlept2Pt= pt[indZ2];
-    double MTW= wTransverseMass(indW, analysisLepton,EventMET);
+    double MTW= wTransverseMass(indW, analysisLepton,EventMET);    
 
-    for (int fill2=0; fill2<5; fill2++){
-      if (!ev[fill2]) continue;
-      hZmass1[fill2]->Fill(Zmass, MMweights_fake_h);
-      hMET1[fill2]->Fill(met, MMweights_fake_h);
-      hZpt_my1[fill2]->Fill(Zpt, MMweights_fake_h);
-      hLeadingJetPt_my1[fill2]->Fill(leadingRecoJetPt, MMweights_fake_h);
-      hNjets1[fill2]->Fill(nRecoJets, MMweights_fake_h);
-      hDeltaPhi1[fill2]->Fill(deltaPhi, MMweights_fake_h);
-      hZlepton1pt1[fill2]->Fill(Zlept1Pt,MMweights_fake_h);
-      hZlepton2pt1[fill2]->Fill(Zlept2Pt,MMweights_fake_h);
-      hWleptonpt1[fill2]->Fill(WleptPt,MMweights_fake_h);
-      hMTW1[fill2]->Fill(MTW, MMweights_fake_h);
+    for (int fill1=0; fill1<5; fill1++){
+      if (!ev[fill1]) continue;
+      hZmass1[fill1]->Fill(Zmass);
+      hMET1[fill1]->Fill(met);
+      hZpt_my1[fill1]->Fill(Zpt);
+      hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt);
+      hNjets1[fill1]->Fill(nRecoJets);
+      hDeltaPhi1[fill1]->Fill(deltaPhi);
+      hZlepton1pt1[fill1]->Fill(Zlept1Pt);
+      hZlepton2pt1[fill1]->Fill(Zlept2Pt);
+      hWleptonpt1[fill1]->Fill(WleptPt);
+      hMTW1[fill1]->Fill(MTW);
     }    
-    //////////////////////////////////////MET CUT//////////////////////////
-
-    
-    if ((cWZ->pfmetTypeI)<30) continue;  
-
-
-    for (int fill3=0; fill3<5; fill3++){
-      if (!ev[fill3]) continue;
-      hZmass2[fill3]->Fill(Zmass, MMweights_fake_h);
-      hMET2[fill3]->Fill(met, MMweights_fake_h);
-      hZpt_my2[fill3]->Fill(Zpt, MMweights_fake_h);
-      hLeadingJetPt_my2[fill3]->Fill(leadingRecoJetPt, MMweights_fake_h);
-      hNjets2[fill3]->Fill(nRecoJets, MMweights_fake_h);
-      hDeltaPhi2[fill3]->Fill(deltaPhi, MMweights_fake_h);
-      hZlepton1pt2[fill3]->Fill(Zlept1Pt,MMweights_fake_h);
-      hZlepton2pt2[fill3]->Fill(Zlept2Pt,MMweights_fake_h);
-      hWleptonpt2[fill3]->Fill(WleptPt,MMweights_fake_h);
-      hMTW2[fill3]->Fill(MTW, MMweights_fake_h);
-    }    
-    ////////////////////////////////////////////////////////////////////////
-    
-        
-    for (int final=0; final<4; final++){
-      if (!ev[final]) continue;
-      N_good[final]+=MMweights[final];
-      error[final]+=MMerrors[final];
-      N_fake[final]+=(Nttt-MMweights[final]);
-      ferror[final]+=MMerrors_fake[final];
-    }
 
 
     if (ev3e){
-      numMET3e++;
+      num3e++;
     }
     if (ev2e1mu){
-      numMET2e1mu++;
+      num2e1mu++;
     }
     if (ev1e2mu){
-      numMET1e2mu++;
+      num1e2mu++;
     }
 
     if (ev3mu){
+      num3mu++;
+    }
+    //////////////////////////////////////MET CUT//////////////////////////
+    
+    //    if ((cWZ->pfmet)<30) continue;
+    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
+    //    PtZ=Zpt;
+    for (int fill2=0; fill2<5; fill2++){
+      if (!ev[fill2]) continue;
+      hZmass2[fill2]->Fill(Zmass);
+      hMET2[fill2]->Fill(met);
+      hZpt_my2[fill2]->Fill(Zpt);
+      hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt);
+      hNjets2[fill2]->Fill(nRecoJets);
+      hDeltaPhi2[fill2]->Fill(deltaPhi);
+      hZlepton1pt2[fill2]->Fill(Zlept1Pt);
+      hZlepton2pt2[fill2]->Fill(Zlept2Pt);
+      hWleptonpt2[fill2]->Fill(WleptPt);
+      hMTW2[fill2]->Fill(MTW);  
+  }
+    
+
+    if (ev3e){
+      numMET3e++;
+      myfile3e<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
+      //      hZmassElWel3->Fill(massEl);
+      forSenka1->cd();
+      PtZ_eee=Zpt;
+      wz_aTGC1->Fill();    
+    }
+    if (ev2e1mu){
+      myfile2e1mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
+      numMET2e1mu++;
+      //     hZmassElWmu3->Fill(massEl);
+      forSenka2->cd();
+      PtZ_eem=Zpt;
+      wz_aTGC2->Fill();    
+
+    }
+    if (ev1e2mu){
+      myfile1e2mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
+      numMET1e2mu++;
+      //      hZmassMuWel3->Fill(massMu);
+      forSenka3->cd();
+      PtZ_emm=Zpt;
+      wz_aTGC3->Fill();    
+    }
+
+    if (ev3mu){
+      myfile3mu<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<cWZ->pfmet<<":"<<cWZ->pfmetTypeI<<":"<<std::endl;
       numMET3mu++;
+      //      hZmassMuWmu3->Fill(massMu);
+      PtZ_mmm=Zpt;
+      forSenka4->cd();
+      wz_aTGC4->Fill();    
     }
+        
+    myfileAll<<cWZ->run<<":"<<cWZ->lumi<<":"<<cWZ->event<<":"<<std::endl;
 
-    //std::cout<<leadingRecoJetPt<<std::endl;
-    
-    for (int filH=0; filH<nChannels; filH++){
-      if (ev[filH]){
-	hZpt[filH]->Fill(Zpt, MMweights[filH]);
-	hZpt_test[filH]->Fill(Zpt, MMweights[filH]);
-	hZpterror[filH]->Fill(Zpt, MMerrors[filH]);
-	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, MMweights[filH]);
-	hLeadingJetPtError[filH]->Fill(leadingRecoJetPt, MMerrors[filH]);
-	hZptFake[filH]->Fill(Zpt, MMweights_fake[filH]);
-	hZptFakeError[filH]->Fill(Zpt, MMerrors_fake[filH]);
-      }
-    }
-    //filling Zpt and errors
-    
   }
-    //filling histogram errors
-  
-  //  std::cout<<"test"<<hZmassMu1->GetNbinsX()<<std::endl;
-  double check[4]={0,0,0,0};
-  
-  for (int er=0; er< nChannels; er++){
-    //double binError(0);
-    for (int nzpt=0; nzpt<(hZpterror[er]->GetNbinsX()+1); nzpt++){
-      double binError=hZpterror[er]->GetBinContent(nzpt);
-      check[er]+=binError;
-      hZpt[er]->SetBinError(nzpt, sqrt(binError));
-    }
-    for (int ljet=0; ljet<(hLeadingJetPtError[er]->GetNbinsX()+1); ljet++){
-      double binError2=hLeadingJetPtError[er]->GetBinContent(ljet);
-      hLeadingJetPt[er]->SetBinError(ljet, sqrt(binError2));
-    }
-    //for Senka TGC
-    for (int zpt2=0; zpt2<(hZptFakeError[er]->GetNbinsX()+1); zpt2++){
-      double binErrorStat2=hZptFakeError[er]->GetBinContent(zpt2);
-      double binContent=hZptFake[er]->GetBinContent(zpt2);
-      double binErrorSyst2= pow(data_driven_syst[er]*binContent,2);
-      double binError2=binErrorStat2+binErrorSyst2;
-      hZptFake[er]->SetBinError(zpt2, sqrt(binError2));
-
-      hZptFake3sigmaUp[er]-> SetBinContent(zpt2, (binContent+3*sqrt(binError2)));
-      //      hZptFake3sigmaUp[er]->SetBinError(zpt2, sqrt(binError2));
-      if ((binContent-3*sqrt(binError2))>0)
-	hZptFake3sigmaDown[er]-> SetBinContent(zpt2, (binContent-3*sqrt(binError2)));
-      else
-	hZptFake3sigmaDown[er]-> SetBinContent(zpt2, 0);
-      //      hZptFake3sigmaDown[er]->SetBinError(zpt2, sqrt(binError2));
-    }
-  }
-  
-  std::cout<<"CHECK:"<<std::endl;
-  std::cout<<sqrt(check[0])<<std::endl;
-  std::cout<<sqrt(check[1])<<std::endl;
-  std::cout<<sqrt(check[2])<<std::endl;
-  std::cout<<sqrt(check[3])<<std::endl;
-
   std::cout<<"Zyield: "<<numZ<<std::endl;
   std::cout<<"Wyield: "<<numW<<std::endl;
   std::cout<<"W3e:     "<<num3e<<std::endl;
@@ -700,64 +600,39 @@ int main()
   std::cout<<"3mu:    "<<numMET3mu<<std::endl;
 
   std::cout<<justCount<<std::endl;
-  std::cout<<"/////////////////MATRIX METHOD RESULT//////////////////"<<std::endl;
-  std::cout<<"N_good_3e:     "<<N_good[0]<<std::endl;
-  std::cout<<"error_3e:     "<<sqrt(error[0])<<std::endl;
-  std::cout<<"N_good_2e1mu:  "<<N_good[1]<<std::endl;
-  std::cout<<"error_2e1mu:  "<<sqrt(error[1])<<std::endl;
-  std::cout<<"N_good_1e2mu:  "<<N_good[2]<<std::endl;
-  std::cout<<"error_1e2mu:  "<<sqrt(error[2])<<std::endl;
-  std::cout<<"N_good_3mu:    "<<N_good[3]<<std::endl;
-  std::cout<<"error_3mu:    "<<sqrt(error[3])<<std::endl;
-  std::cout<<"*****************************************************"<<std::endl;
-  std::cout<<"N_fake_3e:     "<<N_fake[0]<<std::endl;
-  std::cout<<"ferror_3e:     "<<sqrt(ferror[0])<<std::endl;
-  std::cout<<"N_fake_2e1mu:  "<<N_fake[1]<<std::endl;
-  std::cout<<"ferror_2e1mu:  "<<sqrt(ferror[1])<<std::endl;
-  std::cout<<"N_fake_1e2mu:  "<<N_fake[2]<<std::endl;
-  std::cout<<"ferror_1e2mu:  "<<sqrt(ferror[2])<<std::endl;
-  std::cout<<"N_fake_3mu:    "<<N_fake[3]<<std::endl;
-  std::cout<<"ferror_3mu:    "<<sqrt(ferror[3])<<std::endl;  
+  
 
-  if (latexOutput)
-    {
-      std::cout<<"channel & Ngood & Nfake \\\\ "<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-      std::cout<<"3e     & $"<<N_good[0]    <<"\\pm"<<sqrt(error[0])    <<"$ & $"<<N_fake[0]    <<"\\pm"<<sqrt(ferror[0])    <<"$ \\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-      std::cout<<"2e1mu  & $"<<N_good[1] <<"\\pm"<<sqrt(error[1]) <<"$ & $"<<N_fake[1] <<"\\pm"<<sqrt(ferror[1]) <<"$ \\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-      std::cout<<"1e2mu  & $"<<N_good[2] <<"\\pm"<<sqrt(error[2]) <<"$ & $"<<N_fake[2] <<"\\pm"<<sqrt(ferror[2]) <<"$ \\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-      std::cout<<"3mu    & $"<<N_good[3]   <<"\\pm"<<sqrt(error[3])   <<"$ & $"<<N_fake[3]   <<"\\pm"<<sqrt(ferror[3])   <<"$ \\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-    }
-  //write in file:
-  if (writeOutputNumbers){
-    fileNumMM<<"#define dN_fake3e "<<N_fake[0]<<std::endl;
-    fileNumMM<<"#define dN_fake2e1mu "<<N_fake[1]<<std::endl;
-    fileNumMM<<"#define dN_fake1e2mu "<<N_fake[2]<<std::endl;
-    fileNumMM<<"#define dN_fake3mu "<<N_fake[3]<<std::endl;
-    fileNumMM<<"#define dsN_fake3e "<<sqrt(ferror[0])<<std::endl;
-    fileNumMM<<"#define dsN_fake2e1mu "<<sqrt(ferror[1])<<std::endl;
-    fileNumMM<<"#define dsN_fake1e2mu "<<sqrt(ferror[2])<<std::endl;
-    fileNumMM<<"#define dsN_fake3mu "<<sqrt(ferror[3])<<std::endl;
-
-    fileNumMM<<"#define dN_good3e "<<N_good[0]<<std::endl;
-    fileNumMM<<"#define dN_good2e1mu "<<N_good[1]<<std::endl;
-    fileNumMM<<"#define dN_good1e2mu "<<N_good[2]<<std::endl;
-    fileNumMM<<"#define dN_good3mu "<<N_good[3]<<std::endl;
-    fileNumMM<<"#define dsN_good3e "<<sqrt(error[0])<<std::endl;
-    fileNumMM<<"#define dsN_good2e1mu "<<sqrt(error[1])<<std::endl;
-    fileNumMM<<"#define dsN_good1e2mu "<<sqrt(error[2])<<std::endl;
-    fileNumMM<<"#define dsN_good3mu "<<sqrt(error[3])<<std::endl;
-
-
-    fileNumMM.close();
-  }
-
+  
 
   fout->cd();
   fout->Write();
   fout->Close();
+
+
+  forSenka1->cd();
+  wz_aTGC1->Write();
+  forSenka1->Close();
+  
+
+  forSenka2->cd();
+  wz_aTGC2->Write();
+  forSenka2->Close();
+  
+
+  forSenka3->cd();
+  wz_aTGC3->Write();
+  forSenka3->Close();
+  
+
+  forSenka4->cd();
+  wz_aTGC4->Write();
+  forSenka4->Close();
+  
+  if (writeOutputNumbers){
+    fileNumData<<"#define dN_data3e "<<numMET3e<<std::endl;
+    fileNumData<<"#define dN_data2e1mu "<<numMET2e1mu<<std::endl;
+    fileNumData<<"#define dN_data1e2mu "<<numMET1e2mu<<std::endl;
+    fileNumData<<"#define dN_data3mu "<<numMET3mu<<std::endl;
+    fileNumData.close();
+    }
 }

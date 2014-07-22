@@ -1,12 +1,12 @@
 #LDFLAGS=`root-config --libs`
 #CPPFLAGS= -Wall -Wno-long-long  -pthread -DCTHREAD_POSIX -D_THREAD_SAFE -D_REENTRANT -I$(ROOTSYS)/include 
 
-CPPFLAGS=`root-config --cflags` -IRooUnfold-1.1.1/src/   -g 
+CPPFLAGS=`root-config --cflags` #-IRooUnfold-1.1.1/src/   -g 
 #If running in CMSSW42...
 #LDFLAGS = -L$(ROOTSYS)/lib -lNew -lRint -lTree -lTreePlayer -lCint -lThread -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMinuit -lPostscript -lProof -lThread -lCore -lGX11 -lPhysics -lGpad -lGui -lTreeViewer -L/usr/X11R6/lib -lm -ldl -L/usr/lib -lpthread -rdynamic 
 
 #if running in CMSSW53...
-LDFLAGS =$(shell root-config --libs)  RooUnfold-1.1.1/libRooUnfold.so
+LDFLAGS =$(shell root-config --libs) # RooUnfold-1.1.1/libRooUnfold.so
 
 
 # FOR DATA
@@ -20,22 +20,22 @@ LDFLAGS =$(shell root-config --libs)  RooUnfold-1.1.1/libRooUnfold.so
 #wzDoGenAnalysisNewAutomatic1: wzDoGenAnalysisNewAutomatic1.C wzTools2.C WZ.C WZEvent.C
 #	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C
+wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C HistogramFactory.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C WZEventMCOld.C
+wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzMatrixMethod: wzMatrixMethod.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C WZEventMCOld.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisMCAll: wzAnalysisMCAll.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C WZEventMCOld.C
+wzAnalysisMCAll: wzAnalysisMCAll.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzBackground: wzBackground.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C WZEventMCOld.C
+wzBackground: wzBackground.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C
+wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C HistogramFactory.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzWZ: wzWZ.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C

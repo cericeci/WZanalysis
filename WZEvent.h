@@ -65,6 +65,7 @@ public:
   float GetScaleFactor();
   float LeadTriggerEff();
   float TrailTriggerEff();
+
   float PdgId() { return pdgid;};
 
 protected:
@@ -108,7 +109,7 @@ public:
   int Id() { return pdgid; };
   int MotherBoson() { return motherBoson; };
   int ComesFromTau() { return isTauDescendent; };
-  
+
 
 protected:
   int   pdgid;
@@ -148,6 +149,7 @@ public:
   float GetMCWeight();
   float GetTriggerEfficiency();
 
+  float GetBrWeight();  
   FinalState GetFinalState(){return final_state;}
   PassedSelectionStep GetSelectionLevel() { return selection_level;}
   

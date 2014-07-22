@@ -9,13 +9,13 @@
 //  Exteran function declarations
 //
 
-bool Z_muons(WZBASECLASS *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, float* pt, float * ch,double & massMu, double & Zpt);
+bool Z_muons(WZBASECLASS *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz, TLorentzVector* analysisLepton, float * ch,double & massMu, double & Zpt);
 
 bool passMVAiso(float isomva, float pt, float eta);
 
 bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, TLorentzVector *v_niz);
 
-bool passDeltaRWleptZlept(int * WZcandidates, float* phi, float *eta);
+bool passDeltaRWleptZlept(int * WZcandidates, TLorentzVector * analysisLepton);
 
 TH2F* LoadHistogram(TString filename, TString hname, TString cname);
 
@@ -27,6 +27,7 @@ float trigger2sameLeptons(float* eL, float* eT);
 
 float triggerDifferentLeptons(float* eL, float* eT);
 
+double ReturnBranchingWeight(int type);
 
 // Initialize static data members
 TH2F * RecoLepton::MuonSF = 0;
@@ -96,6 +97,69 @@ float RecoLepton::TrailTriggerEff() {
   return eff;
 }
 
+float WZEvent::GetBrWeight(){
+  int genType=-999;
+  
+  double Wel(false), Wmu(false), Wtau(false), Zel(false), Zmu(false), Ztau(false);
+  int numW(0), numZ(0), indexW(-999), indexZ1(-999), indexZ2(-999);
+
+  for (int igl=0; igl<genLeptons.size() ; igl++) {
+    int bosonId = genLeptons[igl].MotherBoson();
+  //W
+    if (abs(bosonId) == 24) {
+      numW++;
+      indexW=igl;
+    }
+    //Z
+    if (abs(bosonId) == 23) {
+      numZ++;
+      if (numZ==2) indexZ2=igl;
+      if (numZ==1) indexZ1=igl;
+    }
+  }
+  if (numW > 1) return genType;
+  if (numZ > 2) return genType;
+  /*
+  int Zid1=abs(cWZ->genLeptons[indexZ1].Id());
+  int Zid2=abs(cWZ->genLeptons[indexZ2].Id());
+  int wid=abs(cWZ->genLeptons[indexW].Id());
+  */
+
+  //hadronic decays
+  if (numW==0) Wtau=true;
+  if (numZ<2) Ztau=true;
+
+  //W lepton
+  if (numW>0){
+    if (((genLeptons[indexW].ComesFromTau()))) Wtau=true;
+    else {
+      if ((abs(genLeptons[indexW].Id()))==11) Wel=true;
+      if ((abs(genLeptons[indexW].Id()))==13) Wmu=true;
+    }
+  }
+  //Z lepton
+  if (numZ>1){
+    if ((genLeptons[indexZ1].ComesFromTau()) && (genLeptons[indexZ2].ComesFromTau())) Ztau=true;
+    else {
+      if (((abs(genLeptons[indexZ1].Id()))==11) && ((abs(genLeptons[indexZ2].Id()))==11)) Zel=true;
+      if (((abs(genLeptons[indexZ1].Id()))==13) && ((abs(genLeptons[indexZ2].Id()))==13)) Zmu=true;
+    }
+  }
+  if (Zel && Wel) genType=0;
+  if (Zel && Wmu) genType=1;
+  if (Zmu && Wel) genType=2;
+  if (Zmu && Wmu) genType=3;
+  if (Ztau && Wel) genType=4;
+  if (Ztau && Wmu) genType=5;
+  if (Ztau && Wtau) genType=6;
+  if (Zel && Wtau) genType=7;
+  if (Zmu && Wtau) genType=8;
+  
+
+  float weight;
+  weight=ReturnBranchingWeight(genType);
+  return weight;
+}
 
 
 
@@ -334,7 +398,7 @@ void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
 	    << " Pt = " << leptons[index].Pt()
 	    << " Eta = " << leptons[index].Eta()
 	    << " SF = " << leptons[index].GetScaleFactor()
-	    << " effL = " << leptons[index].LeadTriggerEff()
+	    << " Effl = " << leptons[index].LeadTriggerEff()
 	    << " effT = " << leptons[index].TrailTriggerEff();
       }
     }
@@ -385,11 +449,18 @@ bool WZEvent::passesSelection(){
   if (this->run==201191) return passed;
   
   //  if (!(this->trigger)) return passed;
-    
-  float pts[leptonNumber]={pt1, pt2, pt3, pt4};
+      float pts[leptonNumber]={pt1, pt2, pt3, pt4};
   float charges[leptonNumber]={ch1, ch2, ch3, ch4};
   float phis[leptonNumber]={phi1, phi2, phi3, phi4};
   float etas[leptonNumber]={eta1, eta2, eta3, eta4};
+  TLorentzVector analysisLepton[leptonNumber];
+  for (int i1=0; i1<leptonNumber; i1++){
+     if ((fabs(*pdgid[i1])==11)&& (*pt[i1]>0))
+       analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
+     if ((fabs(*pdgid[i1])==13) && (*pt[i1]>0))
+       analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], muonMass);
+  }
+  
   //find Z boson, save the index of it
   std::vector<int> good_muons;
   std::vector<int> good_electrons;
@@ -426,9 +497,9 @@ bool WZEvent::passesSelection(){
   bool foundZel(false), foundZmu(false);
   double massMu(-999), massEl(0), Zpt(0);
   
-  foundZmu=  Z_muons(this, &good_muons, WZcandidates, v_nizMu, pts, charges, massMu, Zpt);
+  foundZmu=  Z_muons(this, &good_muons, WZcandidates, v_nizMu, analysisLepton, charges, massMu, Zpt);
   
-  foundZel= Z_muons(this, &good_electrons, WZcandidates, v_nizEl, pts, charges, massEl, Zpt);
+  foundZel= Z_muons(this, &good_electrons, WZcandidates, v_nizEl, analysisLepton, charges, massEl, Zpt);
   
   // reject all events without Z boson--and candidates with double Z boson
   
@@ -566,7 +637,7 @@ bool WZEvent::passesSelection(){
   if ((!ev3e) && (!ev3mu) && (!ev1e2mu) && (!ev2e1mu)) return false;
   
   //deltaR condition
-  if (!passDeltaRWleptZlept(WZcandidates, phis, etas)) return false;
+  if (!passDeltaRWleptZlept(WZcandidates, analysisLepton)) return false;
   numW+=pileUpWeight;  
   
   selection_level = passesWSelection;
