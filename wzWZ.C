@@ -54,9 +54,33 @@ int determineGenType(WZEvent * cWZ);
 
 //int genInformation(WZ *cWZ, int* Wdecay, int* Zdecay);
 
-int main()
+int main(int argc, char **argv)
 {
   using namespace std;
+
+  char * fileList;
+  bool useInputList=false;
+  char * outputName(0);
+  bool gotOutput = false;
+
+  char c;
+  while ((c = getopt (argc, argv, "o:l:")) != -1)
+    switch (c)
+      {
+      case 'o':
+	gotOutput = true;
+	outputName = new char[strlen(optarg)+1];
+	strcpy(outputName,optarg);
+	break;
+      case 'l':
+	useInputList = true;
+	fileList = new char[strlen(optarg)+1];
+	strcpy(fileList,optarg);
+	break;
+      default:
+	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
+	abort ();
+      }
 
   //write output numbers
   //  bool writeOutputNumbers(false);
@@ -84,7 +108,12 @@ int main()
   myfileAll.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/comparisonWithJonatan/all_Lucija.txt");
   */
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/MCNew.root", "RECREATE");
+  TFile * fout;
+  if (gotOutput) {
+    fout = new TFile(outputName, "RECREATE");
+  } else {
+    fout = new TFile("MCNew.root", "RECREATE");
+  } 
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
@@ -171,7 +200,17 @@ int main()
   std::vector<TString>inputName;
   TChain wz("latino");
 
-  readFileFromList("wzNoSkim.files", &inputName);
+
+  if (useInputList) {
+    ifstream list(fileList);
+    readFileFromList(fileList, &inputName);
+  } else {
+    std::cout << "Got no input list with WZ MC, I quit... \n";
+    return -1;
+    // Lucija's list
+    //     readFileFromList("wzNoSkim.files", &inputName);
+  }
+
   //  readFileFromList("wzNoFilter10.files", &inputName);
   
   for (int input=0; input< inputName.size(); input++){

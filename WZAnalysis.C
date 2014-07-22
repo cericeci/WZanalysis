@@ -21,6 +21,25 @@ WZAnalysis::WZAnalysis(WZEvent * e) {
 }
 
 
+void WZAnalysis::Init() {
+
+  // Create tree to study 
+  jetResolutionTree = new TTree("jetres","REsolution");
+
+  jetResolutionTree->Branch("genJetPt",  &_genJetPt,  "genJetPt/F");
+  jetResolutionTree->Branch("genJetPhi", &_genJetPhi, "genJetPhi/F");
+  jetResolutionTree->Branch("genJetEta", &_genJetEta, "genJetEta/F");
+
+  jetResolutionTree->Branch("recoJetPt",  &_recoJetPt,  "recoJetPt/F");
+  jetResolutionTree->Branch("recoJetPhi", &_recoJetPhi, "recoJetPhi/F");
+  jetResolutionTree->Branch("recoJetEta", &_recoJetEta, "recoJetEta/F");
+
+  jetResolutionTree->Branch("dR", &_drRecoGenJet, "dR/F");
+
+
+
+}
+
 void WZAnalysis::EventAnalysis() {
 
 
@@ -161,9 +180,58 @@ void WZAnalysis::EventAnalysis() {
   }
   zDecaysByType[decay]++;
 
+
+  // 
+  // JET RESOLUTION ANALYSIS
+  // 
+
+
+
+  for (int i=0; i < wzevt->genJets.size(); i++) {
+
+    // should be away from the gen leptons
+
+    bool closeToLepton = false;
+    for (int igl=0; igl<wzevt->genLeptons.size() ; igl++) {
+      double dR = wzevt->genJets[i].DeltaR(wzevt->genLeptons[igl]);
+      if (dR < 0.5) {
+	//	  std::cout << "genJet close to lepton: " << dR << std::endl;
+	closeToLepton = true;
+      }
+    }
+    if (closeToLepton) continue;
+
+    // Now find matching reco jet
+
+    int matchedJet = -1;
+    float drmax = 10.;
+    for (int irj=0; irj<wzevt->recoJets.size(); irj++) {
+      double dRgr = wzevt->genJets[i].DeltaR(wzevt->recoJets[irj]);
+      if (dRgr < drmax) {
+	matchedJet = irj;
+	drmax = dRgr;
+      }
+    }
+    if (matchedJet>=0 && drmax < 0.3) {
+      _genJetPt = wzevt->genJets[i].Pt();
+      _genJetPhi = wzevt->genJets[i].Phi();
+      _genJetEta = wzevt->genJets[i].Eta();
+      _recoJetPt = wzevt->recoJets[matchedJet].Pt();
+      _recoJetPhi = wzevt->recoJets[matchedJet].Phi();
+      _recoJetEta = wzevt->recoJets[matchedJet].Eta();
+      _drRecoGenJet = drmax;
+
+      jetResolutionTree->Fill();
+
+    }
+
+  }
 }
 
-void WZAnalysis::Finish() {
+void WZAnalysis::Finish(TFile * fout) {
+
+
+
 
   // PDG Values
   float BrWtoE    = 0.1075;
@@ -256,5 +324,9 @@ void WZAnalysis::Finish() {
 
   weirdEventsList->close();
 
+  // 
+  if (fout) {
+    jetResolutionTree->Write();
+  }
 
 }

@@ -6,14 +6,14 @@
 TH1D * UnfoldingHistogramFactory::createLeadingJetHistogram(std::string s, std::string title) {
   TH1D * h;
 
-  if (false) {
-    h = new TH1D(s.c_str(),title.c_str(), 10,0., 500.);
+  if (true) {
+    h = new TH1D(s.c_str(),title.c_str(), 10,30., 530.);
 
   } else { // Variable Bin Size
 
     std::vector<double> binLimits;
     double value = 1.;
-    double binSize = 25.;
+    double binSize = 20;
     while (value<500.) {
       binLimits.push_back(value);
       if (value>200) binSize = 40.;
@@ -36,7 +36,7 @@ TH1D * UnfoldingHistogramFactory::createLeadingJetHistogram(std::string s, std::
 
 TH1D *  UnfoldingHistogramFactory::createZPtHistogram(std::string s, std::string title) {
 
-  TH1D * h = new TH1D(s.c_str(),title.c_str(), 20,0., 400.);
+  TH1D * h = new TH1D(s.c_str(),title.c_str(), 10,0., 500.);
   return h;
 
 }

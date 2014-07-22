@@ -17,6 +17,8 @@
 
 #include "WZAnalysis.h"
 
+#include "constants.h"
+
 //#include "WZ.h"
 //#include "WZ2012Data.h"
 
@@ -139,6 +141,7 @@ int main(int argc, char **argv)
 
   float yields[5];
   float genYields[5];
+  double totalMCYield=0;
   for (int i=0; i<5; i++) {
     yields[i] = 0;
     genYields[i] = 0;
@@ -153,6 +156,7 @@ int main(int argc, char **argv)
   //  unfoldJetPt.Init();
   UnfoldingZPt unfoldZPt(cWZ);
   WZAnalysis   genAnalysis(cWZ);
+  genAnalysis.Init();
 
 
   // Setup selected event lists 
@@ -177,10 +181,12 @@ int main(int argc, char **argv)
 		<< cWZ->event << " ======================= \n";
     }
 
-    float pileUpWeight=cWZ->puW;
+    float pileUpWeight=cWZ->GetPileupWeight();
     int wzGenChannel = cWZ->WZchan;
     
     //rejecting run 201191
+
+
 
     //    if (cWZ->run==201191) continue;
     //    if (!(cWZ->trigger)) continue;
@@ -189,15 +195,15 @@ int main(int argc, char **argv)
     FinalState channel = cWZ->GetFinalState();
     PassedSelectionStep selectionLevel = cWZ->GetSelectionLevel();
 
-
     if (debug) {
       std::cout << "Event passed: " << eventPassed
 		<< "\t step: " << selectionLevel
 		<< "\t channel : " << channel << std::endl;
-
       
       if (eventPassed) std::cout << "PAAAASSSSS " << pileUpWeight << "\n";
     }
+
+    totalMCYield += pileUpWeight;
 
     if (cWZ->MZ>71.1876  && cWZ->MZ<111.1876) {
       genYields[wzGenChannel] += pileUpWeight;
@@ -237,14 +243,22 @@ int main(int argc, char **argv)
   }
   double signalYield = 0;
 
+
+  std::cout << "Events in sample: " <<  totalMCYield << std::endl;
   std::cout << "Passes Z Selection : " << nZYield 
 	    << "  -  " << cWZ->NumZ() << std::endl;
   std::cout << "Passes W Selection : " << nWYield 
 	    << "  -  " << cWZ->NumW() << std::endl;
   double totalGenYield = 0.;
 
+  double lumiNormalizedYields[5];
+  double lumiNormalization = LUMINOSITY*WZ3LXSECTION/totalMCYield;
 
-  for (int i=0; i<5; i++) totalGenYield += genYields[i];
+
+  for (int i=0; i<5; i++) {
+    lumiNormalizedYields[i] = yields[i]*lumiNormalization;
+    totalGenYield += genYields[i];
+  }
 
   for (int i=0; i<5; i++) {
 
@@ -256,6 +270,7 @@ int main(int argc, char **argv)
     }
     std::cout << "yield  for : " 
 	      << i << "\t:\t" << yields[i] 
+	      << "\t scaled to lumi : " << lumiNormalizedYields[i] 
 	      << "\t gen :" << genYields[i-1]
 	      << "\t A*eff = " << Aeff
 	      << "\t spanish way  = " << Aeff_spanish
@@ -273,7 +288,8 @@ int main(int argc, char **argv)
 //   hXChanelTriggerEff2->Write();
 //   hXChanelTrigEffDiff->Write();
 
-  genAnalysis.Finish();
+  hRecoVsGenChannel->Write(); 
+  genAnalysis.Finish(fout);
   unfoldJetPt.Finish(fout);
   unfoldZPt.Finish(fout);
 

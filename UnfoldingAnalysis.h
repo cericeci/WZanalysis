@@ -5,6 +5,7 @@
 
 #include "WZEvent.h"
 
+#include "TTree.h"
 #include "TFile.h"
 #include "TH1D.h"
 
@@ -35,6 +36,9 @@ public:
 protected:
 
   virtual TH1D * createHistogram(std::string s, std::string title)=0;
+
+  double GetRecoWeight();
+  double GetGenWeight();
   
   WZEvent * wzevt;
 
@@ -53,13 +57,16 @@ protected:
   TH1D * stabilityPlot[5];
   TH1D * stabilityPlotDenominator[5];
 
-
   RooUnfoldResponse *response[5];
 
   std::string key;
 
   double * trueValue;
   double * recoValue;
+
+  bool    useNormalizedWeights;
+
+  TTree * resolutionTree;
 
 };
 
@@ -87,6 +94,15 @@ protected:
   double leadingRecoJetPt;
   double leadingGenJetPt;
 
+  double leadingRecoJetPhi;
+  double leadingGenJetPhi;;
+
+  double leadingRecoJetEta;
+  double leadingGenJetEta;
+
+  double leadingRecoJetDRZl;
+  double leadingRecoJetDRWl;
+
   TH1D * createHistogram(std::string s, std::string title);
 
   TH1D * hnGenJets[5];
@@ -104,12 +120,17 @@ public:
   void EventAnalysis(bool controlSample=false);
   //  void Finish(TFile * fout=0);
 
-  //  void Init();
+  void Init();
 
 protected:
 
   double recoZPt;
   double genZPt;
+  double recoZPhi;
+  double genZPhi;
+  double recoZEta;
+  double genZEta;
+
 
   TH1D * createHistogram(std::string s, std::string title);
 

@@ -31,13 +31,13 @@ public:
 
   WZAnalysis(WZEvent * e);
 
-  virtual void Init() {}; 
+  virtual void Init();
 
   void CreateBaseHistos();
 
   virtual void EventAnalysis();
 
-  virtual void Finish();
+  virtual void Finish(TFile * fout =0);
 
 protected:
 
@@ -49,6 +49,20 @@ protected:
   int totalNrEvents;
 
   std::ofstream * weirdEventsList;
+
+  // For Jet Resolution analysis
+
+  float _genJetPt;
+  float _genJetPhi;
+  float _genJetEta;
+
+  float _recoJetPt;
+  float _recoJetPhi;
+  float _recoJetEta;
+
+  float _drRecoGenJet;
+
+  TTree * jetResolutionTree;
 
 };
 

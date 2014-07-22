@@ -36,6 +36,10 @@
 #define WZTREE WZGenEvent
 #include "WZGenEvent.h"
 #endif
+#ifdef NEWMCPUFIX
+#define WZTREE WZGenEvent_v140710
+#include "WZGenEvent_v140710.h"
+#endif
 
 #define WZTEST WZEvent
 #include "WZEvent.h"

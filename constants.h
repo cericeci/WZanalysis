@@ -8,10 +8,13 @@
 
 
 
+// 2012 luminosity and 8 TeV theory x-section
+
 #define LUMINOSITY 19602
+#define WZ3LXSECTION 1.058
 
 // PDG Branching Ratios
 
 
 
-#endif Constants_h
+#endif 

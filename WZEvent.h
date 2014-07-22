@@ -15,12 +15,17 @@
 #define WZBASECLASS WZGenEvent
 #include "WZGenEvent.h"
 #endif
+#ifdef NEWMCPUFIX
+#define WZBASECLASS WZGenEvent_v140710
+#include "WZGenEvent_v140710.h"
+#endif
 
 #define _ISWZMC_
 
 
 //Lucija commented it
 //#define WZBASECLASS WZGenEvent
+
 
 #include "TLorentzVector.h"
 #include "TH2F.h"
@@ -38,7 +43,8 @@ enum FinalState { undefined,
 		  mme,
 		  mmm};
 
-enum PassedSelectionStep { failsSelection,
+enum PassedSelectionStep { selectionNotRun,
+			   failsSelection,
 			   passesZSelection,
 			   passesWSelection,
 			   passesFullSelection};
@@ -117,6 +123,7 @@ class WZEvent : public WZBASECLASS
 {
 public:
   WZEvent(TTree *tree);
+
   bool passesSelection();
 
   void ReadEvent();
@@ -137,7 +144,7 @@ public:
   float LeptonIso(int i);
   float LeptonIsomva(int i);
 
-
+  float GetPileupWeight();
   float GetMCWeight();
   float GetTriggerEfficiency();
 
@@ -160,6 +167,14 @@ public:
     return selectedZPt;
   }
 
+  TLorentzVector SelectedZP4() {
+    return selectedZP4;
+  }
+
+
+  TLorentzVector * ZLepton (unsigned int index);
+  TLorentzVector * WLepton();
+
 
 protected:
 
@@ -173,16 +188,14 @@ protected:
   std::vector<float*> iso;
   std::vector<float*> isomva;
 
-
-
   FinalState          final_state;
   PassedSelectionStep selection_level;
 
+  double selectedZPt;
+  TLorentzVector selectedZP4;
+
   int  wLeptonIndex;
   int  zLeptonsIndex[2];
-
-  
-  double selectedZPt;
 
   float numZ;
   float numW;
