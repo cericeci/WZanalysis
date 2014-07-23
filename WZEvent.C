@@ -117,8 +117,8 @@ float WZEvent::GetBrWeight(){
       if (numZ==1) indexZ1=igl;
     }
   }
-  if (numW > 1) return genType;
-  if (numZ > 2) return genType;
+  if (numW > 1) return ReturnBranchingWeight(genType);
+  if (numZ > 2) return ReturnBranchingWeight(genType);
   /*
   int Zid1=abs(cWZ->genLeptons[indexZ1].Id());
   int Zid2=abs(cWZ->genLeptons[indexZ2].Id());
@@ -377,8 +377,12 @@ void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
   out << run << "\t" 
       << event ;
 
+  float totalWeight = GetPileupWeight()*GetBrWeight()*GetMCWeight();
+
   if (verbosity>0) {
-    out << "  " <<  GetPileupWeight()
+    out << "  " << totalWeight
+	<< "  " << GetPileupWeight()
+	<< "  " << GetBrWeight()
 	<< "  " << GetMCWeight()
 	<< "  " << GetTriggerEfficiency();
 
@@ -656,7 +660,9 @@ bool WZEvent::passesSelection(){
   }
   //////////////////////////////////////MET CUT//////////////////////////
   
-  if ((this->pfmet)<30)  return false;
+  //  if ((this->pfmet)<30)  return false;
+  if ((this->pfmetTypeI)<30)  return false;
+
   //    if ((this->pfmetTypeI)<30) continue;   ///CHANGE THIS
   
   selection_level = passesFullSelection;

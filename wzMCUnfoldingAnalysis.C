@@ -181,8 +181,9 @@ int main(int argc, char **argv)
 		<< cWZ->event << " ======================= \n";
     }
 
-    float pileUpWeight=cWZ->GetPileupWeight();
-    int wzGenChannel = cWZ->WZchan;
+    float pileUpWeight = cWZ->GetPileupWeight();
+    float genWeight    = cWZ->GetPileupWeight() * (cWZ->GetBrWeight());
+    int wzGenChannel   = cWZ->WZchan;
     
     //rejecting run 201191
 
@@ -195,31 +196,56 @@ int main(int argc, char **argv)
     FinalState channel = cWZ->GetFinalState();
     PassedSelectionStep selectionLevel = cWZ->GetSelectionLevel();
 
+
+
+    if (eventPassed && genWeight<=0) 
+      std::cout << "ACCEPTED WEIRD EVENT " 
+		<< "WRONG SIGN GEN W: " << genWeight 
+		<< "\t PU w = " << pileUpWeight
+		<< "\t BR corr = " << (cWZ->GetBrWeight())
+		<< "\t Channel = " << wzGenChannel
+		<< "\t Passed = " << eventPassed
+		<< "\t MZ = " << cWZ->MZ
+		<< std::endl;
+
+
     if (debug) {
       std::cout << "Event passed: " << eventPassed
 		<< "\t step: " << selectionLevel
-		<< "\t channel : " << channel << std::endl;
+		<< "\t channel : " << channel 
+		<< "\t PU w = " << pileUpWeight
+		<< " BRW = " << cWZ->GetBrWeight()
+		<< " gen weight = " << genWeight
+		<< std::endl;
       
       if (eventPassed) std::cout << "PAAAASSSSS " << pileUpWeight << "\n";
+
+      if (genWeight<=0) std::cout << "WRONG SIGN GEN W: " << genWeight 
+				  << "\t PU w = " << pileUpWeight
+				  << "\t BR corr = " << (cWZ->GetBrWeight())
+				  << "\t Channel = " << wzGenChannel
+				  << "\t Passed = " << eventPassed
+				  << "\t MZ = " << cWZ->MZ
+				  << std::endl;
     }
 
     totalMCYield += pileUpWeight;
 
     if (cWZ->MZ>71.1876  && cWZ->MZ<111.1876) {
-      genYields[wzGenChannel] += pileUpWeight;
+      genYields[wzGenChannel] += genWeight;
     }
 
 
     if (eventPassed) {
-      yields[channel] += pileUpWeight*cWZ->GetMCWeight();
+      yields[channel] += genWeight*cWZ->GetMCWeight();
 
       cWZ->DumpEvent(eventLists[channel-1],1);
 
     } else {
       if (selectionLevel == passesZSelection) {
-	nZYield += pileUpWeight;
+	nZYield += genWeight;
       } else  if (selectionLevel == passesWSelection) {
-	nWYield += pileUpWeight;
+	nWYield += genWeight;
       }
     }
 
@@ -238,7 +264,7 @@ int main(int argc, char **argv)
     }
 
     // fill ngen vs nreco jets
-    double weight = pileUpWeight; // IMPORTANT: here goes, PU, efficiencies / scale factors, ...
+    //    double weight = pileUpWeight; // IMPORTANT: here goes, PU, efficiencies / scale factors, ...
 
   }
   double signalYield = 0;
@@ -249,7 +275,7 @@ int main(int argc, char **argv)
 	    << "  -  " << cWZ->NumZ() << std::endl;
   std::cout << "Passes W Selection : " << nWYield 
 	    << "  -  " << cWZ->NumW() << std::endl;
-  double totalGenYield = 0.;
+  float totalGenYield = 0.;
 
   double lumiNormalizedYields[5];
   double lumiNormalization = LUMINOSITY*WZ3LXSECTION/totalMCYield;
@@ -279,7 +305,7 @@ int main(int argc, char **argv)
   }
   std::cout << "Total Signal = " << signalYield << std::endl;
   std::cout << "Total Gen Signal = " << totalGenYield << std::endl;
-
+  std::cout << "Luminosity normalization = " << lumiNormalization << std::endl;
   cWZ->PrintSummary();
 
   fout->cd();

@@ -1,12 +1,12 @@
 #LDFLAGS=`root-config --libs`
 #CPPFLAGS= -Wall -Wno-long-long  -pthread -DCTHREAD_POSIX -D_THREAD_SAFE -D_REENTRANT -I$(ROOTSYS)/include 
 
-CPPFLAGS=`root-config --cflags` #-IRooUnfold-1.1.1/src/   -g 
+CPPFLAGS=`root-config --cflags` -IRooUnfold-1.1.1/src/   -g 
 #If running in CMSSW42...
 #LDFLAGS = -L$(ROOTSYS)/lib -lNew -lRint -lTree -lTreePlayer -lCint -lThread -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMinuit -lPostscript -lProof -lThread -lCore -lGX11 -lPhysics -lGpad -lGui -lTreeViewer -L/usr/X11R6/lib -lm -ldl -L/usr/lib -lpthread -rdynamic 
 
 #if running in CMSSW53...
-LDFLAGS =$(shell root-config --libs) # RooUnfold-1.1.1/libRooUnfold.so
+LDFLAGS =$(shell root-config --libs) RooUnfold-1.1.1/libRooUnfold.so
 
 
 # FOR DATA
