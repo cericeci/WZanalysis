@@ -47,9 +47,26 @@ float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, T
 
 void readFileFromList(TString fileList,std::vector<TString> * inputFile);
 
-int main()
+int main(int argc, char **argv)
 {
   using namespace std;
+
+  char * outputDirName(0);
+  bool gotOutputDir = false;
+
+  char c;
+  while ((c = getopt (argc, argv, "d:")) != -1)
+    switch (c)
+      {
+      case 'd':
+	gotOutputDir = true;
+	outputDirName = new char[strlen(optarg)+1];
+	strcpy(outputDirName,optarg);
+	break;
+      default:
+	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
+	abort ();
+      }
   
   ofstream myfile3e, myfile3mu, myfile2e1mu, myfile1e2mu, myfileAll;
   ofstream fileNumMC;
@@ -111,10 +128,22 @@ int main()
   //files.push_back("Zjets.files");
 
   //  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WZ.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/ZZ.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zgamma.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WV.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/VVV.root");
+  TString outputDir;
+  if (gotOutputDir) {
+    outputDir = outputDirName;
+  } else {
+    outputDir = "unfoldingInput";
+  }
+  name.push_back(outputDir+"/ZZ.root");
+  name.push_back(outputDir+"/Zgamma.root");
+  name.push_back(outputDir+"/WV.root");
+  name.push_back(outputDir+"/VVV.root");
+
+//  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/ZZ.root");
+//  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zgamma.root");
+//  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WV.root");
+//  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/VVV.root");
+
   //  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/top.root");
   //name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zjets.root");
 

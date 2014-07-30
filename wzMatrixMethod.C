@@ -45,10 +45,27 @@ float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, in
 
 //float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label);
 
-int main()
+int main(int argc, char **argv)
 {
   using namespace std;
   
+  char * outputName(0);
+  bool gotOutput = false;
+
+  char c;
+  while ((c = getopt (argc, argv, "o:")) != -1)
+    switch (c)
+      {
+      case 'o':
+	gotOutput = true;
+	outputName = new char[strlen(optarg)+1];
+	strcpy(outputName,optarg);
+	break;
+      default:
+	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
+	abort ();
+      }
+
   ofstream myfile3e, myfile3mu, myfile2e1mu, myfile1e2mu, myfileAll;
   ofstream fileNumMM;
     
@@ -65,7 +82,13 @@ int main()
     fileNumMM<<"#define numMM_h"<<std::endl;
   }
 
-  TFile * fout= new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+
+  TFile * fout;
+  if (gotOutput) {
+    fout = new TFile(outputName, "RECREATE");
+  } else {
+    fout = new TFile("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/data.root", "RECREATE");
+  } 
 
   TH1F * hZmassMu1         = new TH1F ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1F * hZmassEl1         = new TH1F ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
@@ -81,9 +104,9 @@ int main()
 
   for (int hist=0; hist<nChannels; hist++){
     std::ostringstream Zptname, LeadingJetname, Zpterrorname, Zpttest,LeadingJetError ;  
-    LeadingJetname<<"LeadingJetPt_"<<hist;
-    LeadingJetError<<"LeadingJetError_"<<hist;
-    Zpttest<<"Zpt_test_"<<hist;
+    LeadingJetname<<"LeadingJetPt_"<< (hist+1);
+    LeadingJetError<<"LeadingJetError_"<< (hist+1);
+    Zpttest<<"Zpt_test_"<< (hist+1);
     Zptname<<"Zpt_"<<(hist+1);
     Zpterrorname<<"Zpterror_"<<(hist+1);
     hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());

@@ -246,7 +246,13 @@ int main(int argc, char **argv) {
 
     // Read data distribution (is Output from Matrix Method)
 
-    data[chan] = (TH1D*) fDataInput->Get(histoKey.str().c_str())->Clone(dataHistoKey.str().c_str());
+    TH1D * dh = (TH1D*) fDataInput->Get(histoKey.str().c_str()); // ->Clone(dataHistoKey.str().c_str());
+    if (!dh) {
+      std::cout << "Found no data histogram named : " << histoKey.str() << std::endl;
+      return -1;
+    }
+
+    data[chan] = (TH1D*) dh->Clone(dataHistoKey.str().c_str());
 
     data[chan]->Sumw2();
     signal[chan] = (TH1D*) data[chan]->Clone(signalHistoKey.str().c_str());

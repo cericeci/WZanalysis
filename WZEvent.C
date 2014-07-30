@@ -117,8 +117,8 @@ float WZEvent::GetBrWeight(){
       if (numZ==1) indexZ1=igl;
     }
   }
-  if (numW > 1) return genType;
-  if (numZ > 2) return genType;
+  if (numW > 1) return ReturnBranchingWeight(genType);
+  if (numZ > 2) return ReturnBranchingWeight(genType);
   /*
   int Zid1=abs(cWZ->genLeptons[indexZ1].Id());
   int Zid2=abs(cWZ->genLeptons[indexZ2].Id());
@@ -160,6 +160,8 @@ float WZEvent::GetBrWeight(){
   weight=ReturnBranchingWeight(genType);
   return weight;
 }
+
+
 
 float RecoLepton::GetScaleFactor() {
 
@@ -254,7 +256,8 @@ void WZEvent::ReadEvent()
 {
 
   final_state     = undefined;
-  selection_level = failsSelection;
+  selection_level = selectionNotRun;
+  //  selection_level = failsSelection;
 
   wLeptonIndex     = -1;
   zLeptonsIndex[0] = -1;
@@ -334,7 +337,7 @@ void WZEvent::ReadEvent()
   genJets.clear();
   for (int i=0; i<3; i++) {
     if (genJets_pt[i]>0.) {
-      gj.SetPtEtaPhiM(genJets_pt[i],genJets_phi[i],genJets_eta[i],0);
+      gj.SetPtEtaPhiM(genJets_pt[i],genJets_eta[i],genJets_phi[i],0);
       genJets.push_back(gj);
     }
   }
@@ -352,7 +355,7 @@ void WZEvent::ReadEvent()
 
   for (int i=0; i<6; i++) {
     if (recoJets_pt[i]>0.) {
-      rj.SetPtEtaPhiM(recoJets_pt[i],recoJets_phi[i],recoJets_eta[i],recoJets_m[i]);
+      rj.SetPtEtaPhiM(recoJets_pt[i],recoJets_eta[i],recoJets_phi[i],recoJets_m[i]);
       recoJets.push_back(rj);
     }
     // else {
@@ -374,8 +377,12 @@ void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
   out << run << "\t" 
       << event ;
 
+  float totalWeight = GetPileupWeight()*GetBrWeight()*GetMCWeight();
+
   if (verbosity>0) {
-    out << "  " <<  puW
+    out << "  " << totalWeight
+	<< "  " << GetPileupWeight()
+	<< "  " << GetBrWeight()
 	<< "  " << GetMCWeight()
 	<< "  " << GetTriggerEfficiency();
 
@@ -415,10 +422,22 @@ void WZEvent::PrintSummary()
 
 bool WZEvent::passesSelection(){
 
+  // Check if we've run already on this event
+  // If so, no need to rerun the full selection  
+  if (selection_level != selectionNotRun) {
+    if (selection_level == passesFullSelection) {
+      return true;
+    } else 
+      return false;
+  }
+
+  selection_level = failsSelection;
+
   bool passed = false;
 
 
   selectedZPt=-88888.;
+  selectedZP4.SetPtEtaPhiM(-9999.,-9999.,0.,-9999.);
   //rejecting run 201191
 
   if (run==201191) return false;
@@ -428,7 +447,7 @@ bool WZEvent::passesSelection(){
   const float electronMass(0.000511);
   const float muonMass(0.106);
 
-  float pileUpWeight=this->puW;
+  float pileUpWeight=this->GetPileupWeight();
     
   //rejecting run 201191
   if (this->run==201191) return passed;
@@ -641,7 +660,9 @@ bool WZEvent::passesSelection(){
   }
   //////////////////////////////////////MET CUT//////////////////////////
   
-  if ((this->pfmet)<30)  return false;
+  //  if ((this->pfmet)<30)  return false;
+  if ((this->pfmetTypeI)<30)  return false;
+
   //    if ((this->pfmetTypeI)<30) continue;   ///CHANGE THIS
   
   selection_level = passesFullSelection;
@@ -668,15 +689,50 @@ bool WZEvent::passesSelection(){
   zp4 = zl1+zl2;
 
   selectedZPt = zp4.Pt();
+
+  selectedZP4 = zp4;
   
   return true;
   
 }
 
+
+TLorentzVector * WZEvent::ZLepton(unsigned int i) {
+
+  if (passesSelection()
+      && i<=1) {
+      return &leptons[zLeptonsIndex[i]];
+  } else {
+      return 0;
+  }
+}
+
+
+TLorentzVector * WZEvent::WLepton() {
+
+  if (passesSelection()) {
+    return &leptons[wLeptonIndex];
+  } else 
+    return 0;
+}
+  
+
+
+
 bool WZEvent::PassesGenCuts(){
 
   return (MZ>71. && MZ<111.);
 
+}
+
+
+float WZEvent::GetPileupWeight() {
+
+#ifdef NEWMCPUFIX
+  return puW_new;
+ #else
+  return puW;
+#endif
 }
 
 
