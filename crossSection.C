@@ -7,21 +7,23 @@
 #include "numGEN_met.h"
 #include "numData_met.h"
 #include "syst.h"
+#include "VVV.h"    //for systematics
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 void crossSection()
 {
   //  bool latexOutput(false);
-  bool latexOutput(false);
+  bool latexOutput(true);
   bool outputNumbers(false);
   //0: eee, 1:eem, 2:emm, 3:mmm
   ofstream fileNum;
 
   if (outputNumbers){
-    fileNum.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numFinalWoPu.txt");
+    fileNum.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numWVdown.txt");
   }
   double Axe3eS(dAxe3eS), Axe2e1muS(dAxe2e1muS), Axe1e2muS(dAxe1e2muS), Axe3muS(dAxe3muS);    //Spanish acceptance times eff
   double AxeSJ[4]={dAxe3eSJ, dAxe2e1muSJ, dAxe1e2muSJ, dAxe3muSJ};
@@ -41,8 +43,43 @@ void crossSection()
   double NZgamma[4]={dNZgamma_3e, dNZgamma_2e1mu, dNZgamma_1e2mu, dNZgamma_3mu};
   double sNZgamma[4]={dsNZgamma_3e, dsNZgamma_2e1mu, dsNZgamma_1e2mu, dsNZgamma_3mu};
   double NWV[4]={dNWV_3e, dNWV_2e1mu, dNWV_1e2mu, dNWV_3mu};
+
+  double f=-0.02;
+  for (int wv=0; wv<4; wv++){
+    NWV[wv]+=f*NWV[wv];
+  }
   double sNWV[4]={dsNWV_3e, dsNWV_2e1mu, dsNWV_1e2mu, dsNWV_3mu};
   double NVVV[4]={dNVVV_3e, dNVVV_2e1mu, dNVVV_1e2mu, dNVVV_3mu};
+  //part for systematics VVV
+  //**************************
+  /*
+  double NVVV1[4]={dNVVV1_3e, dNVVV1_2e1mu, dNVVV1_1e2mu, dNVVV1_3mu};
+  double NVVV2[4]={dNVVV2_3e, dNVVV2_2e1mu, dNVVV2_1e2mu, dNVVV2_3mu};
+  double NVVV3[4]={dNVVV3_3e, dNVVV3_2e1mu, dNVVV3_1e2mu, dNVVV3_3mu};
+  double NVVV4[4]={dNVVV4_3e, dNVVV4_2e1mu, dNVVV4_1e2mu, dNVVV4_3mu};
+  double NVVV5[4]={dNVVV5_3e, dNVVV5_2e1mu, dNVVV5_1e2mu, dNVVV5_3mu};
+  double NVVV6[4]={dNVVV6_3e, dNVVV6_2e1mu, dNVVV6_1e2mu, dNVVV6_3mu};
+  double NVVV7[4]={dNVVV7_3e, dNVVV7_2e1mu, dNVVV7_1e2mu, dNVVV7_3mu};
+  double NVVV8[4]={dNVVV8_3e, dNVVV8_2e1mu, dNVVV8_1e2mu, dNVVV8_3mu};
+  double NVVV9[4]={dNVVV9_3e, dNVVV9_2e1mu, dNVVV9_1e2mu, dNVVV9_3mu};
+  double NVVV[4];
+  double f1=-0.5;
+  double f2=0;
+  double f3=0;
+  double f4=0;
+  double f5=0;
+  double f6=0;
+  double f7=0;
+  double f8=0;
+  double f9=0;
+ 
+  for (int vvv=0; vvv<4; vvv++){
+    NVVV[vvv]=NVVV1[vvv]+f1*NVVV1[vvv]+ NVVV2[vvv]+f2*NVVV2[vvv]+NVVV3[vvv]+ f3*NVVV3[vvv]+ NVVV4[vvv]+f4*NVVV4[vvv]+ NVVV5[vvv]+f5*NVVV5[vvv]+ NVVV6[vvv]+f6*NVVV6[vvv]+ NVVV7[vvv]+f7*NVVV7[vvv] +NVVV8[vvv]+ f8*NVVV8[vvv] +NVVV9[vvv]+ f9*NVVV9[vvv];
+    std::cout<<vvv<<" "<<NVVV[vvv]<<std::endl;
+  }
+  */
+  //****************************
+
   double sNVVV[4]={dsNVVV_3e, dsNVVV_2e1mu, dsNVVV_1e2mu, dsNVVV_3mu};
   double tauFactor[4]={dtauFactor3e, dtauFactor2e1mu, dtauFactor1e2mu, dtauFactor3mu};
   double stauFactor[4]={dstauFactor3e, dstauFactor2e1mu, dstauFactor1e2mu, dstauFactor3mu};
@@ -54,7 +91,7 @@ void crossSection()
   double Nsig[4];
   double  systematicErrorZagreb[4]={0,0,0,0};
   double  systematicErrorSpanish[4]={0,0,0,0};
-  double sys[4]={0.05, 0.047, 0.054, 0.052};  ///all together Spanish numbers
+  double sys[4]={0.055, 0.052, 0.060, 0.056};  ///all together Spanish numbers
   double luminosity (LUMI);
   
   //  double WZ23lnu=3*Z2ll*(W2e+W2mu+W2tau);
@@ -230,7 +267,7 @@ void crossSection()
 
 
   std::cout << "combined sigma(WZ) = " << final_Xsec << " +- " << stat_err_tot << "(stat.) +- " << syst_err_tot << "(syst) +- "
-	    << 0.044*final_Xsec << " (lumi) pb " << endl;
+	    << 0.026*final_Xsec << " (lumi) pb " << endl;
   
   std::cout << endl;
  //systematics numbers
@@ -263,7 +300,7 @@ void crossSection()
   ////**********outputs**********************
   std::cout<<"*********Spanish cross section (inclusive)***********"<<std::endl;
   for (int i1=0; i1<4; i1++){
-    std::cout<<i1<<" : "<<crossSectionSpanish[i1] <<"+/-"<<errorCsSpanish[i1]<<"+/-"<<systematicErrorSpanish[i1]  <<std::endl;
+    std::cout<<i1<<fixed<<setprecision(2)<<" : "<<crossSectionSpanish[i1] <<"+/-"<<errorCsSpanish[i1]<<"+/-"<<systematicErrorSpanish[i1]  <<std::endl;
   }
   std::cout<<"*****************************************"<<std::endl;
   std::cout<<"*********Zagreb cross section(inclusive)************"<<std::endl;
@@ -276,68 +313,89 @@ void crossSection()
 
     std::cout<<"latex output"<<std::endl;
     std::cout<<"*****************"<<std::endl;
-    std::cout<<"Acceptance times efficiency"<<std::endl;
-    std::cout<<"channel & AxeSpanish  & AxeZagreb \\\\"<<std::endl;
+    std::cout<<"*****************"<<std::endl;
+    std::cout<<"crossSection"<<std::endl;
+    std::cout<<"\\begin{center}"<<std::endl;
+    std::cout<<"\\begin{tabular}{c|c|c}"<<std::endl;
+    std::cout<<"channel &  crossSection Zg & crossSection Sp\\\\"<<std::endl;
     for (int a=0; a<4; a++){
-      std::cout<<names[a]<<"  & $"<<AxeS[a]<<"\\pm "<<sAxeS[a]<<"$ & $"<<AxeZ[a]<<"\\pm "<<sAxeZ[a]<<"$\\\\"<<std::endl;  
+      std::cout<<names[a]<<"  & $"<<crossSectionZagreb[a]<<"\\pm "<<errorCsZagreb[a]<<"\\pm "<<systematicErrorZagreb[a]<<"$  & $"<<crossSectionSpanish[a]<<"\\pm "<<errorCsSpanish[a]<<"\\pm"<<systematicErrorSpanish[a]<<"$\\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
     }
-    std::cout<<"*****************"<<std::endl;
-    /*
 
+  }
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"Matrix method results"<<std::endl;
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c|c|c}"<<std::endl;
+  std::cout<<"channel & Ndata & Ngood & Nfake\\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  for (int mm=0; mm<4; mm++){
+    std::cout<<names[mm]<<" & " <<N_data[mm]<<" &  $"<<N_good[mm]<<"\\pm "<<sN_good[mm] <<"$ & $"<<N_fake[mm]<<"\\pm"<<sN_fake[mm]<<"$ \\\\"<<std::endl;
+    std::cout<<"\\hline"<<std::endl;
+  }
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"MC  yields"<<std::endl;
+  /*
+    std::cout<<"channel &  ZZ & Zgamma & WV & VVV\\\\"<<std::endl;
+    for (int a=0; a<4; a++){
+    std::cout<<names[a]<<"$  & $"<<NZZ[a]<<"\\pm "<<sNZZ[a]<<"$ & $"<<NZgamma[a]<<"\\pm "<<sNZgamma[a]<<"$ & $"<<NWV[a]<<"\\pm "<<sNWV[a]<<"$ & $"<<NVVV[a]<<"\\pm "<<sNVVV[a]<<"$\\\\"<<std::endl;
+    std::cout<<"\\hline"<<std::endl;
+    }
+    */
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c|c|c|c}"<<std::endl;
+  std::cout<<" & 3e & 2e1mu & 1e2mu & 3mu \\\\"<<std::endl;
+  std::cout<<"ZZ & $"<<NZZ[0]<<"\\pm "<<sNZZ[0]<<"$ & $"<<NZZ[1]<<"\\pm "<<sNZZ[1]<<"$ & $"<<NZZ[2]<<"\\pm "<<sNZZ[2]<<"$ & $"<<NZZ[3]<<"\\pm "<<sNZZ[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"Zgamma & $"<<NZgamma[0]<<"\\pm "<<sNZgamma[0]<<"$ & $"<<NZgamma[1]<<"\\pm "<<sNZgamma[1]<<"$ & $"<<NZgamma[2]<<"\\pm "<<sNZgamma[2]<<"$ & $"<<NZgamma[3]<<"\\pm "<<sNZgamma[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"WV & $"<<NWV[0]<<"\\pm "<<sNWV[0]<<"$ & $"<<NWV[1]<<"\\pm "<<sNWV[1]<<"$ & $"<<NWV[2]<<"\\pm "<<sNWV[2]<<"$ & $"<<NWV[3]<<"\\pm "<<sNWV[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"VVV & $"<<NVVV[0]<<"\\pm "<<sNVVV[0]<<"$ & $"<<NVVV[1]<<"\\pm "<<sNVVV[1]<<"$ & $"<<NVVV[2]<<"\\pm "<<sNVVV[2]<<"$ & $"<<NVVV[3]<<"\\pm "<<sNVVV[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+  //    std::cout<<"WZ & $"<<NWZ[0]<<"\\pm "<<sNWZ[0]<<"$ &"<<NWZ[1]<<"\\pm "<<sNWZ[1]<<"$ &"<<NWZ[2]<<"\\pm "<<sNWZ[2]<<"$ &"<<NWZ[3]<<"\\pm "<<sNWZ[3]<<"$ \\\\"<<std::endl;
+  
+  std::cout<<"Acceptance times efficiency"<<std::endl;
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c|c|c}"<<std::endl;    
+  std::cout<<"channel & AxeSpanish  & AxeZagreb \\\\"<<std::endl;
+  for (int a=0; a<4; a++){
+    std::cout<<names[a]<<fixed<<setprecision(4)<<"  & $"<<AxeS[a]<<"\\pm "<<sAxeS[a]<<"$ & $"<<AxeZ[a]<<"\\pm "<<sAxeZ[a]<<"$\\\\"<<std::endl;  
+    std::cout<<"\\hline"<<std::endl;
+  }
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+  std::cout<<"*****************"<<std::endl;
+  /*
+    
     std::cout<<"Matrix method"<<std::endl;
     std::cout<<"channel & Ngood  & AxeNfake"<<std::endl;
     for (int a=0; a<4; a++){
       std::cout<<a<<"  & $"<<AxeS[a]<<"\pm "<<sAxeS[a]<<"$ & $"<<AxeZ[a]<<"/pm "<<sAxeZ[a]<<"\\\\"<<std::endl;  
       std::cout<<"\\hline"<<std::endl;
     }
-    */
-    std::cout<<"*****************"<<std::endl;
-    std::cout<<"Matrix method results"<<std::endl;
-    std::cout<<"channel & Ndata & Ngood & Nfake\\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    for (int mm=0; mm<4; mm++){
-      std::cout<<names[mm]<<" & " <<N_data[mm]<<" &  $"<<N_good[mm]<<"\\pm "<<sN_good[mm] <<"$ & $"<<N_fake[mm]<<"\\pm"<<sN_fake[mm]<<"$ \\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-    }
-    std::cout<<"*****************"<<std::endl;
-    std::cout<<"MC  yields"<<std::endl;
-    /*
-    std::cout<<"channel &  ZZ & Zgamma & WV & VVV\\\\"<<std::endl;
-    for (int a=0; a<4; a++){
-      std::cout<<names[a]<<"$  & $"<<NZZ[a]<<"\\pm "<<sNZZ[a]<<"$ & $"<<NZgamma[a]<<"\\pm "<<sNZgamma[a]<<"$ & $"<<NWV[a]<<"\\pm "<<sNWV[a]<<"$ & $"<<NVVV[a]<<"\\pm "<<sNVVV[a]<<"$\\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-    }
-    */
-    
-    std::cout<<" & 3e & 2e1mu & 1e2mu & 3mu \\\\"<<std::endl;
-    std::cout<<"ZZ & $"<<NZZ[0]<<"\\pm "<<sNZZ[0]<<"$ & $"<<NZZ[1]<<"\\pm "<<sNZZ[1]<<"$ & $"<<NZZ[2]<<"\\pm "<<sNZZ[2]<<"$ & $"<<NZZ[3]<<"\\pm "<<sNZZ[3]<<"$ \\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    std::cout<<"Zgamma & $"<<NZgamma[0]<<"\\pm "<<sNZgamma[0]<<"$ & $"<<NZgamma[1]<<"\\pm "<<sNZgamma[1]<<"$ & $"<<NZgamma[2]<<"\\pm "<<sNZgamma[2]<<"$ & $"<<NZgamma[3]<<"\\pm "<<sNZgamma[3]<<"$ \\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    std::cout<<"WV & $"<<NWV[0]<<"\\pm "<<sNWV[0]<<"$ & $"<<NWV[1]<<"\\pm "<<sNWV[1]<<"$ & $"<<NWV[2]<<"\\pm "<<sNWV[2]<<"$ & $"<<NWV[3]<<"\\pm "<<sNWV[3]<<"$ \\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    std::cout<<"VVV & $"<<NVVV[0]<<"\\pm "<<sNVVV[0]<<"$ & $"<<NVVV[1]<<"\\pm "<<sNVVV[1]<<"$ & $"<<NVVV[2]<<"\\pm "<<sNVVV[2]<<"$ & $"<<NVVV[3]<<"\\pm "<<sNVVV[3]<<"$ \\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    //    std::cout<<"WZ & $"<<NWZ[0]<<"\\pm "<<sNWZ[0]<<"$ &"<<NWZ[1]<<"\\pm "<<sNWZ[1]<<"$ &"<<NWZ[2]<<"\\pm "<<sNWZ[2]<<"$ &"<<NWZ[3]<<"\\pm "<<sNWZ[3]<<"$ \\\\"<<std::endl;
-
-    std::cout<<"*****************"<<std::endl;
-    std::cout<<"*****************"<<std::endl;
-    std::cout<<"tau factor"<<std::endl;
-    std::cout<<"channel &  tauFactor\\\\"<<std::endl;
+  */
+  
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"tau factor"<<std::endl;
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c}"<<std::endl;
+  std::cout<<"channel &  tauFactor\\\\"<<std::endl;
     for (int a=0; a<4; a++){
       std::cout<<names[a]<<"  & $"<<tauFactor[a]<<"\\pm "<<stauFactor[a]<<"$\\\\"<<std::endl;
       std::cout<<"\\hline"<<std::endl;
     }
+    std::cout<<"\\end{tabular}"<<std::endl;
+    std::cout<<"\\end{center}"<<std::endl;
     std::cout<<"*****************"<<std::endl;
-    std::cout<<"*****************"<<std::endl;
-    std::cout<<"crossSection"<<std::endl;
-    std::cout<<"channel &  crossSection Zg & crossSection Sp\\\\"<<std::endl;
-    for (int a=0; a<4; a++){
-      std::cout<<names[a]<<"  & $"<<crossSectionZagreb[a]<<"\\pm "<<errorCsZagreb[a]<<"\\pm "<<systematicErrorZagreb[a]<<"$  & $"<<crossSectionSpanish[a]<<"\\pm "<<errorCsSpanish[a]<<"\\pm"<<systematicErrorSpanish[a]<<"$\\\\"<<std::endl;
-      std::cout<<"\\hline"<<std::endl;
-    }
-  }
 
   if (outputNumbers){
     for (int cross=0; cross<4;cross++){

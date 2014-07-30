@@ -174,6 +174,7 @@ int  plotDataVsMC(TFile * fDataDriven,
 		  TFile * fdata,
 		  TString histKey ,
 		  int channel,
+		  TCanvas * canv,
 		  TString xAxisTitle="",
 		  double binWidth=0,
 		  bool unit=true)
@@ -389,7 +390,13 @@ int  plotDataVsMC(TFile * fDataDriven,
    */
   leg1->Draw();
   leg2->Draw();
-
+  int iPos=11;
+  int iPeriod=2; 
+  writeExtraText = true; 
+  lumi_8TeV  = "19.6 fb^{-1}";
+  
+  //  CMS_lumi(pad, iPeriod, iPos); 
+  CMS_lumi(canv, iPeriod, iPos); 
 
    
    return 1;
@@ -412,7 +419,10 @@ void plotHistogramsNew()
 
   gROOT->LoadMacro("CMS_lumi.C");
 
-
+  int iPos=11;
+  int iPeriod=2; 
+  writeExtraText = true; 
+  lumi_8TeV  = "19.6 fb^{-1}";
 /*    
   TFile *f1   = TFile::Open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zjets.root");
   TFile *f2   = TFile::Open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/top.root");
@@ -453,10 +463,11 @@ void plotHistogramsNew()
   TCanvas * c18[n];
   TCanvas * c19[n];
   TCanvas * c20[n];
-  
+  TCanvas * c21[n];
+  TCanvas * c22[n];
 
   for (int canvas=0; canvas<n; canvas++){
-    std::ostringstream name1, name2, name3, name4, name5, name6, name7, name8, name9, name10, name11, name12, name13, name14, name15, name16, name17, name18, name19, name20;;
+    std::ostringstream name1, name2, name3, name4, name5, name6, name7, name8, name9, name10, name11, name12, name13, name14, name15, name16, name17, name18, name19, name20, name21, name22;
     name1<<"Zmass1_"<<canvas<<std::endl;
     name2<<"Zmass2_"<<canvas<<std::endl;
     name3<<"MET1_"<<canvas<<std::endl;
@@ -477,6 +488,8 @@ void plotHistogramsNew()
     name18<<"hMTW2_"<<canvas<<std::endl;
     name19<<"hZlepton2Pt1_"<<canvas<<std::endl;
     name20<<"hZlepton2Pt2_"<<canvas<<std::endl;
+    name21<<"h3Lmass1_"<<canvas<<std::endl;
+    name22<<"h3Lmass2_"<<canvas<<std::endl;
 
     c1[canvas]  =new TCanvas(name1.str().c_str(), name1.str().c_str());
     c2[canvas]  =new TCanvas(name2.str().c_str(), name2.str().c_str());
@@ -498,17 +511,17 @@ void plotHistogramsNew()
     c18[canvas] =new TCanvas(name18.str().c_str(), name18.str().c_str());
     c19[canvas] =new TCanvas(name19.str().c_str(), name19.str().c_str());
     c20[canvas] =new TCanvas(name20.str().c_str(), name20.str().c_str());
+    c21[canvas] =new TCanvas(name21.str().c_str(), name21.str().c_str());
+    c22[canvas] =new TCanvas(name22.str().c_str(), name22.str().c_str());
     
     }
   
-  int iPos=11;
-  int iPeriod=2; 
-  writeExtraText = true; 
-  lumi_8TeV  = "19.6 fb^{-1}";
+  std::ostringstream type;
+  type<<"pdf";
 
   for (int histo=0; histo<n; histo++){
-    std::ostringstream Zmass1, Zmass2, MET1, MET2, Zpt1, Zpt2, LeadingJetPt1, LeadingJetPt2, Njets1, Njets2, DeltaPhi1, DeltaPhi2, Zlepton1pt1, Zlepton1pt2, Zlepton2pt1, Zlepton2pt2, Wleptonpt1, Wleptonpt2, MTW1, MTW2;;
-    std::ostringstream Zmass1save, Zmass2save, MET1save, MET2save, Zpt1save, Zpt2save, LeadingJetPt1save, LeadingJetPt2save, Njets1save, Njets2save, DeltaPhi1save, DeltaPhi2save, Zlepton1pt1save, Zlepton1pt2save, Zlepton2pt1save, Zlepton2pt2save, Wleptonpt1save, Wleptonpt2save, MTW1save, MTW2save;
+    std::ostringstream Zmass1, Zmass2, MET1, MET2, Zpt1, Zpt2, LeadingJetPt1, LeadingJetPt2, Njets1, Njets2, DeltaPhi1, DeltaPhi2, Zlepton1pt1, Zlepton1pt2, Zlepton2pt1, Zlepton2pt2, Wleptonpt1, Wleptonpt2, MTW1, MTW2, n3Lepmass1, n3Lepmass2;;
+    std::ostringstream Zmass1save, Zmass2save, MET1save, MET2save, Zpt1save, Zpt2save, LeadingJetPt1save, LeadingJetPt2save, Njets1save, Njets2save, DeltaPhi1save, DeltaPhi2save, Zlepton1pt1save, Zlepton1pt2save, Zlepton2pt1save, Zlepton2pt2save, Wleptonpt1save, Wleptonpt2save, MTW1save, MTW2save, n3Lepmass1save, n3Lepmass2save;
     Zmass1<<"hZmass1_"<<histo;
     Zmass2<<"hZmass2_"<<histo;
     MET1<<"hMET1_"<<histo;
@@ -517,8 +530,10 @@ void plotHistogramsNew()
     Zpt2<<"hZpt2_"<<histo;
     LeadingJetPt1<<"hLeadingJetPt1_"<<histo;
     LeadingJetPt2<<"hLeadingJetPt2_"<<histo;
-    Njets1<<"hNjets1_"<<histo;
-    Njets2<<"hNjets2_"<<histo;
+    Njets1<<"hNjetsBigger1_"<<histo;
+    Njets2<<"hNjetsBigger2_"<<histo;
+    //    Njets1<<"hNjets1_"<<histo;
+    //Njets2<<"hNjets2_"<<histo;
     DeltaPhi1<<"hDeltaPhi1_"<<histo;
     DeltaPhi2<<"hDeltaPhi2_"<<histo;
     Zlepton1pt1<<"hZlepton1pt1_"<<histo;
@@ -529,129 +544,149 @@ void plotHistogramsNew()
     Wleptonpt2<<"hWleptonpt2_"<<histo;
     MTW1<<"hMTW1_"<<histo;
     MTW2<<"hMTW2_"<<histo;
-    
+    n3Lepmass1<<"h3Lmass1"<<histo;
+    n3Lepmass2<<"h3Lmass2"<<histo;
+    /*
     c1[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zmass1.str().c_str(), histo, "M_{Z}(GeV)", 1);
-    Zmass1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zmass1_"<<histo<<".png";
-    CMS_lumi(c1[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zmass1.str().c_str(), histo, c1[histo], "M_{Z}(GeV)", 1);
+    Zmass1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zmass1_"<<histo<<".pdf";
+    //    CMS_lumi(c1[histo], iPeriod, iPos); 
+    //    c1[histo]->Update();
+    //c1[histo]->GetFrame()->Draw(); 
+    //c1[histo]->Print(Zmass1save.str().c_str());
     c1[histo]->SaveAs(Zmass1save.str().c_str());
     
     
     c2[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zmass2.str().c_str(), histo,"M_{Z}(GeV)", 1);
-    Zmass2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zmass2_"<<histo<<".png";
-    CMS_lumi(c2[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zmass2.str().c_str(), histo, c2[histo], "M_{Z}(GeV)", 1);
+    Zmass2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zmass2_"<<histo<<".pdf";
+    //    CMS_lumi(c2[histo], iPeriod, iPos); 
     c2[histo]->SaveAs(Zmass2save.str().c_str());
-
+    
     c3[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MET1.str().c_str(), histo, "MET(GeV)", 5);
-    MET1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MET1_"<<histo<<".png";
-    CMS_lumi(c3[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MET1.str().c_str(), histo, c3[histo], "MET(GeV)", 5);
+    MET1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MET1_"<<histo<<".pdf";
+//    CMS_lumi(c3[histo], iPeriod, iPos); 
     c3[histo]->SaveAs(MET1save.str().c_str());
 
     c4[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MET2.str().c_str(), histo, "MET(GeV)", 5);
-    MET2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MET2_"<<histo<<".png";
-    CMS_lumi(c4[histo], iPeriod, iPos);
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MET2.str().c_str(), histo, c4[histo], "MET(GeV)", 5);
+    MET2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MET2_"<<histo<<".pdf";
+    //CMS_lumi(c4[histo], iPeriod, iPos);
     c4[histo]->SaveAs(MET2save.str().c_str());
  
     c5[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zpt1.str().c_str(), histo, "Z_{pt}(GeV)", 10);
-    Zpt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zpt1_"<<histo<<".png";
-    CMS_lumi(c5[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zpt1.str().c_str(), histo, c5[histo], "Z_{pt}(GeV)", 10);
+    Zpt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zpt1_"<<histo<<".pdf";
+    //CMS_lumi(c5[histo], iPeriod, iPos); 
     c5[histo]->SaveAs(Zpt1save.str().c_str());
 
     c6[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zpt2.str().c_str(),histo,"Z_{pt}(GeV)", 10);
-    Zpt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zpt2_"<<histo<<".png";
-    CMS_lumi(c6[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zpt2.str().c_str(),histo, c6[histo], "Z_{pt}(GeV)", 10);
+    Zpt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zpt2_"<<histo<<".pdf";
+    //CMS_lumi(c6[histo], iPeriod, iPos); 
     c6[histo]->SaveAs(Zpt2save.str().c_str());
 
     c7[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, LeadingJetPt1.str().c_str(), histo, "LeadingJet_{pt}(GeV)", 5);
-    LeadingJetPt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt1_"<<histo<<".png";
-    CMS_lumi(c7[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, LeadingJetPt1.str().c_str(), histo, c7[histo], "LeadingJet_{pt}(GeV)", 5);
+    LeadingJetPt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt1_"<<histo<<".pdf";
+    //CMS_lumi(c7[histo], iPeriod, iPos); 
     c7[histo]->SaveAs(LeadingJetPt1save.str().c_str());
 
     c8[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, LeadingJetPt2.str().c_str(), histo, "LeadingJet_{pt}(GeV)", 5);
-    LeadingJetPt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt2_"<<histo<<".png";
-    CMS_lumi(c8[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, LeadingJetPt2.str().c_str(), histo, c8[histo],"LeadingJet_{pt}(GeV)", 5);
+    LeadingJetPt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt2_"<<histo<<".pdf";
+    //CMS_lumi(c8[histo], iPeriod, iPos); 
     c8[histo]->SaveAs(LeadingJetPt2save.str().c_str());
-
+    */
+    /*
     c9[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Njets1.str().c_str(), histo, "N_{jets}", 1, false);
-    Njets1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Njets1_"<<histo<<".png";
-    CMS_lumi(c9[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Njets1.str().c_str(), histo, c9[histo], "N_{jets}", 1, false);
+    Njets1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Njets1_"<<histo<<".pdf";
+    //CMS_lumi(c9[histo], iPeriod, iPos); 
     c9[histo]->SaveAs(Njets1save.str().c_str());
 
     c10[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Njets2.str().c_str(),histo,"N_{jets}", 1, false);
-    Njets2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Njets2_"<<histo<<".png";
-    CMS_lumi(c10[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Njets2.str().c_str(),histo, c10[histo], "N_{jets}", 1, false);
+    Njets2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Njets2_"<<histo<<".pdf";
+    //CMS_lumi(c10[histo], iPeriod, iPos); 
     c10[histo]->SaveAs(Njets2save.str().c_str());
-
+    */
+    /*
     c11[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, DeltaPhi1.str().c_str(), histo,"#Delta #Phi", 0.1, false);
-    DeltaPhi1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/DeltaPhi1_"<<histo<<".png";
-    CMS_lumi(c11[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, DeltaPhi1.str().c_str(), histo, c11[histo], "#Delta #Phi", 0.1, false);
+    DeltaPhi1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/DeltaPhi1_"<<histo<<".pdf";
+    //CMS_lumi(c11[histo], iPeriod, iPos); 
     c11[histo]->SaveAs(DeltaPhi1save.str().c_str());
 
     c12[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, DeltaPhi2.str().c_str(), histo, "#Delta #Phi", 0.1, false);
-    DeltaPhi2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/DeltaPhi2_"<<histo<<".png";
-    CMS_lumi(c12[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, DeltaPhi2.str().c_str(), histo, c12[histo], "#Delta #Phi", 0.1, false);
+    DeltaPhi2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/DeltaPhi2_"<<histo<<".pdf";
+    //CMS_lumi(c12[histo], iPeriod, iPos); 
     c12[histo]->SaveAs(DeltaPhi2save.str().c_str());
 
     c13[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton1pt1.str().c_str(), histo,"p_{T}(GeV)", 10);
-    Zlepton1pt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton1pt1_"<<histo<<".png";
-    CMS_lumi(c13[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton1pt1.str().c_str(), histo, c13[histo], "p_{T}(GeV)", 10);
+    Zlepton1pt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton1pt1_"<<histo<<".pdf";
+    //CMS_lumi(c13[histo], iPeriod, iPos); 
     c13[histo]->SaveAs(Zlepton1pt1save.str().c_str());
 
     c14[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton1pt2.str().c_str(), histo,"p_{T}(GeV)", 10);
-    Zlepton1pt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton1pt2_"<<histo<<".png";
-    CMS_lumi(c14[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton1pt2.str().c_str(), histo, c14[histo], "p_{T}(GeV)", 10);
+    Zlepton1pt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton1pt2_"<<histo<<".pdf";
+    //CMS_lumi(c14[histo], iPeriod, iPos); 
     c14[histo]->SaveAs(Zlepton1pt2save.str().c_str());
 
     c15[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Wleptonpt1.str().c_str(), histo,"p_{T}(GeV)", 10);
-    Wleptonpt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Wleptonpt1_"<<histo<<".png";
-    CMS_lumi(c15[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Wleptonpt1.str().c_str(), histo, c15[histo], "p_{T}(GeV)", 10);
+    Wleptonpt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Wleptonpt1_"<<histo<<".pdf";
+    //CMS_lumi(c15[histo], iPeriod, iPos); 
     c15[histo]->SaveAs(Wleptonpt1save.str().c_str());
 
     c16[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Wleptonpt2.str().c_str(), histo, "p_{T}(GeV)", 10);
-    Wleptonpt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Wleptonpt2_"<<histo<<".png";
-    CMS_lumi(c16[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Wleptonpt2.str().c_str(), histo, c16[histo], "p_{T}(GeV)", 10);
+    Wleptonpt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Wleptonpt2_"<<histo<<".pdf";
+    //CMS_lumi(c16[histo], iPeriod, iPos); 
     c16[histo]->SaveAs(Wleptonpt2save.str().c_str());
     
     
     c17[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MTW1.str().c_str(), histo, "M_{T}^{W}(GeV)", 5);
-    MTW1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MTW1_"<<histo<<".png";
-    CMS_lumi(c17[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MTW1.str().c_str(), histo, c17[histo], "M_{T}^{W}(GeV)", 5);
+    MTW1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MTW1_"<<histo<<".pdf";
+    //    CMS_lumi(c17[histo], iPeriod, iPos); 
     c17[histo]->SaveAs(MTW1save.str().c_str());
     
     c18[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MTW2.str().c_str(), histo, "M_{T}^{W}(GeV)", 5);
-    MTW2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MTW2_"<<histo<<".png";
-    CMS_lumi(c18[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MTW2.str().c_str(), histo, c18[histo], "M_{T}^{W}(GeV)", 5);
+    MTW2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MTW2_"<<histo<<".pdf";
+    //    CMS_lumi(c18[histo], iPeriod, iPos); 
     c18[histo]->SaveAs(MTW2save.str().c_str());
 
     c19[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton2pt1.str().c_str(), histo, "p_{T}(GeV)", 10);
-    Zlepton2pt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton2pt1_"<<histo<<".png";
-    CMS_lumi(c19[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton2pt1.str().c_str(), histo, c19[histo], "p_{T}(GeV)", 10);
+    Zlepton2pt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton2pt1_"<<histo<<".pdf";
+    //CMS_lumi(c19[histo], iPeriod, iPos); 
     c19[histo]->SaveAs(Zlepton2pt1save.str().c_str());
 
     c20[histo]->cd();
-    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton2pt2.str().c_str(), histo, "p_{T}(GeV)", 10);
-    Zlepton2pt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton2pt2_"<<histo<<".png";
-    CMS_lumi(c20[histo], iPeriod, iPos); 
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton2pt2.str().c_str(), histo, c20[histo], "p_{T}(GeV)", 10);
+    Zlepton2pt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton2pt2_"<<histo<<".pdf";
+    // CMS_lumi(c20[histo], iPeriod, iPos); 
     c20[histo]->SaveAs(Zlepton2pt2save.str().c_str());
-    
+    */
+
+    c21[histo]->cd();
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, n3Lepmass1.str().c_str(), histo, c21[histo], "M(GeV)", 10);
+    n3Lepmass1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/invMassLep1_"<<histo<<".pdf";
+    // CMS_lumi(c20[histo], iPeriod, iPos); 
+    c21[histo]->SaveAs(n3Lepmass1save.str().c_str());
+
+    c22[histo]->cd();
+    plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, n3Lepmass2.str().c_str(), histo, c22[histo], "M(GeV)", 10);
+    n3Lepmass2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/invMassLep2_"<<histo<<".pdf";
+    // CMS_lumi(c20[histo], iPeriod, iPos); 
+    c22[histo]->SaveAs(n3Lepmass2save.str().c_str());
+  
   }
  
  return;

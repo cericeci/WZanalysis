@@ -63,8 +63,8 @@ int main()
   ofstream myfile3e, myfile3mu, myfile2e1mu, myfile1e2mu, myfileAll;
   ofstream fileNumMC;
   //***write output numbers
-  //  bool writeOutputNumbers(false);
-  bool writeOutputNumbers(true);
+  bool writeOutputNumbers(false);
+  //  bool writeOutputNumbers(true);
 
   if (writeOutputNumbers){
     fileNumMC.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMC.h");
@@ -145,6 +145,7 @@ int main()
 
 
   for (int file=1; file<(files.size()-2) /*&& file<1*/; file++){
+  //    for (int file=4; file<5 /*&& file<1*/; file++){
 
     float numZ(0), numW(0), num3e(0), num2e1mu(0), num1e2mu(0), num3mu(0), numMET3e(0.0), numMET2e1mu(0.0), numMET1e2mu(0.0), numMET3mu(0.0);
     float numMET3ectrl(0), numMET2e1muctrl(0), numMET1e2muctrl(0), numMET3muctrl(0);
@@ -182,6 +183,8 @@ int main()
     TH1F * hLeadingJetPt_my2[nChannels1];
     TH1F * hNjets1[nChannels1];
     TH1F * hNjets2[nChannels1];
+    TH1F * hNjetsBigger1[nChannels1];
+    TH1F * hNjetsBigger2[nChannels1];
     TH1F * hDeltaPhi1[nChannels1];
     TH1F * hDeltaPhi2[nChannels1];
     TH1F * hZlepton1pt1[nChannels1];
@@ -192,10 +195,12 @@ int main()
     TH1F * hWleptonpt2[nChannels1];    
     TH1F * hMTW1[nChannels1];
     TH1F * hMTW2[nChannels1];
-    
+    TH1F * h3Lmass1[nChannels1];
+    TH1F * h3Lmass2[nChannels1];
+
     for (int myhist=0; myhist<nChannels1; myhist++){
-      std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1;
-      std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2;
+      std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1, nNjetsBigger1, n3Lmass1;
+      std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2, nNjetsBigger2, n3Lmass2;
       nZmass1<<"hZmass1_"<<myhist;
       nZmass2<<"hZmass2_"<<myhist;
       nMET1<<"hMET1_"<<myhist;
@@ -206,6 +211,8 @@ int main()
       nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
       nNjets1<<"hNjets1_"<<myhist;
       nNjets2<<"hNjets2_"<<myhist;
+      nNjetsBigger1<<"hNjetsBigger1_"<<myhist;
+      nNjetsBigger2<<"hNjetsBigger2_"<<myhist;
       nDeltaPhi1<<"hDeltaPhi1_"<<myhist;
       nDeltaPhi2<<"hDeltaPhi2_"<<myhist;
       nZlepton1pt1<<"hZlepton1pt1_"<<myhist;
@@ -216,8 +223,9 @@ int main()
       nWleptonpt2<<"hWleptonpt2_"<<myhist;
       nMTW1<<"hMTW1_"<<myhist;
       nMTW2<<"hMTW2_"<<myhist;
-
-    
+      n3Lmass1<<"h3Lmass1"<<myhist;
+      n3Lmass2<<"h3Lmass2"<<myhist;
+      
       hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
       hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
       hMET1[myhist]             = HistogramFactory::createMETHisto(nMET1.str().c_str(), nMET1.str().c_str());
@@ -228,6 +236,8 @@ int main()
       hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
       hNjets1[myhist]           =  HistogramFactory::createNjetsHisto(nNjets1.str().c_str(), nNjets1.str().c_str());
       hNjets2[myhist]           =  HistogramFactory::createNjetsHisto(nNjets2.str().c_str(), nNjets2.str().c_str());
+      hNjetsBigger1[myhist]     =  HistogramFactory::createNjetsHistoBigger(nNjetsBigger1.str().c_str(), nNjetsBigger1.str().c_str());
+      hNjetsBigger2[myhist]     =  HistogramFactory::createNjetsHistoBigger(nNjetsBigger2.str().c_str(), nNjetsBigger2.str().c_str());
       hDeltaPhi1[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi1.str().c_str(), nDeltaPhi1.str().c_str());
       hDeltaPhi2[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi2.str().c_str(), nDeltaPhi2.str().c_str());
       hZlepton1pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt1.str().c_str(), nZlepton1pt1.str().c_str());
@@ -238,7 +248,11 @@ int main()
       hWleptonpt2[myhist]       = HistogramFactory::createZptHisto(nWleptonpt2.str().c_str(), nWleptonpt2.str().c_str());
       hMTW1[myhist]              = HistogramFactory::createMTW(nMTW1.str().c_str(), nMTW1.str().c_str());
       hMTW2[myhist]              = HistogramFactory::createMTW(nMTW2.str().c_str(), nMTW2.str().c_str());
+      h3Lmass1[myhist]            = HistogramFactory::create3LmassHisto(n3Lmass1.str().c_str(), n3Lmass1.str().c_str());          
+      h3Lmass2[myhist]            = HistogramFactory::create3LmassHisto(n3Lmass2.str().c_str(), n3Lmass2.str().c_str());          
+
     }
+
 
     for (int hist=0; hist<nChannels; hist++){
       std::ostringstream Zptname, LeadingJetname, ZptfSname, ZptfSnameError, ZptfSname3Up, ZptfSname3Down ;
@@ -251,11 +265,12 @@ int main()
 
       hZpt[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zptname.str().c_str(), Zptname.str().c_str());
       hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
-      hZptAll[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname.str().c_str(), ZptfSname.str().c_str());
+
+      /*      hZptAll[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname.str().c_str(), ZptfSname.str().c_str());
       hZptAllError[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSnameError.str().c_str(), ZptfSnameError.str().c_str());
       hZptAll3sigmaUp[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname3Up.str().c_str(), ZptfSname3Up.str().c_str());
       hZptAll3sigmaDown[hist ]=UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptfSname3Down.str().c_str(), ZptfSname3Down.str().c_str());
-      
+      */
     }
     
 //type: 0=EEE, 1=EEM, 2=EMM, 3=MMM
@@ -266,10 +281,12 @@ int main()
     readFileFromList(files[file], &inputName);  
     TChain wz("latino");
     
+    //    for (int input=8; input< 9; input++){
+    // wz.Add(inputName[input]);
+    // }
     for (int input=0; input< inputName.size(); input++){
       wz.Add(inputName[input]);
     }
-
 
 
     TTree *wz_tTree=(TTree*)&wz;
@@ -325,6 +342,7 @@ int main()
 
     float weight;
     //xs_weight=(cWZ->baseW)*luminosity;
+    
     xs_weight=(1.0 + 0.6 * ((cWZ->dataset) >= 82 && (cWZ->dataset) <= 84)) * (cWZ->baseW) * luminosity;
     if ((cWZ->dataset)==89) xs_weight *= (0.01968  / 0.0192);
     if ((cWZ->dataset)==90) xs_weight *= (0.005527 / 0.00459);
@@ -609,19 +627,21 @@ int main()
       hZpt_my1[fill1]->Fill(Zpt, weights_h);
       hLeadingJetPt_my1[fill1]->Fill(leadingRecoJetPt, weights_h);
       hNjets1[fill1]->Fill(nRecoJets, weights_h);
+      hNjetsBigger1[fill1]->Fill(nRecoJets, weights_h);
       hDeltaPhi1[fill1]->Fill(deltaPhi, weights_h);
       hZlepton1pt1[fill1]->Fill(Zlept1Pt,weights_h);
       hZlepton2pt1[fill1]->Fill(Zlept2Pt,weights_h);
       hWleptonpt1[fill1]->Fill(WleptPt,weights_h);
       hMTW1[fill1]->Fill(MTW, weights_h);
+      h3Lmass1[fill1]->Fill(v_3Lepton.M(), weights_h);
     }
     
 
 
     //////////////////////////////////////MET CUT//////////////////////////
     
-    if (EventMET.Et()<30) continue;
-    //    if ((cWZ->pfmet)<30) continue;
+    //if (EventMET.Et()<30) continue;
+    if ((cWZ->pfmet)<30) continue;
     //    if ((cWZ->pfmetTypeI)<30) continue;   ///CHANGE THIS
 
     //improving this
@@ -642,11 +662,14 @@ int main()
       hZpt_my2[fill2]->Fill(Zpt, weights_h);
       hLeadingJetPt_my2[fill2]->Fill(leadingRecoJetPt, weights_h);
       hNjets2[fill2]->Fill(nRecoJets, weights_h);
+      hNjetsBigger2[fill2]->Fill(nRecoJets, weights_h);
       hDeltaPhi2[fill2]->Fill(deltaPhi, weights_h);
       hZlepton1pt2[fill2]->Fill(Zlept1Pt,weights_h);
       hZlepton2pt2[fill2]->Fill(Zlept2Pt,weights_h);
       hWleptonpt2[fill2]->Fill(WleptPt,weights_h);
       hMTW2[fill2]->Fill(MTW, weights_h);
+      h3Lmass2[fill2]->Fill(v_3Lepton.M(), weights_h);
+
     }    
 
 
@@ -655,7 +678,7 @@ int main()
       if (ev[filH]){
 	//hZpt[filH]->Fill(Zpt, weight);
 	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, weight);
-	hZptAll[filH]->Fill(Zpt, weight);
+	//	hZptAll[filH]->Fill(Zpt, weight);
       }
     }
 
@@ -663,7 +686,7 @@ int main()
     } //end of loop over all events
     
     //filling other histos and errors
-    
+    /*
     for (int er=0; er< nChannels; er++){
       //double binError(0);
       for (int zpt2=0; zpt2<(hZptAll[er]->GetNbinsX()+1); zpt2++){
@@ -678,7 +701,8 @@ int main()
 	  hZptAll3sigmaDown[er]-> SetBinContent(zpt2, 0);
 	//	hZptAll3sigmaDown[er]->SetBinError(zpt2, binError);
       }
-  }
+    */
+    //}
    
   std::cout<<"****************************(normalized to the luminosity, with scale factors and trigger eff)"<<std::endl;
   std::cout<<"3e:     "<<numMET[0]<<"+/-"<<sqrt(error[0])<<std::endl;
