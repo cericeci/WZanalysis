@@ -11,7 +11,28 @@
 #define LUMINOSITY 19602
 
 // PDG Branching Ratios
+#define eee_pdg 0.109928
+#define eem_pdg 0.108087
+#define mme_pdg 0.110026
+#define mmm_pdg 0.108184
+#define tte_pdg 0.110157
+#define ttm_pdg 0.108312 
+#define ttt_pdg 0.11528
+#define eet_pdg 0.115041
+#define mmt_pdg 0.115143
+
+//Madgraph branching ratios
+
+#define eee_madgraph 0.103643
+#define eem_madgraph 0.103505
+#define mme_madgraph 0.102298
+#define mmm_madgraph 0.104899
+#define tte_madgraph 0.116648
+#define ttm_madgraph 0.117229
+#define ttt_madgraph 0.115964
+#define eet_madgraph 0.117955
+#define mmt_madgraph 0.117859
 
 
+#endif 
 
-#endif Constants_h

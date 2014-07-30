@@ -20,7 +20,7 @@ LDFLAGS =$(shell root-config --libs) # RooUnfold-1.1.1/libRooUnfold.so
 #wzDoGenAnalysisNewAutomatic1: wzDoGenAnalysisNewAutomatic1.C wzTools2.C WZ.C WZEvent.C
 #	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C HistogramFactory.C
+wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C WZEventMCOld.C HistogramFactory.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
