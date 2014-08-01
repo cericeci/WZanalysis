@@ -19,11 +19,7 @@
 #define mme_pdg 0.110026
 #define mmm_pdg 0.108184
 #define tte_pdg 0.110157
-<<<<<<< HEAD
-#define ttm_pdg 0.108312 
-=======
 #define ttm_pdg 0.108312
->>>>>>> abac807f056900c6e746f4852896f49e6e4e2104
 #define ttt_pdg 0.11528
 #define eet_pdg 0.115041
 #define mmt_pdg 0.115143
@@ -41,10 +37,5 @@
 #define mmt_madgraph 0.117859
 
 
-<<<<<<< HEAD
 #endif 
 
-=======
-
-#endif 
->>>>>>> abac807f056900c6e746f4852896f49e6e4e2104
