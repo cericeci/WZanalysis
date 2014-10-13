@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#define USENORMALIZEDWEIGHTS  true
+#define NORMALIZETOLUMINOSITY true
 
 
 UnfoldingAnalysis::UnfoldingAnalysis(std::string k, WZEvent * e) :
@@ -19,7 +21,8 @@ UnfoldingAnalysis::UnfoldingAnalysis(std::string k, WZEvent * e) :
 //   Init();
 //   std::cout << "Called Init method \n";
 
-  useNormalizedWeights = false;
+  useNormalizedWeights = USENORMALIZEDWEIGHTS;
+  normalizeToLumi      = NORMALIZETOLUMINOSITY;
 };
 
 
@@ -32,23 +35,27 @@ void UnfoldingAnalysis::CreateBaseHistos() {
     genhistoKey << "hGen" << key << "_" << i;
     genhistoTitle << "Gen " << key << "  for channel " << i;
     genHistos[i] = createHistogram(genhistoKey.str(), genhistoTitle.str());
+    genHistos[i]->Sumw2();
 
     std::ostringstream recohistoKey;
     std::ostringstream recohistoTitle;
     recohistoKey << "hReco" << key << "_" << i;
     recohistoTitle << "Reco " << key << "  for channel " << i;
     recoHistos[i] = createHistogram(recohistoKey.str(), recohistoTitle.str());
+    recoHistos[i]->Sumw2();
 
     std::ostringstream crecohistoKey;
     std::ostringstream crecohistoTitle;
     crecohistoKey << "hControlReco" << key << "_" << i;
     crecohistoTitle << "CR:" << " Reco " << key << " for channel " << i;
     controlRecoHistos[i] = createHistogram(crecohistoKey.str(), crecohistoTitle.str());
+    controlRecoHistos[i]->Sumw2();
     std::ostringstream crgenhistoKey;
     std::ostringstream crgenhistoTitle;
     crgenhistoKey << "hControlGen" << key << "_" << i;
     crgenhistoTitle << "CR-GEN:" << key << "  for channel " << i;
     controlGenHistos[i] = createHistogram(crgenhistoKey.str(), crgenhistoTitle.str());
+    controlGenHistos[i]->Sumw2();
 
     // NOW WE NEED TO FILL THESE DISTRIBUTIONS...
 
@@ -96,6 +103,23 @@ void UnfoldingAnalysis::CreateBaseHistos() {
 
 }
 
+void UnfoldingAnalysis::ApplyLuminosityNormalization(double norm){
+
+  if (!normalizeToLumi) return;
+
+  std::cout << "APPLY LUMI NORMALIZATION TO UNF. HISTOS: "
+	    << norm << std::endl;
+
+  for (int i=0; i<5; i++) {
+    if (i>0) {
+      genHistos[i]->Scale(norm);
+      recoHistos[i]->Scale(norm);
+      controlRecoHistos[i]->Scale(norm);
+      controlGenHistos[i]->Scale(norm);
+    }
+  }
+}
+
 void UnfoldingAnalysis::Finish(TFile * fout) {
 
   std::cout << "Base Finish \n";
@@ -107,6 +131,7 @@ void UnfoldingAnalysis::Finish(TFile * fout) {
   for (int i=0; i<5; i++) {
     
     if (i>0) {
+
       genHistos[i]->Write();
       recoHistos[i]->Write();
       controlRecoHistos[i]->Write();
@@ -521,7 +546,7 @@ UnfoldingZPt::UnfoldingZPt(WZEvent * e) :
   UnfoldingAnalysis("Zpt", e)
     
 {
-  std::cout << "Entered constructor of Jet Pt unf. analysis \n";
+  std::cout << "Entered constructor of Z Pt unf. analysis \n";
   trueValue = &genZPt;
   recoValue = &recoZPt;
 
@@ -550,6 +575,7 @@ TH1D * UnfoldingZPt::createHistogram(std::string s,
 				     std::string title) {
 
   TH1D * h = UnfoldingHistogramFactory::createZPtHistogram(s, title);
+
 
   //   TH1D * h = new TH1D(s.c_str(),title.c_str(), 20,0., 400.);
   return h;

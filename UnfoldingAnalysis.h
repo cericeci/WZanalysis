@@ -32,6 +32,7 @@ public:
   virtual void Finish(TFile * fout=0);
 
   void FillPurityStability();
+  void ApplyLuminosityNormalization(double norm);
 
 protected:
 
@@ -39,6 +40,8 @@ protected:
 
   double GetRecoWeight();
   double GetGenWeight();
+
+
   
   WZEvent * wzevt;
 
@@ -64,6 +67,7 @@ protected:
   double * trueValue;
   double * recoValue;
 
+  bool    normalizeToLumi;
   bool    useNormalizedWeights;
 
   TTree * resolutionTree;
