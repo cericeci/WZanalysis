@@ -58,7 +58,7 @@ TH1D* Unfold(string unfAlg,
   // RooUnfold::kCovToy;
   // RooUnfold::kCovariance;
   // 
-  RooUnfold::ErrorTreatment doerror = RooUnfold::kCovariance; // RooUnfold::kCovToy
+  RooUnfold::ErrorTreatment doerror = RooUnfold::kCovToy; // RooUnfold::kCovariance;
 
   TH1D* hCorrected = (TH1D*) RObject->Hreco(doerror);
   hCorrected->SetName(hOutName.c_str());
@@ -125,18 +125,21 @@ int main(int argc, char **argv) {
   char * dataFileName(0);
   char * unfoldingAlgo(0);
   char * variableName(0);
+  char * dataHistoName(0);
+  char * outputFileName(0);
 
   bool gotDataFile = false;
   bool gotResponse = false;
   bool gotUnfoldingAlgo = false;
   bool gotVarName  = false;
   bool useControlSample = false;
+  bool useToySample = false;
   bool gotKterm    = false;
   int  inputKterm = -1;
 
   char c;
 
-  while ((c = getopt (argc, argv, "r:d:a:v:k:C")) != -1)
+  while ((c = getopt (argc, argv, "r:d:a:v:k:o:N:CT")) != -1)
     switch (c)
       {
       case 'r':
@@ -159,12 +162,23 @@ int main(int argc, char **argv) {
 	unfoldingAlgo = new char[strlen(optarg)+1];
 	strcpy(unfoldingAlgo,optarg);
 	break;
+      case 'N':
+	dataHistoName = new char[strlen(optarg)+1];
+	strcpy(dataHistoName,optarg);
+	break;
+      case 'o':
+	outputFileName = new char[strlen(optarg)+1];
+	strcpy(outputFileName,optarg);
+	break;
       case 'k':
 	gotKterm = true;
 	inputKterm = atoi(optarg);
 	break;
       case 'C':
 	useControlSample = true;
+	break;
+      case 'T':
+	useToySample = true;
 	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
@@ -251,9 +265,16 @@ int main(int argc, char **argv) {
     std::ostringstream responseKey;
     std::ostringstream backgroundKey;
 
-    if (useControlSample) {
+
+    if (dataHistoName) {
+      dataHistoKey  << dataHistoName  << "_"    << chan+1;      
+      truthHistoKey << "hGen" << variable << "_" << chan+1;
+    } else if (useControlSample) {
       dataHistoKey  << "hControlReco" << variable << "_"    << chan+1;
       truthHistoKey << "hControlGen" << variable << "_" << chan+1;
+    } else if (useToySample) {
+      dataHistoKey  << "hToyReco" << variable << "_"    << chan+1;
+      truthHistoKey << "hGen" << variable << "_" << chan+1;
     } else {
       dataHistoKey  << "hReco" << variable << "_"    << chan+1;
       truthHistoKey << "hGen" << variable << "_" << chan+1;
@@ -275,7 +296,7 @@ int main(int argc, char **argv) {
 
 
     data[chan] = (TH1D*) fDataInput->Get(dataHistoKey.str().c_str())->Clone(dataKey.str().c_str());
-    truth[chan] = (TH1D*) fDataInput->Get(truthHistoKey.str().c_str())->Clone(truthKey.str().c_str());
+    truth[chan] = (TH1D*) fUnfoldingMatrix->Get(truthHistoKey.str().c_str())->Clone(truthKey.str().c_str());
 
     backgrounds[chan] = (TH1D*) data[chan]->Clone(backgroundKey.str().c_str());
 
@@ -372,7 +393,15 @@ int main(int argc, char **argv) {
 
   }
 
-  TFile * fout = new TFile("unfolding.root","RECREATE");
+  TString outputFile;
+
+  if (outputFileName == 0) {
+    outputFile = "unfolding.root";
+  } else {
+    outputFile = outputFileName;
+  }
+
+  TFile * fout = new TFile(outputFile,"RECREATE");
   fout->cd();
   for (int i=0; i<NR_CHANNELS; i++) {
     data[i]->Write();

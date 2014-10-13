@@ -90,6 +90,8 @@ int main()
   TH1F * hLeadingJetPt_my2[nChannels1];
   TH1F * hNjets1[nChannels1];
   TH1F * hNjets2[nChannels1];
+  TH1F * hNjetsBigger1[nChannels1];
+  TH1F * hNjetsBigger2[nChannels1];
   TH1F * hDeltaPhi1[nChannels1];
   TH1F * hDeltaPhi2[nChannels1]; 
   TH1F * hZlepton1pt1[nChannels1];
@@ -100,10 +102,12 @@ int main()
   TH1F * hWleptonpt2[nChannels1];
   TH1F * hMTW1[nChannels1];
   TH1F * hMTW2[nChannels1];  
-
+  TH1F * h3Lmass1[nChannels1];
+  TH1F * h3Lmass2[nChannels1];
+  
   for (int myhist=0; myhist<nChannels1; myhist++){
-    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1;
-    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2;
+    std::ostringstream nZmass1, nMET1, nZpt1, nLeadingJetPt1, nNjets1, nDeltaPhi1, nZlepton1pt1, nZlepton2pt1, nWleptonpt1, nMTW1, nNjetsBigger1, n3Lmass1;
+    std::ostringstream nZmass2, nMET2, nZpt2, nLeadingJetPt2, nNjets2, nDeltaPhi2, nZlepton1pt2, nZlepton2pt2, nWleptonpt2, nMTW2, nNjetsBigger2, n3Lmass2;
     nZmass1<<"hZmass1_"<<myhist;
     nZmass2<<"hZmass2_"<<myhist;
     nMET1<<"hMET1_"<<myhist;
@@ -114,6 +118,8 @@ int main()
     nLeadingJetPt2<<"hLeadingJetPt2_"<<myhist;
     nNjets1<<"hNjets1_"<<myhist;
     nNjets2<<"hNjets2_"<<myhist;
+    nNjetsBigger1<<"hNjetsBigger1_"<<myhist;
+    nNjetsBigger2<<"hNjetsBigger2_"<<myhist;
     nDeltaPhi1<<"hDeltaPhi1_"<<myhist;
     nDeltaPhi2<<"hDeltaPhi2_"<<myhist;
     nZlepton1pt1<<"hZlepton1pt1_"<<myhist;
@@ -124,6 +130,8 @@ int main()
     nWleptonpt2<<"hWleptonpt2_"<<myhist;    
     nMTW1<<"hMTW1_"<<myhist;
     nMTW2<<"hMTW2_"<<myhist;
+    n3Lmass1<<"h3Lmass1"<<myhist;
+    n3Lmass2<<"h3Lmass2"<<myhist;
 
     hZmass1[myhist]           = HistogramFactory::createZmassHisto(nZmass1.str().c_str(), nZmass1.str().c_str());
     hZmass2[myhist]           = HistogramFactory::createZmassHisto(nZmass2.str().c_str(), nZmass2.str().c_str());
@@ -135,6 +143,8 @@ int main()
     hLeadingJetPt_my2[myhist] = HistogramFactory::createLeadingJetptHisto(nLeadingJetPt2.str().c_str(), nLeadingJetPt2.str().c_str());
     hNjets1[myhist]           =  HistogramFactory::createNjetsHisto(nNjets1.str().c_str(), nNjets1.str().c_str());
     hNjets2[myhist]           =  HistogramFactory::createNjetsHisto(nNjets2.str().c_str(), nNjets2.str().c_str());
+    hNjetsBigger1[myhist]     =  HistogramFactory::createNjetsHistoBigger(nNjetsBigger1.str().c_str(), nNjetsBigger1.str().c_str());
+    hNjetsBigger2[myhist]     =  HistogramFactory::createNjetsHistoBigger(nNjetsBigger2.str().c_str(), nNjetsBigger2.str().c_str());
     hDeltaPhi1[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi1.str().c_str(), nDeltaPhi1.str().c_str());
     hDeltaPhi2[myhist]        =  HistogramFactory::createDeltaPhi(nDeltaPhi2.str().c_str(), nDeltaPhi2.str().c_str());
     hZlepton1pt1[myhist]       = HistogramFactory::createZptHisto(nZlepton1pt1.str().c_str(), nZlepton1pt1.str().c_str());
@@ -145,6 +155,9 @@ int main()
     hWleptonpt2[myhist]       = HistogramFactory::createZptHisto(nWleptonpt2.str().c_str(), nWleptonpt2.str().c_str());
     hMTW1[myhist]              = HistogramFactory::createMTW(nMTW1.str().c_str(), nMTW1.str().c_str());
     hMTW2[myhist]              = HistogramFactory::createMTW(nMTW2.str().c_str(), nMTW2.str().c_str());
+    h3Lmass1[myhist]            = HistogramFactory::create3LmassHisto(n3Lmass1.str().c_str(), n3Lmass1.str().c_str());          
+    h3Lmass2[myhist]            = HistogramFactory::create3LmassHisto(n3Lmass2.str().c_str(), n3Lmass2.str().c_str());          
+
   }
 
   const int nChannels(4);
@@ -176,6 +189,7 @@ int main()
     hZpterror[hist]     = UnfoldingHistogramFactory::createZPtHistogram(Zpterrorname.str().c_str(), Zpterrorname.str().c_str());
     hLeadingJetPt[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetname.str().c_str(),LeadingJetname.str().c_str());
     hLeadingJetPtError[hist] = UnfoldingHistogramFactory::createLeadingJetHistogram(LeadingJetError.str().c_str(),LeadingJetError.str().c_str());
+    /*
     hZptFake[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename.str().c_str(), ZptFakename.str().c_str());
 
     hZptFake3sigmaUp[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Up.str().c_str(), ZptFakename3Up.str().c_str());
@@ -183,7 +197,8 @@ int main()
     hZptFake3sigmaDown[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakename3Down.str().c_str(), ZptFakename3Down.str().c_str());
 
     hZptFakeError[hist] =  UnfoldingHistogramFactory::createZPtHistogram_aTGC(ZptFakeErrorname.str().c_str(), ZptFakeErrorname.str().c_str());
-  }
+    */
+    }
   TH2F* MuonFR;
   TH2F* MuonPR;
   TH2F* ElectronFR;
@@ -282,7 +297,7 @@ int main()
   std::cout<<"number of events: "<<events << std::endl;
 
 
-  for  (Int_t k = 0; k<events /*&& k<10000**/;k++) {
+  for  (Int_t k = 0; k<events /*&& k<1000*/;k++) {
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
@@ -580,16 +595,19 @@ int main()
       hZpt_my1[fill2]->Fill(Zpt, MMweights_fake_h);
       hLeadingJetPt_my1[fill2]->Fill(leadingRecoJetPt, MMweights_fake_h);
       hNjets1[fill2]->Fill(nRecoJets, MMweights_fake_h);
+      hNjetsBigger1[fill2]->Fill(nRecoJets, MMweights_fake_h);
       hDeltaPhi1[fill2]->Fill(deltaPhi, MMweights_fake_h);
       hZlepton1pt1[fill2]->Fill(Zlept1Pt,MMweights_fake_h);
       hZlepton2pt1[fill2]->Fill(Zlept2Pt,MMweights_fake_h);
       hWleptonpt1[fill2]->Fill(WleptPt,MMweights_fake_h);
       hMTW1[fill2]->Fill(MTW, MMweights_fake_h);
+      h3Lmass1[fill2]->Fill(v_3Lepton.M(), MMweights_fake_h);
     }    
     //////////////////////////////////////MET CUT//////////////////////////
 
     
     if ((cWZ->pfmetTypeI)<30) continue;  
+    //if ((cWZ->pfmet)<30) continue;  
 
 
     for (int fill3=0; fill3<5; fill3++){
@@ -599,11 +617,13 @@ int main()
       hZpt_my2[fill3]->Fill(Zpt, MMweights_fake_h);
       hLeadingJetPt_my2[fill3]->Fill(leadingRecoJetPt, MMweights_fake_h);
       hNjets2[fill3]->Fill(nRecoJets, MMweights_fake_h);
+      hNjetsBigger2[fill3]->Fill(nRecoJets, MMweights_fake_h);
       hDeltaPhi2[fill3]->Fill(deltaPhi, MMweights_fake_h);
       hZlepton1pt2[fill3]->Fill(Zlept1Pt,MMweights_fake_h);
       hZlepton2pt2[fill3]->Fill(Zlept2Pt,MMweights_fake_h);
       hWleptonpt2[fill3]->Fill(WleptPt,MMweights_fake_h);
       hMTW2[fill3]->Fill(MTW, MMweights_fake_h);
+      h3Lmass2[fill3]->Fill(v_3Lepton.M(), MMweights_fake_h);
     }    
     ////////////////////////////////////////////////////////////////////////
     
@@ -640,8 +660,8 @@ int main()
 	hZpterror[filH]->Fill(Zpt, MMerrors[filH]);
 	hLeadingJetPt[filH]->Fill(leadingRecoJetPt, MMweights[filH]);
 	hLeadingJetPtError[filH]->Fill(leadingRecoJetPt, MMerrors[filH]);
-	hZptFake[filH]->Fill(Zpt, MMweights_fake[filH]);
-	hZptFakeError[filH]->Fill(Zpt, MMerrors_fake[filH]);
+	//	hZptFake[filH]->Fill(Zpt, MMweights_fake[filH]);
+	//hZptFakeError[filH]->Fill(Zpt, MMerrors_fake[filH]);
       }
     }
     //filling Zpt and errors
@@ -656,21 +676,26 @@ int main()
     //double binError(0);
     for (int nzpt=0; nzpt<(hZpterror[er]->GetNbinsX()+1); nzpt++){
       double binError=hZpterror[er]->GetBinContent(nzpt);
-      check[er]+=binError;
+      // check[er]+=binError;
       hZpt[er]->SetBinError(nzpt, sqrt(binError));
     }
     for (int ljet=0; ljet<(hLeadingJetPtError[er]->GetNbinsX()+1); ljet++){
       double binError2=hLeadingJetPtError[er]->GetBinContent(ljet);
       hLeadingJetPt[er]->SetBinError(ljet, sqrt(binError2));
     }
+    
     //for Senka TGC
+    /*
     for (int zpt2=0; zpt2<(hZptFakeError[er]->GetNbinsX()+1); zpt2++){
       double binErrorStat2=hZptFakeError[er]->GetBinContent(zpt2);
+      check[er]+=binErrorStat2;
       double binContent=hZptFake[er]->GetBinContent(zpt2);
       double binErrorSyst2= pow(data_driven_syst[er]*binContent,2);
       double binError2=binErrorStat2+binErrorSyst2;
       hZptFake[er]->SetBinError(zpt2, sqrt(binError2));
-
+      //      std::cout<<"BIN CONTENT: "<<binContent<<std::endl;
+      //std::cout<<"BIN ERROR: "<<sqrt(binError2)<<std::endl;
+      //std::cout<<"***************"<<std::endl;;
       hZptFake3sigmaUp[er]-> SetBinContent(zpt2, (binContent+3*sqrt(binError2)));
       //      hZptFake3sigmaUp[er]->SetBinError(zpt2, sqrt(binError2));
       if ((binContent-3*sqrt(binError2))>0)
@@ -679,6 +704,7 @@ int main()
 	hZptFake3sigmaDown[er]-> SetBinContent(zpt2, 0);
       //      hZptFake3sigmaDown[er]->SetBinError(zpt2, sqrt(binError2));
     }
+    */
   }
   
   std::cout<<"CHECK:"<<std::endl;

@@ -14,6 +14,7 @@
 // Replace this with the new tree
 #include "WZEvent.h"
 #include "UnfoldingAnalysis.h"
+#include "UnfoldingHistogramFactory.h"
 
 #include "WZAnalysis.h"
 
@@ -52,15 +53,17 @@ int main(int argc, char **argv)
 
   char * outputName(0);
   char * inputFileName(0);
+  char * binningFileName(0);
 
   char * fileList;
   bool useInputList=false;
 
   bool gotInput  = false;
   bool gotOutput = false;
+  bool gotHistoBinning = false;
   char c;
 
-  while ((c = getopt (argc, argv, "i:o:l:")) != -1)
+  while ((c = getopt (argc, argv, "i:o:l:H:")) != -1)
     switch (c)
       {
       case 'o':
@@ -78,10 +81,25 @@ int main(int argc, char **argv)
 	fileList = new char[strlen(optarg)+1];
 	strcpy(fileList,optarg);
 	break;
+      case 'H':
+	gotHistoBinning = true;
+	binningFileName = new char[strlen(optarg)+1];
+	strcpy(binningFileName,optarg);
+	break;
       default:
 	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
 	abort ();
       }
+
+  // HISTO Binning
+
+  if (gotHistoBinning) { 
+
+    UnfoldingHistogramFactory * histoFac = UnfoldingHistogramFactory::GetInstance();
+    histoFac->SetBinning(binningFileName);
+
+  }
+
 
   // OUTPUT ROOT FILE
 
@@ -121,7 +139,7 @@ int main(int argc, char **argv)
     ifstream list(fileList);
     TString name;
     while (list>>name) {
-      cout << "adding name: " << name << endl;
+      //      cout << "adding name: " << name << endl;
       inputName.push_back(name);
     }
   } else   if (gotInput) {
@@ -251,7 +269,7 @@ int main(int argc, char **argv)
 
     genAnalysis.EventAnalysis();
 
-    if (k%2) {    
+    if (true) {    
       unfoldJetPt.FillEvent();
       unfoldZPt.FillEvent();
     } else {
@@ -316,6 +334,8 @@ int main(int argc, char **argv)
 
   hRecoVsGenChannel->Write(); 
   genAnalysis.Finish(fout);
+  unfoldJetPt.ApplyLuminosityNormalization(lumiNormalization);
+  unfoldZPt.ApplyLuminosityNormalization(lumiNormalization);
   unfoldJetPt.Finish(fout);
   unfoldZPt.Finish(fout);
 

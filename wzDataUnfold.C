@@ -51,7 +51,7 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
   if (useOverFlow) response->UseOverflow();
   RooUnfold* RObject;
   TH1D * hDataClone = (TH1D*) hData->Clone();
-  hDataClone->Add(hSumBG, -1);
+  //   hDataClone->Add(hSumBG, -1);
 
   if (unfAlg == "SVD") {
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kSVD,   response, hDataClone, Kterm);
@@ -63,6 +63,8 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
   }
   RObject->SetVerbose(0);
   TH1D* hCorrected = (TH1D*) RObject->Hreco();
+  std::cout << "Unfolded data histogram name: " << hOutName << std::endl;
+
   hCorrected->SetName(hOutName.c_str());
 
   RooUnfold::ErrorTreatment doerror = RooUnfold::kCovariance;
@@ -99,11 +101,14 @@ int main(int argc, char **argv) {
   bool gotVarName  = false;
   bool gotBackgroundFile = false;
   bool gotBackgroundList = false;
-  bool gotTauFraction = false;
+  bool gotTauFraction = false;  
+  bool gotKterm    = false;
+  int  inputKterm = -1;
+
 
   char c;
 
-  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:")) != -1)
+  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:")) != -1)
     switch (c)
       {
       case 'r':
@@ -141,6 +146,10 @@ int main(int argc, char **argv) {
 	gotUnfoldingAlgo = true;
 	unfoldingAlgo = new char[strlen(optarg)+1];
 	strcpy(unfoldingAlgo,optarg);
+	break;
+      case 'k':
+	gotKterm = true;
+	inputKterm = atoi(optarg);
 	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
@@ -246,6 +255,8 @@ int main(int argc, char **argv) {
 
     // Read data distribution (is Output from Matrix Method)
 
+    std::cout << "READING HISTO KEY: " << histoKey << std::endl;
+
     TH1D * dh = (TH1D*) fDataInput->Get(histoKey.str().c_str()); // ->Clone(dataHistoKey.str().c_str());
     if (!dh) {
       std::cout << "Found no data histogram named : " << histoKey.str() << std::endl;
@@ -288,7 +299,7 @@ int main(int argc, char **argv) {
     // Do the unfolding
     unfoldedDataDistribution[chan] = Unfold(algorithm  // "Bayes"
 					    ,response[chan]
-					    ,data[chan], backgrounds[chan]
+					    ,signal[chan], backgrounds[chan]
 					    , 5 // kterm
 					    , resultKey.str().c_str()
 					    , 1 ); // userOverflow
@@ -300,6 +311,12 @@ int main(int argc, char **argv) {
     dSigma[chan] = (TH1D* ) unfoldedDataDistribution[chan]->Clone(dsigmaKey.str().c_str());
 
     dSigma[chan]->Scale(1./LUMINOSITY);
+
+    // STILL NEEDS TO DIVIDE WITH BIN WIDTH TO GET DSIGMA/Dx
+
+    std::cout << "!!!!!! not divining with bin width yet!!!!! \n";
+
+
 
   }
 
@@ -313,7 +330,17 @@ int main(int argc, char **argv) {
 //     backgroundFiles[i]->Close();
 //   }
 
+  // Compute total cross sectin summing over bins
 
+  float sigmaTot[4] = {0,0,0,0.};
+  for (int i=0; i<4; i++) {
+    sigmaTot[i] = dSigma[i]->Integral();
+    std::cout << "integral for channel " << i << " : "
+	      << sigmaTot[i] << std::endl;
+  }
+
+
+  // 
   TFile * fout = new TFile("unfolding.root","RECREATE");
   fout->cd();
   for (int i=0; i<4; i++) {
@@ -329,6 +356,7 @@ int main(int argc, char **argv) {
     dSigma[i]->Write();
   }
   fout->Close();
+
 
 
 }
