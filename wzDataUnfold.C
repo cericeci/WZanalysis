@@ -57,7 +57,10 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kSVD,   response, hDataClone, Kterm);
   } else   if (unfAlg == "Bayes") {
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kBayes, response, hDataClone, Kterm);
-  } else {
+  } else if (unfAlg=="Invert"){
+    RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kInvert, response, hDataClone, Kterm);
+  }
+  else {
     std::cout << "Unknown unfolding algorithm " << unfAlg << std::endl;
     return 0;
   }
@@ -333,10 +336,13 @@ int main(int argc, char **argv) {
   // Compute total cross sectin summing over bins
 
   float sigmaTot[4] = {0,0,0,0.};
+  double WZbr[4]={0.03363*0.1075,0.03363*0.1057,0.03366*0.1075,0.03366*0.1057};
+
   for (int i=0; i<4; i++) {
     sigmaTot[i] = dSigma[i]->Integral();
     std::cout << "integral for channel " << i << " : "
 	      << sigmaTot[i] << std::endl;
+    std::cout << "inclusivee: "<<sigmaTot[i]/WZbr[i]<<std::endl;
   }
 
 

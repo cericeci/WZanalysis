@@ -23,7 +23,7 @@ public:
   TH1D * createHistogram(std::string key, std::string name, std::string title);
   static TH1D * createZPtHistogram(std::string name, std::string title);
   static TH1D * createLeadingJetHistogram(std::string name, std::string title);
-
+  static TH1D * createNjetsHistogram(std::string name, std::string title);
 
 private:
 

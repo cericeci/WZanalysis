@@ -171,8 +171,10 @@ int main(int argc, char **argv)
   // Creating analyses classes that will be run
   //
   UnfoldingLeadingJetPt unfoldJetPt(cWZ);
+  UnfoldingNjets unfoldNjets(cWZ);
   //  unfoldJetPt.Init();
   UnfoldingZPt unfoldZPt(cWZ);
+  
   WZAnalysis   genAnalysis(cWZ);
   genAnalysis.Init();
 
@@ -190,7 +192,7 @@ int main(int argc, char **argv)
   for  (Int_t k = 0; k<events; k++) {
 
     if ( !(k%100000)  ) std::cout << "Processed " << k << " events \n";
-
+    
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
@@ -270,11 +272,14 @@ int main(int argc, char **argv)
     genAnalysis.EventAnalysis();
 
     if (true) {    
+    //    if (k%2){
       unfoldJetPt.FillEvent();
       unfoldZPt.FillEvent();
+      unfoldNjets.FillEvent();
     } else {
       unfoldJetPt.FillEvent(true);
       unfoldZPt.FillEvent(true);
+      unfoldNjets.FillEvent(true);
     }
 
     if (eventPassed) {
@@ -336,9 +341,10 @@ int main(int argc, char **argv)
   genAnalysis.Finish(fout);
   unfoldJetPt.ApplyLuminosityNormalization(lumiNormalization);
   unfoldZPt.ApplyLuminosityNormalization(lumiNormalization);
+  unfoldNjets.ApplyLuminosityNormalization(lumiNormalization);
   unfoldJetPt.Finish(fout);
   unfoldZPt.Finish(fout);
-
+  unfoldNjets.Finish(fout);
 
   fout->Close();
 }

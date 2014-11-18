@@ -186,26 +186,26 @@ void UnfoldingAnalysis::FillPurityStability() {
 // 		<< "\t recoBin = " << recoBin
 // 		<< std::endl;
 
-    if (*recoValue>0.) {
+    if (*recoValue>=0.) {
       purityPlotDenominator[wzGenChannel+1]->Fill(*recoValue);
       purityPlotDenominator[0]->Fill(*recoValue);
     }
-    if (*trueValue>0) {
+    if (*trueValue>=0) {
       stabilityPlotDenominator[wzGenChannel+1]->Fill(*trueValue);
       stabilityPlotDenominator[0]->Fill(*trueValue);
     }
 
     if (genBin == recoBin) {
-      if (*recoValue>0.) {
+      if (*recoValue>=0.) {
 	purityPlot[wzGenChannel+1]->Fill(*recoValue);
 	purityPlot[0]->Fill(*recoValue);
       }
-      if (*trueValue>0) {
+      if (*trueValue>=0) {
 	stabilityPlot[wzGenChannel+1]->Fill(*trueValue);
 	stabilityPlot[0]->Fill(*trueValue);
       }
     }
-    resolutionTree->Fill();
+    //    resolutionTree->Fill();
   }
 }
 
@@ -654,4 +654,184 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
   }
 
 }
+
+UnfoldingNjets::UnfoldingNjets(WZEvent * e) :
+  UnfoldingAnalysis("Njets", e)
+    
+{
+  std::cout << "Entered constructor of Z Pt unf. analysis \n";
+  //  trueValue=0;
+  //recoValue=0;
+  trueValue = &(nGenJets);
+  recoValue = &(nRecoJets);
+
+  CreateBaseHistos();
+  //std::cout << "Calling Init method \n";
+  //std::cout << "Entered Jet Pt Init method \n";
+  //Init();
+
+};
+
+TH1D * UnfoldingNjets::createHistogram(std::string s, 
+				     std::string title) {
+
+  TH1D * h = UnfoldingHistogramFactory::createNjetsHistogram(s, title);
+
+
+  return h;
+
+}
+
+
+void UnfoldingNjets::EventAnalysis(bool controlSample) {
+
+
+  bool eventPassed = (wzevt->GetSelectionLevel() == passesFullSelection);
+  FinalState recoChannel = wzevt->GetFinalState();
+  int wzGenChannel = wzevt->WZchan;
+  float pileUpWeight=wzevt->GetPileupWeight();
+  float mcEfficiency=wzevt->GetMCWeight();
+
+  // IMPORTANT: here goes, PU, efficiencies / scale factors, ...
+  double genWeight     = pileUpWeight;
+  double recoWeight = pileUpWeight*mcEfficiency;
+  //  double recoWeight = genWeight;
+
+
+  // 
+  // Count gen jets
+  // 
+  
+  //  int nGenJets          = 0;
+  nGenJets          = 0;
+
+  for (int i=0; i < wzevt->genJets.size(); i++) {
+
+    // should be away from the gen leptons
+    
+    bool closeToLepton = false;
+    for (int igl=0; igl<wzevt->genLeptons.size() ; igl++) {
+      double dR = wzevt->genJets[i].DeltaR(wzevt->genLeptons[igl]);
+      if (dR < 0.5) {
+	closeToLepton = true;
+      }
+    }
+    
+    if (closeToLepton) continue;
+    
+    double jetPt  = wzevt->genJets[i].Pt();
+    double jetEta = wzevt->genJets[i].Eta();
+
+    if (jetPt > 30. && fabs(jetEta) < 2.5) {
+      nGenJets++;
+    }
+  }
+  /*
+  if (wzGenChannel >=0 && wzGenChannel <4) {
+    hnGenJets[wzGenChannel+1]->Fill(nGenJets,GetGenWeight());
+  }
+  */
+
+  /////////////////////////////////
+  // Look at RECO jets
+  
+
+  //int nRecoJets = 0;
+  nRecoJets = 0;
+
+  if (eventPassed) {
+    for (int i=0; i<wzevt->recoJets.size(); i++) {
+      
+      if (wzevt->recoJets[i].Pt() > 30 && fabs(wzevt->recoJets[i].Eta()) < 2.5) {
+	
+	// Is this jet close to a reco lepton: skip if yes
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<wzevt->leptons.size(); il++) {
+	  if (wzevt->recoJets[i].DeltaR(wzevt->leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+      }
+    }
+    /*        
+    if (wzGenChannel >=0 && wzGenChannel <4) {
+      hnRecoJets[wzGenChannel+1]->Fill(nRecoJets, GetRecoWeight()); 
+    }
+    */
+  }
+  //  trueValue= &nGjets;
+  //  recoValue= &nRjets;
+  
+  // Fill Unfolding matrix for N of jets spectrum
+  if ( !controlSample ) {
+    if (wzevt->PassesGenCuts()) {
+      
+      //if (nGenJets>0) {
+	if (wzGenChannel >=0 && wzGenChannel <4) {
+	  (genHistos[wzGenChannel+1])->Fill(nGenJets,GetGenWeight());
+	}
+	//}
+      
+      //      hnrecoJets->Fill(nRecoJets); 
+      if (wzGenChannel >=0 && wzGenChannel <4) {
+	  (recoHistos[wzGenChannel+1])->Fill(nRecoJets,GetRecoWeight());
+	}
+      }
+
+      for (int ch=1; ch<5; ch++) {
+	
+	if (ch != wzGenChannel+1 ) continue;
+	
+	if (eventPassed) {
+	  if (ch!= recoChannel) {
+	    std::cout << "Mismatch in reco & Gen Channel: Gen " << ch
+		      << "\t Reco: " << recoChannel << std::endl;
+	  }
+	}
+      }
+      if (!controlSample 
+	  && wzevt->PassesGenCuts() 
+	  && wzGenChannel >=0 && wzGenChannel <4) {
+	
+	// Fake: passes reco but not gen: DOES NOT APPLY HERE
+	//    if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, weight);
+	
+	// Miss
+	if (!eventPassed ) response[wzGenChannel+1]->Miss(nGenJets, GetGenWeight());
+	
+	// Fill
+	if (eventPassed  ) {
+	  response[recoChannel]->Fill(nRecoJets, nGenJets, 
+				  GetRecoWeight());
+	  //				  genWeight*mcEfficiency);
+	  if (useNormalizedWeights) {
+	    response[wzGenChannel+1]->Miss(nGenJets, 
+					   GetGenWeight()*(1-mcEfficiency));
+	  }
+	  if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
+	}
+      }	
+  } else { //FILL CONTROL SAMPLE PLOTS
+    if (wzevt->PassesGenCuts()) {
+      if (wzGenChannel >=0 && wzGenChannel <4) {
+	if (nGenJets>=0) {
+	  controlGenHistos[wzGenChannel+1]->Fill(nGenJets, GetGenWeight());
+	}
+	if ( nRecoJets>=0) {
+	  controlRecoHistos[wzGenChannel+1]->Fill(nRecoJets, GetRecoWeight());
+	}
+      }
+    }
+  }
+}
+
+  
+
+
+			 
+
 
