@@ -43,7 +43,7 @@ void WZAnalysis::Init() {
 void WZAnalysis::EventAnalysis() {
 
 
-  if (wzevt->MZ<71. || wzevt->MZ>111.) return;
+  if (wzevt->MZ<71.1876 || wzevt->MZ>111.1876) return;
 
   totalNrEvents++;
 

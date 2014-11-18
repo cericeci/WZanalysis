@@ -721,7 +721,7 @@ TLorentzVector * WZEvent::WLepton() {
 
 bool WZEvent::PassesGenCuts(){
 
-  return (MZ>71. && MZ<111.);
+  return (MZ>71.1876 && MZ<111.1876);
 
 }
 

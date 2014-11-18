@@ -115,6 +115,44 @@ protected:
 };
 
 
+class  UnfoldingNjets : public UnfoldingAnalysis {
+
+public:
+  
+  UnfoldingNjets(WZEvent * e);
+
+  void EventAnalysis(bool controlSample=false);
+
+
+  // void Finish(TFile * fout=0);
+
+  //  void Init();
+
+protected:
+  /*
+  double leadingRecoJetPt;
+  double leadingGenJetPt;
+
+  double leadingRecoJetPhi;
+  double leadingGenJetPhi;;
+
+  double leadingRecoJetEta;
+  double leadingGenJetEta;
+
+  double leadingRecoJetDRZl;
+  double leadingRecoJetDRWl;
+  */
+  double nGenJets;
+  double nRecoJets;
+
+  TH1D * createHistogram(std::string s, std::string title);
+
+  TH1D * hnGenJets[5];
+  TH1D * hnRecoJets[5];
+  
+};
+
+
 class  UnfoldingZPt : public UnfoldingAnalysis {
 
 public:
@@ -127,7 +165,7 @@ public:
   void Init();
 
 protected:
-
+  
   double recoZPt;
   double genZPt;
   double recoZPhi;

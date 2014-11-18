@@ -100,10 +100,23 @@ TH1D * UnfoldingHistogramFactory::createLeadingJetHistogram(std::string hname,
   UnfoldingHistogramFactory * instance = UnfoldingHistogramFactory::GetInstance();
 
   return instance->createHistogram("LeadingJetPt",hname,htitle);
+ 
 
 }
 
 
+TH1D * UnfoldingHistogramFactory::createNjetsHistogram(std::string hname, 
+							    std::string htitle) {
+
+  //UnfoldingHistogramFactory * instance = UnfoldingHistogramFactory::GetInstance();
+
+
+  //  return instance->createHistogram("Njets",hname,htitle);
+
+ TH1D * h = new TH1D(hname.c_str(),htitle.c_str(),4, 0, 4);
+ 
+ return h;
+}
 
 
 TH1D *  UnfoldingHistogramFactory::createZPtHistogram(std::string hname, 
