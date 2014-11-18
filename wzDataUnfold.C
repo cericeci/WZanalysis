@@ -16,6 +16,8 @@
 #include <sstream>
 #include <string>
 
+
+#define DEBUG_LEVEL 0
 // #define LUMINOSITY 19602
 
 TH1D* GetTauCorrection(TH1D* hftau, std::string name="bla") {
@@ -38,6 +40,7 @@ TH1D* GetTauCorrection(TH1D* hftau, std::string name="bla") {
 using namespace std;
 
 TH1D* Unfold(string unfAlg, RooUnfoldResponse* response, 
+	     RooUnfold::ErrorTreatment errorType,
 	     TH1D* hData, TH1D* hSumBG, int Kterm, 
 	     string hOutName, bool useOverFlow,
 	     TH1D * h_mcTruth=0)
@@ -53,6 +56,10 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
   TH1D * hDataClone = (TH1D*) hData->Clone();
   //   hDataClone->Add(hSumBG, -1);
 
+  //  RooUnfold::ErrorTreatment doerror = RooUnfold::kCovariance;
+  //    RooUnfold::ErrorTreatment doerror = RooUnfold::kErrors;
+  // RooUnfold::ErrorTreatment doerror = RooUnfold::kCovToy;
+
   if (unfAlg == "SVD") {
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kSVD,   response, hDataClone, Kterm);
   } else   if (unfAlg == "Bayes") {
@@ -62,15 +69,12 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
     return 0;
   }
   RObject->SetVerbose(0);
-  TH1D* hCorrected = (TH1D*) RObject->Hreco();
+  TH1D* hCorrected = (TH1D*) RObject->Hreco(errorType);
   std::cout << "Unfolded data histogram name: " << hOutName << std::endl;
 
   hCorrected->SetName(hOutName.c_str());
 
-  RooUnfold::ErrorTreatment doerror = RooUnfold::kCovariance;
-
-
-  RObject->PrintTable(cout, h_mcTruth, (RooUnfold::ErrorTreatment)doerror);
+  RObject->PrintTable(cout, h_mcTruth, (RooUnfold::ErrorTreatment)errorType);
   
   return hCorrected;
 }
@@ -104,11 +108,13 @@ int main(int argc, char **argv) {
   bool gotTauFraction = false;  
   bool gotKterm    = false;
   int  inputKterm = -1;
+  bool gotErrorTreatment = false;
+  char errorName;
 
 
   char c;
 
-  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:")) != -1)
+  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:E:")) != -1)
     switch (c)
       {
       case 'r':
@@ -151,6 +157,10 @@ int main(int argc, char **argv) {
 	gotKterm = true;
 	inputKterm = atoi(optarg);
 	break;
+      case 'E':
+	gotErrorTreatment = true;
+	errorName = optarg[0];
+	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
 	abort ();
@@ -169,6 +179,31 @@ int main(int argc, char **argv) {
     algorithm = unfoldingAlgo;
   } else {
     algorithm = "Bayes";
+  }
+
+  // Set Unfolding error type
+
+  //  RooUnfold::kCovariance;
+  //  RooUnfold::kErrors;
+  //  RooUnfold::kCovToy;
+
+  RooUnfold::ErrorTreatment errorType = RooUnfold::kCovToy;
+
+  if (gotErrorTreatment) { 
+
+    cout << "Eroor Name = [" << errorName << "] \n";
+    if (errorName == 'E') {
+      errorType = RooUnfold::kErrors;
+    } else if (errorName == 'C') {
+      errorType = RooUnfold::kCovariance;
+    } else if (errorName == 'T') {
+      errorType = RooUnfold::kCovToy;
+    } else {
+      cout << "UNDEFINED UNFOLDING ERROR TYPE = [" 
+	   << errorName << "] \n";
+      return -1;
+    }
+
   }
 
   string variable;
@@ -225,6 +260,7 @@ int main(int argc, char **argv) {
   TH1D * tauCorrection[4];
   TH1D * unfoldedDataDistribution[4];
   TH1D * dSigma[4];
+  TH1D * dSigmaDX[4];
   RooUnfoldResponse * response[4];
 
   // LOOP OVER 4 CHANNELS
@@ -241,6 +277,7 @@ int main(int argc, char **argv) {
     std::ostringstream responseKey;
     std::ostringstream resultKey;
     std::ostringstream dsigmaKey;
+    std::ostringstream dsigmaDXKey;
 
     histoKey        <<  variable << "_"    << chan+1;
     dataHistoKey    << "hData" << variable << "_"     << chan+1;
@@ -250,6 +287,7 @@ int main(int argc, char **argv) {
     tauCorrHistoKey << "hftaucorr" << variable << "_" << chan+1;
     resultKey       << "hresult" << variable << "_"   << chan+1;
     dsigmaKey       << "hdsigma" << variable << "_"   << chan+1;
+    dsigmaDXKey     << "hdsigmadx" << variable << "_"   << chan+1;
 
     responseKey   << "response" << variable << "_"    << chan+1;
 
@@ -299,6 +337,7 @@ int main(int argc, char **argv) {
     // Do the unfolding
     unfoldedDataDistribution[chan] = Unfold(algorithm  // "Bayes"
 					    ,response[chan]
+					    ,errorType
 					    ,signal[chan], backgrounds[chan]
 					    , 5 // kterm
 					    , resultKey.str().c_str()
@@ -311,6 +350,19 @@ int main(int argc, char **argv) {
     dSigma[chan] = (TH1D* ) unfoldedDataDistribution[chan]->Clone(dsigmaKey.str().c_str());
 
     dSigma[chan]->Scale(1./LUMINOSITY);
+
+    dSigmaDX[chan] = (TH1D* ) dSigma[chan]->Clone(dsigmaDXKey.str().c_str());
+
+    for (int i=1; i<=dSigmaDX[chan]->GetNbinsX(); i++) {
+      double value = dSigmaDX[chan]->GetBinContent(i);
+      double error = dSigmaDX[chan]->GetBinError(i);
+      double width = dSigmaDX[chan]->GetBinWidth(i);
+      double dsdx = value/width;
+      double dsdx_err = dsdx*error/value;
+      dSigmaDX[chan]->SetBinContent(i,dsdx);
+      dSigmaDX[chan]->SetBinError(i,dsdx_err);
+    }
+
 
     // STILL NEEDS TO DIVIDE WITH BIN WIDTH TO GET DSIGMA/Dx
 
@@ -354,6 +406,7 @@ int main(int argc, char **argv) {
     tauCorrection[i]->Write();
     unfoldedDataDistribution[i]->Write();
     dSigma[i]->Write();
+    dSigmaDX[i]->Write();
   }
   fout->Close();
 

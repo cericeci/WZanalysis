@@ -59,10 +59,8 @@ void UnfoldingHistogramFactory::createDefaultBinning(std::string key) {
 
   std::vector<double> binLimits;
   if (key == "ZPt") {
-
-    std::vector<double> binLimits;
-    double value = 30.;
-    double binSize = 40;
+    double value = 0.;
+    double binSize = 20;
     while (value<500.) {
       binLimits.push_back(value);
       if (value>100) binSize = 25.;
@@ -86,6 +84,12 @@ void UnfoldingHistogramFactory::createDefaultBinning(std::string key) {
 
   binLimitsMap[key] = binLimits;
 
+  std::cout << key << " (" 
+	    << binLimits.size() - 1 << " bins) : ";
+  for (int i=0; i<binLimits.size(); i++) {
+    std::cout << binLimits[i] << "   ";
+  }
+  std::cout << endl;
 }
 
 
