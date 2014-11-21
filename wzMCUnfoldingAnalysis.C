@@ -17,6 +17,7 @@
 #include "UnfoldingHistogramFactory.h"
 
 #include "WZAnalysis.h"
+#include "JetEnergyTool.h"
 
 #include "constants.h"
 
@@ -117,6 +118,7 @@ int main(int argc, char **argv)
 					   5, -0.5, 4.5,
 					   5, -0.5, 4.5);
 
+
 //   TH2D * hXChanelTriggerEff    = new TH2D ("hXChanelTriggerEff",
 // 					   "XCH Trig. eff: right vs wrong",
 // 					   100, 0.,1.,
@@ -188,6 +190,19 @@ int main(int argc, char **argv)
     eventLists[i].open(fileName.str().c_str());
   }
 
+  // Systematic studies setup
+  // 
+  // 
+  // 
+
+  JetEnergyTool * jesTool = JetEnergyTool::GetInstance();
+  jesTool->SetJESFile("START53_V15_Uncertainty_AK5PF.txt");
+
+  //
+  // Event loop
+  // 
+
+
   //  for  (Int_t k = 0; k<events && k<50;k++) {
   for  (Int_t k = 0; k<events; k++) {
 
@@ -195,6 +210,9 @@ int main(int argc, char **argv)
     
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
+
+    cWZ->SmearJets();
+    cWZ->ApplyJESCorrection(1);
 
     if (debug) {
       std::cout << "============  Run: " << cWZ->run << "\t Event: " 

@@ -1,6 +1,7 @@
 #ifndef WZEvent_h
 #define WZEvent_h
 
+
 //Lucija added this to test working with data
 
 #ifdef DATA
@@ -29,6 +30,8 @@
 
 #include "TLorentzVector.h"
 #include "TH2F.h"
+#include "TRandom3.h"
+
 #include <vector>
 
 
@@ -135,6 +138,9 @@ public:
 
   bool PassesGenCuts();
 
+  void SmearJets();
+
+  void ApplyJESCorrection(double strength = 0.);
 
   float LeptonPt(int i);
   float LeptonBDT(int i);
@@ -210,6 +216,11 @@ protected:
   float numMET2e1mu;
   float numMET1e2mu;
   float numMET3mu;
+
+
+  // For various smearing functions
+
+  TRandom3 *random;
 
 
 };

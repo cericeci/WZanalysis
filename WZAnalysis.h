@@ -64,6 +64,11 @@ protected:
 
   TTree * jetResolutionTree;
 
+  int   _channel;
+  float _trigEff;
+
+  TTree * eventSummaryTree;
+
 };
 
 #endif

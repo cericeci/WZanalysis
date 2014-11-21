@@ -1,5 +1,7 @@
 #include "WZEvent.h"
 
+#include "JetEnergyTool.h"
+
 #include "TLorentzVector.h"
 
 
@@ -824,3 +826,92 @@ float  WZEvent::GetTriggerEfficiency(){
 
 }
 
+
+
+void WZEvent::SmearJets()
+{
+  // Apply additional jet smearing to account for data/MC
+  // differences in resolution, following 2nd way described at:
+  // 
+  //https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
+
+  if (!random) random = new TRandom3();
+
+
+  float sigmaJetResolution[5] = { 0.0342, 0.0363, 0.0504, 0.0534, 0.0898 };
+
+  //  from WW up
+  float sigmaJetResolutionUp[5] = { 0.0516, 0.0521, 0.0663, 0.0712, 0.1220 };
+  //  from WW down
+  float sigmaJetResolutionDown[5] = { 0.0000, 0.0047, 0.0286, 0.0293, 0.0477 };
+
+
+
+
+
+  float etaBoundaries[6] = { 0.0, 0.5, 1.1, 1.7, 2.3, 5.0};
+
+
+  std::cout << "JET SMEARING: " << recoJets.size() << std::endl;
+
+
+  for (int ijet=0; ijet<recoJets.size(); ijet++) {
+    float pt    = recoJets[ijet].Pt();
+    float eta   = recoJets[ijet].Eta();
+    float phi   = recoJets[ijet].Phi();
+    float mass  = recoJets[ijet].M();
+
+    float sigma = -1;
+
+    float abseta = fabs(eta);
+
+    for (int ie=0; ie<5; ie++) {
+      if (abseta  >= etaBoundaries[ie]
+	  && abseta  < etaBoundaries[ie+1]) {
+	sigma = sigmaJetResolution[ie];
+	break;
+      }
+    }
+
+
+    float scale = random->Gaus(1, sigma);
+    double newpt   = scale * pt;
+    double newmass = mass * pt;
+
+    std::cout << "\t Jet : " << ijet 
+	      << "\t pt = " << pt << "\t eta = " << eta
+	      << "\t NEW pt = " << newpt 
+	      << "\t sigma = " << sigma << "\t scale = " << scale << endl;
+
+
+    recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
+  }
+}
+
+
+void WZEvent::ApplyJESCorrection(double strength)
+{
+  // Apply jet energy scale correction for systematic studies
+  // see:
+  //https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
+
+  if (!random) random = new TRandom3();
+
+  float etaBoundaries[6] = { 0.0, 0.5, 1.1, 1.7, 2.3, 5.0};
+
+  JetEnergyTool * jesTool = JetEnergyTool::GetInstance();
+
+  for (int ijet=0; ijet<recoJets.size(); ijet++) {
+    float pt    = recoJets[ijet].Pt();
+    float eta   = recoJets[ijet].Eta();
+    float phi   = recoJets[ijet].Phi();
+    float mass  = recoJets[ijet].M();
+    
+    float scale = jesTool->JetEnergyScale(pt,eta)*strength;
+    
+    double newpt   = (1+scale)* pt;
+    double newmass = (1+scale)*mass;
+    
+    recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
+  }
+}
