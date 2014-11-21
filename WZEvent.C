@@ -847,13 +847,17 @@ float  WZEvent::GetMCWeight() {
   for (int i=0; i<3; i++) {
     if (leptonIndices[i]>=0 
 	&& leptonIndices[i]<leptons.size()) {
-      leptonSF *= leptons[leptonIndices[i]].GetScaleFactor();
+
+      double lsf = leptons[leptonIndices[i]].GetScaleFactor();
+      lsf += syst*0.01;
+      leptonSF *= lsf;
     } else {
       std::cout << "Lepton Index out of bounds!!! \n";
     }
   }
 
-  float weight = (leptonSF+syst*0.01)*trigEff;
+  //  float weight = (leptonSF+syst*0.01)*trigEff;
+  float weight = (leptonSF1)*trigEff;
 
   return weight;
 
@@ -939,9 +943,6 @@ void WZEvent::SmearJets()
   float etaBoundaries[6] = { 0.0, 0.5, 1.1, 1.7, 2.3, 5.0};
 
 
-  std::cout << "JET SMEARING: " << recoJets.size() << std::endl;
-
-
   for (int ijet=0; ijet<recoJets.size(); ijet++) {
     float pt    = recoJets[ijet].Pt();
     float eta   = recoJets[ijet].Eta();
@@ -964,12 +965,6 @@ void WZEvent::SmearJets()
     float scale = random->Gaus(1, sigma);
     double newpt   = scale * pt;
     double newmass = mass * pt;
-
-    std::cout << "\t Jet : " << ijet 
-	      << "\t pt = " << pt << "\t eta = " << eta
-	      << "\t NEW pt = " << newpt 
-	      << "\t sigma = " << sigma << "\t scale = " << scale << endl;
-
 
     recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
   }
