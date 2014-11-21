@@ -3,9 +3,11 @@
 #include "JetEnergyTool.h"
 
 #include "TLorentzVector.h"
-
+#include "TMath.h"
 
 #include <iostream>
+
+#include "systematics.h"
 
 //
 //  Exteran function declarations
@@ -31,6 +33,9 @@ float triggerDifferentLeptons(float* eL, float* eT);
 
 double ReturnBranchingWeight(int type);
 
+TLorentzVector GetMET(float metModule, float metPhi);
+
+TH1F* GetHistogramFromGraph(TString hname, TString gname);
 // Initialize static data members
 TH2F * RecoLepton::MuonSF = 0;
 TH2F * RecoLepton::ElecSF = 0;
@@ -38,7 +43,9 @@ TH2F * RecoLepton::DoubleMuLeadEff    = 0;
 TH2F * RecoLepton::DoubleMuTrailEff   = 0;
 TH2F * RecoLepton::DoubleEleLeadEff   = 0;
 TH2F * RecoLepton::DoubleEleTrailEff  = 0;
-
+TH1F* WZEvent::hScaleInEB  =0;
+TH1F* WZEvent::hScaleOutEB =0;
+TH1F* WZEvent::hScaleEE    =0;
 
 
 float RecoLepton::LeadTriggerEff() {
@@ -460,11 +467,86 @@ bool WZEvent::passesSelection(){
   float phis[leptonNumber]={phi1, phi2, phi3, phi4};
   float etas[leptonNumber]={eta1, eta2, eta3, eta4};
   TLorentzVector analysisLepton[leptonNumber];
+  TLorentzVector analysisLeptonOld[leptonNumber];
+  TLorentzVector EventMET;
+  float pfmet= this->pfmetTypeI;
+  float pfmetphi=this->pfmetTypeIphi;
+  EventMET= GetMET(pfmet, pfmetphi); 
+  /*
   for (int i1=0; i1<leptonNumber; i1++){
      if ((fabs(*pdgid[i1])==11)&& (*pt[i1]>0))
        analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
      if ((fabs(*pdgid[i1])==13) && (*pt[i1]>0))
        analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], muonMass);
+  }
+  */
+  //some things for electron scale systematics
+  
+  
+  if (hScaleInEB==0)
+    hScaleInEB  = GetHistogramFromGraph("hScaleInEB",  "gScaleInEB");
+  if (hScaleOutEB==0)
+    hScaleOutEB = GetHistogramFromGraph("hScaleOutEB", "gScaleOutEB");
+  if (hScaleEE==0)
+    hScaleEE    = GetHistogramFromGraph("hScaleEE",    "gScaleEE");
+  
+  int scaleSyst_mu(mu_scale_syst);
+  int scaleSyst_el(ele_scale_syst);
+  /*
+  bool muScaleSyst(false);
+  bool elScaleSyst(false);
+  
+  double elScale(1.0);
+  */
+
+  double muScale(0.002);  
+  for (int i1=0; i1<leptonNumber; i1++){
+    if ((fabs(*pdgid[i1])==13)&& (*pt[i1]>0)){
+      analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], muonMass);
+      analysisLeptonOld[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], muonMass);
+      if (abs(scaleSyst_mu)){
+	double spt=(*pt[i1])+ (*pt[i1])*muScale*scaleSyst_mu;
+	double factScale=(*pt[i1])/spt;
+	analysisLepton[i1]*=factScale;
+	EventMET +=(analysisLepton[i1]-analysisLeptonOld[i1]);
+      }
+    }
+  
+
+    if ((fabs(*pdgid[i1])==11) && (*pt[i1])>0){
+      analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
+      analysisLeptonOld[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
+      if (abs(scaleSyst_el)){
+	double scale;
+	const Float_t InEBMax  = hScaleInEB ->GetXaxis()->GetBinCenter(hScaleInEB ->GetNbinsX());
+	const Float_t OutEBMax = hScaleOutEB->GetXaxis()->GetBinCenter(hScaleOutEB->GetNbinsX());
+	const Float_t EEMax    = hScaleEE   ->GetXaxis()->GetBinCenter(hScaleEE   ->GetNbinsX());
+	const Float_t scaleInEB  = hScaleInEB ->GetBinContent(hScaleInEB ->FindBin(std::min((*pt[i1]), InEBMax)));
+	const Float_t scaleOutEB = hScaleOutEB->GetBinContent(hScaleOutEB->FindBin(std::min((*pt[i1]), OutEBMax)));
+	const Float_t scaleEE    = hScaleEE   ->GetBinContent(hScaleEE   ->FindBin(std::min((*pt[i1]), EEMax)));
+
+
+	const Float_t aeta = fabs(*eta[i1]);
+
+	if (aeta < 0.8)
+	  {
+	    scale = scaleInEB;
+	  }
+	else if (aeta >= 0.8 && aeta < 1.479)
+	  {
+	    scale = scaleOutEB;
+	  }
+	else
+	  {
+	    scale = scaleEE;
+	  }
+	double spt=*pt[i1]+ (*pt[i1])*scale*scaleSyst_el;
+	double factScale=(*pt[i1])/spt;
+	analysisLepton[i1]*=factScale;
+      }
+      EventMET +=(analysisLepton[i1]-analysisLeptonOld[i1]);
+    }
+    
   }
   
   //find Z boson, save the index of it
@@ -663,8 +745,8 @@ bool WZEvent::passesSelection(){
   //////////////////////////////////////MET CUT//////////////////////////
   
   //  if ((this->pfmet)<30)  return false;
-  if ((this->pfmetTypeI)<30)  return false;
-
+  //  if ((this->pfmetTypeI)<30)  return false;
+  if (EventMET.Et()<30) return false;
   //    if ((this->pfmetTypeI)<30) continue;   ///CHANGE THIS
   
   selection_level = passesFullSelection;
@@ -731,7 +813,12 @@ bool WZEvent::PassesGenCuts(){
 float WZEvent::GetPileupWeight() {
 
 #ifdef NEWMCPUFIX
-  return puW_new;
+  if (pu_syst==0){
+    return puW_new;}
+  else if (pu_syst==-1){
+    return puW_down;}
+  else if (pu_syst==1){
+    return puW_up;}
  #else
   return puW;
 #endif
@@ -747,7 +834,7 @@ float  WZEvent::GetMCWeight() {
     return 0.;
   }
 
-
+  int syst=SF_syst;
   float trigEff = GetTriggerEfficiency();
 
   // Get lepton scale factors
@@ -766,7 +853,7 @@ float  WZEvent::GetMCWeight() {
     }
   }
 
-  float weight = leptonSF*trigEff;
+  float weight = (leptonSF+syst*0.01)*trigEff;
 
   return weight;
 

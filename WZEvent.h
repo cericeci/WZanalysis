@@ -158,7 +158,11 @@ public:
   float GetBrWeight();  
   FinalState GetFinalState(){return final_state;}
   PassedSelectionStep GetSelectionLevel() { return selection_level;}
-  
+
+  static TH1F* hScaleInEB;
+  static TH1F* hScaleOutEB;
+  static TH1F* hScaleEE;
+
 #ifdef _ISWZMC_
   std::vector<GenS1Lepton> genLeptons;
   std::vector<int> genLeptonsIds;
