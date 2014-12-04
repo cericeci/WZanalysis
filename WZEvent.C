@@ -1,6 +1,7 @@
 #include "WZEvent.h"
 
 #include "JetEnergyTool.h"
+#include "SystematicsManager.h"
 
 #include "TLorentzVector.h"
 #include "TMath.h"
@@ -377,6 +378,15 @@ void WZEvent::ReadEvent()
   //    std::cout << "ZERO GEN JET: " << i << " " ;
   //    genJets[i].Print();
   //  }
+
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();
+
+  float jes_strength = sysManager->GetValue("JES");
+
+  if (jes_strength!=0.) 
+    {
+      ApplyJESCorrection(jes_strength);
+    }
 
 }
 
@@ -857,7 +867,7 @@ float  WZEvent::GetMCWeight() {
   }
 
   //  float weight = (leptonSF+syst*0.01)*trigEff;
-  float weight = (leptonSF1)*trigEff;
+  float weight = (leptonSF)*trigEff;
 
   return weight;
 
@@ -973,9 +983,13 @@ void WZEvent::SmearJets()
 
 void WZEvent::ApplyJESCorrection(double strength)
 {
+
+
+
   // Apply jet energy scale correction for systematic studies
   // see:
   //https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
+
 
   if (!random) random = new TRandom3();
 
