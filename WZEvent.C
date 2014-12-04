@@ -857,7 +857,7 @@ float  WZEvent::GetMCWeight() {
   }
 
   //  float weight = (leptonSF+syst*0.01)*trigEff;
-  float weight = (leptonSF1)*trigEff;
+  float weight = (leptonSF)*trigEff;
 
   return weight;
 

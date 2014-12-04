@@ -5,6 +5,7 @@
 #include "TLorentzVector.h"
 
 #include "constants.h"
+#include "systematics.h"
 
 #include "RooUnfold.h"
 #include "RooUnfoldBayes.h"
@@ -232,6 +233,7 @@ int main(int argc, char **argv) {
   TFile * fUnfoldingMatrix = new TFile(responseFileName, "READ");
   TFile * fTauFraction     = new TFile(responseFileName, "READ");
   std::vector<TFile *> backgroundFiles;
+  std::vector<TString> backgroundNames;
   // Data 
   if (gotDataFile) {
     fDataInput = new TFile(dataFileName,"READ");
@@ -245,6 +247,7 @@ int main(int argc, char **argv) {
     while (list>>name) {
       //      std::cout << "Opening background file: " << name << std::endl;
       backgroundFiles.push_back(new TFile(name));
+      backgroundNames.push_back(name);
     } 
   }else if (gotBackgroundFile) {
     backgroundFiles.push_back(new TFile(bgFileName));
@@ -308,9 +311,36 @@ int main(int argc, char **argv) {
 
     data[chan]->Sumw2();
     signal[chan] = (TH1D*) data[chan]->Clone(signalHistoKey.str().c_str());
+    
+    //systematics for backgounds
+    //    double MC_xs_uncertainty[4]={1, 0.5, 0.15, 0.15};
+    // double
 
     // Read backgrounds and subtract them from data
 
+    //substract backgounds with systematics
+    double variation(0.0);
+    const int MCnum(12) ;
+    double systNum[MCnum]={0.5,         0.5,       0.5,        0.5,        0.5,        0.5,        0.5,        0.5,         0.5,        0.2,   0.15,  0.15};
+    double MC_syst[MCnum]={WWGJets_xs, WZZJets_xs, ZZZJets_xs, WWZJets_xs, WWWJets_xs, TTWJets_xs, TTZJets_xs, TTWWJets_xs, TTGJets_xs, WV_xs, ZZ_xs, Zgamma_xs};
+    for (int j=0; j<MCnum; j++){
+      if (fabs(MC_syst[j])){
+	variation=1+MC_syst[j]*systNum[j];
+      }
+    }
+    
+    for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
+      if (ibg==0) {
+	backgrounds[chan] = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
+	if (fabs(MC_syst[ibg])) backgrounds[chan]->Scale(variation);
+      } else {
+	TH1D * hbg = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str());
+	if (fabs(MC_syst[ibg])) hbg->Scale(variation);
+	backgrounds[chan]->Add(hbg);
+      }
+    }
+
+    /*
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
       if (ibg==0) {
 	backgrounds[chan] = (TH1D*) 
@@ -320,7 +350,7 @@ int main(int argc, char **argv) {
 	backgrounds[chan]->Add(hbg);
       }
     }
-
+    */
     signal[chan]->Add(backgrounds[chan],-1);
 
     // Read tau fraction and orrect for it
