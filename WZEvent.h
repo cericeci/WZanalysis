@@ -130,6 +130,8 @@ public:
 
   bool passesSelection();
 
+  bool passesNewSelection();
+
   void ReadEvent();
 
   void DumpEvent(std::ostream & out, int verboseLevel = 0);

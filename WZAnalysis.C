@@ -38,6 +38,11 @@ void WZAnalysis::Init() {
 
 
 
+  eventSummaryTree = new TTree("event","Event Summary");
+  eventSummaryTree->Branch("channel",  &_channel,  "channel/I");
+  eventSummaryTree->Branch("trigeff",  &_trigEff,  "trigeff/F");
+
+
 }
 
 void WZAnalysis::EventAnalysis() {
@@ -180,11 +185,23 @@ void WZAnalysis::EventAnalysis() {
   }
   zDecaysByType[decay]++;
 
+  ///
+
+  if (wzevt->passesSelection()) {
+
+    _channel = wzevt->GetFinalState();
+    _trigEff = wzevt->GetTriggerEfficiency();
+
+    eventSummaryTree->Fill();
+
+  }
+
+
+
 
   // 
   // JET RESOLUTION ANALYSIS
   // 
-
 
 
   for (int i=0; i < wzevt->genJets.size(); i++) {
@@ -327,6 +344,7 @@ void WZAnalysis::Finish(TFile * fout) {
   // 
   if (fout) {
     jetResolutionTree->Write();
+    eventSummaryTree->Write();
   }
 
 }

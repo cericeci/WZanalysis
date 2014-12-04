@@ -98,8 +98,9 @@ bool Z_muons(WZTREE *cWZ, std::vector<int>* good_muons,int * WZcandidates, TLore
       v= v_niz[mu1]+v_niz[mu2];
 
       mass.push_back(v.M());
-      if (((fabs(v.M()-91.1876))<diff) && ((ch[mu1])*(ch[mu2])==-1)) {
-      	diff=(fabs(v.M()-91.1876));
+      if (((fabs(v.M()-ZMASS_PDG))<diff) 
+	  && ((ch[mu1])*(ch[mu2])==-1)) {
+      	diff=(fabs(v.M()-ZMASS_PDG));
 	mass1= v.M();
 	ZtransIm=v.Pt();
 	Z_muonIndex1= (*good_muons)[imu1];
@@ -186,7 +187,7 @@ bool Z_independent(float * ch, std::vector<int>* good_muons,int * WZcandidates, 
 	v= v_niz[(*good_muons)[imu1]]+v_niz[(*good_muons)[imu2]];
 	Z_muon_charge1=ch[(*good_muons)[imu1]]; 
 	Z_muon_charge2=ch[(*good_muons)[imu2]]; 
-	diff=fabs(v.M()-91.1876);
+	diff=fabs(v.M()-ZMASS_PDG);
 	if ((diff<20) && ((-1)*Z_muon_charge1== Z_muon_charge2)){
 	mass.push_back(v.M());
 	differences.push_back(diff);

@@ -18,6 +18,7 @@
 
 #include "WZAnalysis.h"
 #include "JetEnergyTool.h"
+#include "SystematicsManager.h"
 
 #include "constants.h"
 
@@ -62,9 +63,11 @@ int main(int argc, char **argv)
   bool gotInput  = false;
   bool gotOutput = false;
   bool gotHistoBinning = false;
+  bool gotSystematicsConfig = false;
+  char * systConfigFile(0);
   char c;
 
-  while ((c = getopt (argc, argv, "i:o:l:H:")) != -1)
+  while ((c = getopt (argc, argv, "i:o:l:H:S:")) != -1)
     switch (c)
       {
       case 'o':
@@ -86,6 +89,11 @@ int main(int argc, char **argv)
 	gotHistoBinning = true;
 	binningFileName = new char[strlen(optarg)+1];
 	strcpy(binningFileName,optarg);
+	break;
+      case 'S':
+	gotSystematicsConfig = true;
+	systConfigFile = new char[strlen(optarg)+1];
+	strcpy(systConfigFile,optarg);
 	break;
       default:
 	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
@@ -117,6 +125,14 @@ int main(int argc, char **argv)
   if (ele_scale_syst==0) std::cout<<"Nominal electron scale"<<std::endl;
   else if (ele_scale_syst==-1) std::cout<< "Electron scale down"<<std::endl;
   else if (ele_scale_syst==1) std::cout<<"Electron scale up"<<std::endl;
+
+
+  if (gotSystematicsConfig) {
+    SystematicsManager * sysManager = SystematicsManager::GetInstance();
+    //    std::string sysFileName = systConfigFile;
+    sysManager->Setup(systConfigFile);
+  }
+
 
   // OUTPUT ROOT FILE
 
@@ -227,7 +243,7 @@ int main(int argc, char **argv)
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
-    cWZ->SmearJets();
+    //    cWZ->SmearJets();
     cWZ->ApplyJESCorrection(1);
 
     if (debug) {
