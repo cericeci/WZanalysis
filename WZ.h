@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri May  9 14:11:44 2014 by ROOT version 5.27/06b
+// Wed Jul  9 10:54:26 2014 by ROOT version 5.27/06b
 // from TTree latino/probe_tree
-// found on file: /STORE/lucija/latinosTrees/MC_LooseLooseTypeI/latino_037_DY50toLLMad.root
+// found on file: /users/ltikvica/latinosTreesVVV/latino_096_TTGJets.root
 //////////////////////////////////////////////////////////
 
 #ifndef WZ_h
@@ -315,6 +315,9 @@ public :
    Float_t         effWUp;
    Float_t         effWDown;
    Float_t         puW;
+   Float_t         puW_new;
+   Float_t         puW_up;
+   Float_t         puW_down;
 
    // List of branches
    TBranch        *b_baseW;   //!
@@ -614,6 +617,9 @@ public :
    TBranch        *b_effWUp;   //!
    TBranch        *b_effWDown;   //!
    TBranch        *b_puW;   //!
+   TBranch        *b_puW_new;   //!
+   TBranch        *b_puW_up;   //!
+   TBranch        *b_puW_down;   //!
 
    WZ(TTree *tree=0);
    virtual ~WZ();
@@ -634,9 +640,9 @@ WZ::WZ(TTree *tree)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/STORE/lucija/latinosTrees/MC_LooseLooseTypeI/latino_037_DY50toLLMad.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/users/ltikvica/latinosTreesVVV/latino_096_TTGJets.root");
       if (!f) {
-         f = new TFile("/STORE/lucija/latinosTrees/MC_LooseLooseTypeI/latino_037_DY50toLLMad.root");
+         f = new TFile("/users/ltikvica/latinosTreesVVV/latino_096_TTGJets.root");
       }
       tree = (TTree*)gDirectory->Get("latino");
 
@@ -984,6 +990,9 @@ void WZ::Init(TTree *tree)
    fChain->SetBranchAddress("effWUp", &effWUp, &b_effWUp);
    fChain->SetBranchAddress("effWDown", &effWDown, &b_effWDown);
    fChain->SetBranchAddress("puW", &puW, &b_puW);
+   fChain->SetBranchAddress("puW_new", &puW_new, &b_puW_new);
+   fChain->SetBranchAddress("puW_up", &puW_up, &b_puW_up);
+   fChain->SetBranchAddress("puW_down", &puW_down, &b_puW_down);
    Notify();
 }
 
