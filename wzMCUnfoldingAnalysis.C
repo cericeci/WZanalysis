@@ -7,7 +7,6 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TLorentzVector.h"
-#include "systematics.h"
 
 #include "RooUnfoldResponse.h"
 
@@ -109,22 +108,6 @@ int main(int argc, char **argv)
 
   }
 
-  //printout for systematics
-  if (SF_syst==0) std::cout<<"Nominal scale factors"<<std::endl;
-  else if (SF_syst==-1) std::cout<<"Scale factors down"<<std::endl;
-  else if (SF_syst==1)  std::cout<<"Scale factors up"<<std::endl;
-
-  if (pu_syst==0) std::cout<<"Nominal pileup weight"<<std::endl;
-  else if (pu_syst==-1) std::cout<<"Pileup weight down"<<std::endl;
-  else if (pu_syst==1)  std::cout<<"Pileup weight up"<<std::endl;
-
-  if (mu_scale_syst==0) std::cout<<"Nominal muon scale"<<std::endl;
-  else if (mu_scale_syst==-1) std::cout<< "Muon scale down"<<std::endl;
-  else if (mu_scale_syst==1) std::cout<<"Muon scale up"<<std::endl;
-
-  if (ele_scale_syst==0) std::cout<<"Nominal electron scale"<<std::endl;
-  else if (ele_scale_syst==-1) std::cout<< "Electron scale down"<<std::endl;
-  else if (ele_scale_syst==1) std::cout<<"Electron scale up"<<std::endl;
 
 
   if (gotSystematicsConfig) {
