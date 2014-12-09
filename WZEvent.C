@@ -8,7 +8,6 @@
 
 #include <iostream>
 
-#include "systematics.h"
 
 //
 //  Exteran function declarations
@@ -500,8 +499,11 @@ bool WZEvent::passesSelection(){
   if (hScaleEE==0)
     hScaleEE    = GetHistogramFromGraph("hScaleEE",    "gScaleEE");
   
-  int scaleSyst_mu(mu_scale_syst);
-  int scaleSyst_el(ele_scale_syst);
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();
+
+  int scaleSyst_mu= sysManager->GetValue("mu_scale_syst");
+  int scaleSyst_el= sysManager->GetValue("ele_scale_syst");
+
   /*
   bool muScaleSyst(false);
   bool elScaleSyst(false);
@@ -821,13 +823,16 @@ bool WZEvent::PassesGenCuts(){
 
 
 float WZEvent::GetPileupWeight() {
-
+  
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();    
+  int pu_sys  = sysManager->GetValue("pu_syst"); 
+  
 #ifdef NEWMCPUFIX
-  if (pu_syst==0){
+  if (pu_sys==0){
     return puW_new;}
-  else if (pu_syst==-1){
+  else if (pu_sys==-1){
     return puW_down;}
-  else if (pu_syst==1){
+  else if (pu_sys==1){
     return puW_up;}
  #else
   return puW;
@@ -843,8 +848,11 @@ float  WZEvent::GetMCWeight() {
   if (! passesSelection() ) {
     return 0.;
   }
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();
 
-  int syst=SF_syst;
+  int systEl= sysManager->GetValue("ele_SF");
+  int systMu= sysManager->GetValue("mu_SF");
+
   float trigEff = GetTriggerEfficiency();
 
   // Get lepton scale factors
@@ -857,9 +865,11 @@ float  WZEvent::GetMCWeight() {
   for (int i=0; i<3; i++) {
     if (leptonIndices[i]>=0 
 	&& leptonIndices[i]<leptons.size()) {
-
       double lsf = leptons[leptonIndices[i]].GetScaleFactor();
-      lsf += syst*0.01;
+      if (leptons[i].PdgId()==11)
+	lsf += systEl*0.01;
+      if (leptons[i].PdgId()==13)
+	lsf += systMu*0.01;
       leptonSF *= lsf;
     } else {
       std::cout << "Lepton Index out of bounds!!! \n";

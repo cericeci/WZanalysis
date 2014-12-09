@@ -134,10 +134,11 @@ void WZEventMCOld::ReadEvent()
 
   for (int i=0; i<6; i++) {
     if (recoJets_pt[i]>0.) {
-      rj.SetPtEtaPhiM(recoJets_pt[i],recoJets_phi[i],recoJets_eta[i],recoJets_m[i]);
+      rj.SetPtEtaPhiM(recoJets_pt[i],recoJets_eta[i],recoJets_phi[i],recoJets_m[i]);
       recoJets.push_back(rj);
     }
   }
+  //  std::cout<<"SIZE INSIDE:" <<recoJets.size()<<std::endl;
 
 
 }

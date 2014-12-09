@@ -2,27 +2,32 @@ WHICH EVENT CLASS TO USE FOR WHICH SAMPLES
 ==========================================
 
 
-
+-----------------------------------------------------------------
 For WZ MC:
-
+-----------------------------------------------------------------
 Location:
 /users/ltikvica/latinosTreesPu/latinowz_step3NoFilter-113.root
 
   Event class:
 #include "WZGenEvent_v140710.h"
 
+-----------------------------------------------------------------
 For other MC samples:
-
-
-
+-----------------------------------------------------------------
 Location:
+/users/ltikvica/latinosTreesVVV
+/users/ltikvica/latinosTreesWV
+/users/ltikvica/latinosTreesZgamma
+/users/ltikvica/latinosTreesZZ
+/STORE/lucija/latinosTrees/MC_LooseLooseTypeI/ (Z+jets & ttbar)
 
 Event class:
+#include "WZEventMCOld.h"
 
-
+--------------------------------------------------------------------
 For Data:
-
-
+--------------------------------------------------------------------
 Location:
-
+/STORE/lucija/latinosTrees/Data_LooseLooseTypeI/
 Event class:
+#include "WZEventMCOld.h"
