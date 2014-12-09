@@ -16,6 +16,7 @@ SystematicsManager * SystematicsManager::_instance = NULL;
 
 SystematicsManager::SystematicsManager() {
 
+  SetDefaultValues();
 
 }
 
@@ -35,18 +36,23 @@ void SystematicsManager::SetDefaultValues() {
 
 void SystematicsManager::Setup(string filename) {
 
+  std::cout << "Systematics SETUP \n";
+
   ifstream infile(filename.c_str());
+
 
   string line;
   while (std::getline(infile, line))
     {
+
+      std::cout << "\t Processing line: " << line << std::endl;
       if (line[0] == '#')  continue;
 
       std::istringstream iss(line);
       string key;
       float value;
 
-      if (!(iss >> key >> value)) { break; } // error
+      if ((iss >> key >> value)) { 
 
 	map<string,float >::iterator it = values.find(key);
 	if (it == values.end())  {
@@ -55,6 +61,9 @@ void SystematicsManager::Setup(string filename) {
 	  continue;
 	}
 	values[key] = value;
+	std::cout << "DEF SYST: " 
+		  << key << "\t:\t" << value << std::endl;
+      }
     }
 }
 
