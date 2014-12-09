@@ -48,13 +48,13 @@ void SystematicsManager::Setup(string filename) {
 
       if (!(iss >> key >> value)) { break; } // error
 
-	map<string,float >::iterator it = values.find(key);
-	if (it == values.end())  {
-	  std::cout << "DEFINING UNKNOWN SYSTEMATICS: " 
-		    << key << std::endl;
-	  continue;
-	}
-	values[key] = value;
+      map<string,float >::iterator it = values.find(key);
+      if (it == values.end())  {
+	std::cout << "DEFINING UNKNOWN SYSTEMATICS: " 
+		  << key << std::endl;
+	continue;
+      }
+      values[key] = value;
     }
 }
 

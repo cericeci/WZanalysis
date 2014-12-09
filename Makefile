@@ -53,7 +53,10 @@ wzExampleAnalysis: wzExampleAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C WZAna
 unfold: unfold.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzDataUnfold: wzDataUnfold.C 
+wzDataUnfold: wzDataUnfold.C SystematicsManager.C 
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 

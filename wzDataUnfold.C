@@ -10,7 +10,7 @@
 #include "RooUnfold.h"
 #include "RooUnfoldBayes.h"
 #include "RooUnfoldResponse.h"
-
+#include "SystematicsManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -114,11 +114,12 @@ int main(int argc, char **argv) {
   int  inputKterm = -1;
   bool gotErrorTreatment = false;
   char errorName;
-
+  bool gotSystematicsConfig = false;
+  char * systConfigFile(0);
 
   char c;
 
-  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:E:")) != -1)
+  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:E:S:")) != -1)
     switch (c)
       {
       case 'r':
@@ -165,6 +166,11 @@ int main(int argc, char **argv) {
 	gotErrorTreatment = true;
 	errorName = optarg[0];
 	break;
+      case 'S':
+	gotSystematicsConfig = true;
+	systConfigFile = new char[strlen(optarg)+1];
+	strcpy(systConfigFile,optarg);
+	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
 	abort ();
@@ -175,6 +181,13 @@ int main(int argc, char **argv) {
   if (!gotResponse) {
     std::cout << "You need to provide a file with the response \n";
     return 0;
+  }
+
+
+  if (gotSystematicsConfig) {
+    SystematicsManager * sysManager = SystematicsManager::GetInstance();
+    //    std::string sysFileName = systConfigFile;
+    sysManager->Setup(systConfigFile);
   }
 
   string algorithm;
@@ -319,47 +332,108 @@ int main(int argc, char **argv) {
     // Read backgrounds and subtract them from data
 
     //substract backgounds with systematics
-    double variation(0.0);
-    const int MCnum(12) ;
-    double systNum[MCnum]={0.5,         0.5,       0.5,        0.5,        0.5,        0.5,        0.5,        0.5,         0.5,        0.2,   0.15,  0.15};
-    double MC_syst[MCnum]={WWGJets_xs, WZZJets_xs, ZZZJets_xs, WWZJets_xs, WWWJets_xs, TTWJets_xs, TTZJets_xs, TTWWJets_xs, TTGJets_xs, WV_xs, ZZ_xs, Zgamma_xs};
-    for (int j=0; j<MCnum; j++){
-      if (fabs(MC_syst[j])){
-	variation=1+MC_syst[j]*systNum[j];
-      }
+    double variation(1);    
+    int ZZ_syst=0;
+    int Zgamma_syst=0;
+    int WV_syst=0;
+    int WZZJets_syst=0;
+    int ZZZJets_syst=0;
+    int WWZJets_syst=0;
+    int WWWJets_syst=0;
+    int TTWJets_syst=0;
+    int TTZJets_syst=0;
+    int TTWWJets_syst=0;
+    int TTGJets_syst=0;
+    int WWGJets_syst=0;
+       
+    if (gotSystematicsConfig){
+      
+      SystematicsManager * sysManager = SystematicsManager::GetInstance();
+      ZZ_syst=sysManager->GetValue("ZZ");
+      Zgamma_syst=sysManager->GetValue("Zgamma");
+      WV_syst=sysManager->GetValue("WV");
+      WZZJets_syst=sysManager->GetValue("TTGJets");
+      ZZZJets_syst=sysManager->GetValue("TTWWJets");
+      WWZJets_syst=sysManager->GetValue("TTZJets");
+      WWWJets_syst=sysManager->GetValue("TTWJets");
+      TTWJets_syst=sysManager->GetValue("WWWJets");
+      TTZJets_syst=sysManager->GetValue("WWZJets");
+      TTWWJets_syst=sysManager->GetValue("ZZZJets");
+      TTGJets_syst=sysManager->GetValue("WZZJets");
+      WWGJets_syst=sysManager->GetValue("WWGJets");
     }
+    std::cout<<"ZZ_syst"<<ZZ_syst<<std::endl;
     
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
+      if (backgroundNames[ibg].Contains("ZZ.root")){
+	variation=1+ZZ_syst*0.15;
+      }
+      if (backgroundNames[ibg].Contains("Zgamma.root")){
+	variation=1+Zgamma_syst*0.15;
+      }
+      if (backgroundNames[ibg].Contains("WV.root")){
+	variation=1+WV_syst*0.2;
+      }
+      if (backgroundNames[ibg].Contains("WZZJets.root")){
+	variation=1+WZZJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("ZZZJets.root")){
+	variation=1+ZZZJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("WWZJets.root")){
+	variation=1+WWZJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("WWWJets.root")){
+	variation=1+WWWJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("TTWJets.root")){
+	variation=1+TTWJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("TTZJets.root")){
+	  variation=1+TTZJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("TTWWJets.root")){
+	variation=1+TTWWJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("TTGJets.root")){
+	  variation=1+TTGJets_syst*0.5;
+      }
+      if (backgroundNames[ibg].Contains("WWGJets.root")){
+	variation=1+WWGJets_syst*0.5;
+      }
+      std::cout<<"VAriation: "<<variation<<std::endl;
       if (ibg==0) {
 	backgrounds[chan] = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
-	if (fabs(MC_syst[ibg])) backgrounds[chan]->Scale(variation);
+	backgrounds[chan]->Scale(variation);
       } else {
 	TH1D * hbg = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str());
-	if (fabs(MC_syst[ibg])) hbg->Scale(variation);
+	hbg->Scale(variation);
 	backgrounds[chan]->Add(hbg);
       }
     }
-
+   
     /*
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
       if (ibg==0) {
 	backgrounds[chan] = (TH1D*) 
-	  backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
+	      backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
       } else {
 	TH1D * hbg = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str());
 	backgrounds[chan]->Add(hbg);
       }
     }
     */
-    signal[chan]->Add(backgrounds[chan],-1);
+  
 
-    // Read tau fraction and orrect for it
-
-    tauFraction[chan] = (TH1D*) fTauFraction->Get(histoKey.str().c_str())->Clone(ftauHistoKey.str().c_str());
-
-    tauCorrection[chan] = GetTauCorrection(tauFraction[chan],tauCorrHistoKey.str());
-    
-    signal[chan]->Multiply(tauCorrection[chan]);
+  signal[chan]->Add(backgrounds[chan],-1);
+  
+  // Read tau fraction and orrect for it
+  
+  tauFraction[chan] = (TH1D*) fTauFraction->Get(histoKey.str().c_str())->Clone(ftauHistoKey.str().c_str());
+  
+  tauCorrection[chan] = GetTauCorrection(tauFraction[chan],tauCorrHistoKey.str());
+  
+  signal[chan]->Multiply(tauCorrection[chan]);
 
 
     // Open RooUnfoldResponse from file

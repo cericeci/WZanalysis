@@ -1,7 +1,8 @@
 #ifndef systematics_h
 #define systematics_h
 
-#define SF_syst 0  //0:no syst, 1:up, -1: down   
+#define ele_SF 0  //0:no syst, 1:up, -1: down   
+#define mu_SF 0  //0:no syst, 1:up, -1: down   
 #define pu_syst 0 //same here 
 #define ele_scale_syst 0
 #define mu_scale_syst 0

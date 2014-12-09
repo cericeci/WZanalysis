@@ -198,7 +198,7 @@ void crossSection()
   elmZagreb[13]=elmZagreb[7] =crossSectionZagreb[1]*crossSectionZagreb[3] *(commonSys[1][3] + elEnScale[1]*elEnScale[3] + muMomScale[1]*muMomScale[3]+
 									   leptTrgEff[1]*(sqrt(1/3)*leptTrgEff[3]));
   //channels 2 and 3
-  elmZagreb[14]=elmZagreb[14] =crossSectionZagreb[2]*crossSectionZagreb[3] *(commonSys[2][3] + elEnScale[2]*elEnScale[3] + muMomScale[2]*muMomScale[3]+
+  elmZagreb[14]=elmZagreb[11] =crossSectionZagreb[2]*crossSectionZagreb[3] *(commonSys[2][3] + elEnScale[2]*elEnScale[3] + muMomScale[2]*muMomScale[3]+
 									     leptTrgEff[2]*(sqrt(2/3)*leptTrgEff[3]));
  
   std::cout<<"Error matrix finished!!"<<std::endl;
