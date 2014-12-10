@@ -42,6 +42,10 @@ float JetEnergyTool::JetEnergyScale(float jetpt, float jeteta) {
 
   ifstream infile(jes_fileName.c_str());
 
+  if (! infile.is_open()) {
+    std::cout << "ERROR FILE WITH JES CORRECTIONS UNREADABLE !!! \n";
+    return -999;
+  }
   float scale=-1;
 
   string line;

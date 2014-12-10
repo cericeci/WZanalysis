@@ -56,7 +56,6 @@ void SystematicsManager::Setup(string filename) {
   while (std::getline(infile, line))
     {
 
-      std::cout << "\t Processing line: " << line << std::endl;
       if (line[0] == '#')  continue;
 
       std::istringstream iss(line);
@@ -72,7 +71,7 @@ void SystematicsManager::Setup(string filename) {
 	  continue;
 	}
 	values[key] = value;
-	std::cout << "DEF SYST: " 
+	std::cout << "\t DEF SYSTEMATIC: " 
 		  << key << "\t:\t" << value << std::endl;
       }
     }

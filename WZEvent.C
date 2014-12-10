@@ -1013,6 +1013,7 @@ void WZEvent::ApplyJESCorrection(double strength)
     float phi   = recoJets[ijet].Phi();
     float mass  = recoJets[ijet].M();
     
+    float xxx = jesTool->JetEnergyScale(pt,eta);
     float scale = jesTool->JetEnergyScale(pt,eta)*strength;
     
     double newpt   = (1+scale)* pt;
