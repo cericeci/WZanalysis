@@ -332,6 +332,7 @@ int main(int argc, char **argv) {
     // Read backgrounds and subtract them from data
 
     //substract backgounds with systematics
+    
     double variation(1);    
     int ZZ_syst=0;
     int Zgamma_syst=0;
@@ -345,7 +346,7 @@ int main(int argc, char **argv) {
     int TTWWJets_syst=0;
     int TTGJets_syst=0;
     int WWGJets_syst=0;
-       
+     
     if (gotSystematicsConfig){
       
       SystematicsManager * sysManager = SystematicsManager::GetInstance();
@@ -362,7 +363,6 @@ int main(int argc, char **argv) {
       TTGJets_syst=sysManager->GetValue("WZZJets");
       WWGJets_syst=sysManager->GetValue("WWGJets");
     }
-    std::cout<<"ZZ_syst"<<ZZ_syst<<std::endl;
     
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
       if (backgroundNames[ibg].Contains("ZZ.root")){
@@ -401,7 +401,7 @@ int main(int argc, char **argv) {
       if (backgroundNames[ibg].Contains("WWGJets.root")){
 	variation=1+WWGJets_syst*0.5;
       }
-      std::cout<<"VAriation: "<<variation<<std::endl;
+      //  std::cout<<"VAriation: "<<variation<<std::endl;
       if (ibg==0) {
 	backgrounds[chan] = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
 	backgrounds[chan]->Scale(variation);
@@ -411,7 +411,7 @@ int main(int argc, char **argv) {
 	backgrounds[chan]->Add(hbg);
       }
     }
-   
+    
     /*
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
       if (ibg==0) {

@@ -22,15 +22,26 @@ SystematicsManager::SystematicsManager() {
 
 void SystematicsManager::SetDefaultValues() {
 
-  values["ele_SF"]     = 0.;
-  values["mu_SF"]      = 0.;
-  values["ele_scale"]  = 0.;
-  values["mu_scale"]   = 0.;
-  values["PU"]         = 0.;
-  values["JER"]        = 0.;
-  values["JES"]        = 0.;
-  
-
+  values["ele_SF"]          = 0.;
+  values["mu_SF"]           = 0.;
+  values["ele_scale_syst"]  = 0.;
+  values["mu_scale_syst"]   = 0.;
+  values["PU"]              = 0.;
+  values["JER"]             = 0.;
+  values["JES"]             = 0.;
+  values["pu_syst"]         = 0.;
+  values["ZZ"]              = 0.;
+  values["Zgamma"]          = 0.;
+  values["WV"]              = 0.;
+  values["WZZJets"]         = 0.;
+  values["ZZZJets"]         = 0.;
+  values["WWZJets"]         = 0.;
+  values["WWWJets"]         = 0.;
+  values["TTWJets"]         = 0.;
+  values["TTZJets"]         = 0.;
+  values["TTWWJets"]        = 0.;
+  values["TTGJets"]         = 0.;
+  values["WWGJets"]         = 0.;
 }
 
 
