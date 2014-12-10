@@ -227,7 +227,7 @@ int main(int argc, char **argv)
     cWZ->ReadEvent();
 
     //    cWZ->SmearJets();
-    cWZ->ApplyJESCorrection(1);
+    //    cWZ->ApplyJESCorrection(1);
 
     if (debug) {
       std::cout << "============  Run: " << cWZ->run << "\t Event: " 
