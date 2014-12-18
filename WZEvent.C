@@ -938,7 +938,6 @@ float  WZEvent::GetTriggerEfficiency(){
 }
 
 
-
 void WZEvent::SmearJets()
 {
   // Apply additional jet smearing to account for data/MC
