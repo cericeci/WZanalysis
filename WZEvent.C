@@ -1017,7 +1017,6 @@ void WZEvent::ApplyJESCorrection(double strength)
     
     double newpt   = (1+scale)* pt;
     double newmass = (1+scale)*mass;
-    
     recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
   }
 }

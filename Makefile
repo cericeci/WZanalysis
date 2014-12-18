@@ -59,6 +59,9 @@ wzDataUnfold: wzDataUnfold.C SystematicsManager.C
 BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+Systematics: Systematics.C UnfoldingHistogramFactory.C 
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
 
 #test: test.C wzTools2.C WZ2012Data.C
 #	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^

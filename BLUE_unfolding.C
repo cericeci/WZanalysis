@@ -1,33 +1,152 @@
+#include "TFile.h"
+#include "TTree.h"
+#include "TChain.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TMatrixD.h"
+#include "TLorentzVector.h"
+
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
+#include <set>
 
-void BLUE_unfolding()
+#include "UnfoldingHistogramFactory.h"
+
+int main(int argc, char **argv)
 {
   //read histograms form .root files
   //definirati file-ove iz kojih citam i u koje pisem
+  bool gotHistoBinning(false);
+  char * binningFileName(0);
+  char * variableName(0);
+  bool gotVarName  = false;
+  char c;
+
+  while ((c = getopt (argc, argv, "v:H:")) != -1)
+    switch (c)
+	{
+	case 'v':
+	  gotVarName = true;
+	  variableName = new char[strlen(optarg)+1];
+	  strcpy(variableName,optarg);
+	  break;
+	case 'H':
+          gotHistoBinning = true;
+          binningFileName = new char[strlen(optarg)+1];
+          strcpy(binningFileName,optarg);
+          break;
+	default:
+	  std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
+	  abort ();
+	}
+  
+  string variable;
+  
+  if (gotVarName) {
+    variable = variableName;
+  } else {
+    variable = "LeadJetPt";
+  }
+
+
+  bool printBLUEmatrix(true);
+
+
+  TFile * finput= TFile::Open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/unfoldingFinalResults/systematics.root");
+  std::ostringstream outfilename;
+  outfilename<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/unfaoldingFinalResults/combination_"<<variable<<".root";
+  TFile * fout= new TFile(outfilename.str().c_str(), "RECREATE");  
+
+  if (gotHistoBinning) {
+
+    UnfoldingHistogramFactory * histoFac = UnfoldingHistogramFactory::GetInstance();
+    histoFac->SetBinning(binningFileName);
+
+  }
+
   const int nChannels(4);
   TH1D * h_qcdScale[nChannels];
   TH1D * h_PDFsys[nChannels];
   TH1D * h_leptTrgEff[nChannels];
   TH1D * h_Etsys[nChannels];
-  TH1D * h_muMoScale[nChannels];
+  TH1D * h_muMomScale[nChannels];
   TH1D * h_elEnScale[nChannels];
   TH1D * h_pileupSys[nChannels];
   TH1D * h_ZZxs[nChannels];
   TH1D * h_Zgammaxs[nChannels];
   TH1D * h_dataDrivensys[nChannels];
   TH1D * h_bckgSys[nChannels];
-  
+  TH1D * h_JESsys[nChannels];
+  TH1D * h_JERsys[nChannels];
   TH1D * h_crossSection[nChannels];
-  
-  //results:
-  //treba ih kreirati da imaju isti binning kao i originalni (staviti neke opcije npr. pa napraviti taj binning)
+
   TH1D * h_crossSection_combination;
   TH1D * h_combStat;
   TH1D * h_combSyst;
+
+  //ovo treba deklarirat!!!!!!!!!
+  if (variable=="Njets"){
+    h_crossSection_combination= UnfoldingHistogramFactory::createNjetsHistogram("h_xs_comb", "h_xs_comb");
+    h_combStat = UnfoldingHistogramFactory::createNjetsHistogram("h_combStat", "h_combStat"); 
+    h_combSyst = UnfoldingHistogramFactory::createNjetsHistogram("h_combSyst", "h_combSyst");
+  }
+  else if (variable=="LeadingJetPt"){
+    h_crossSection_combination= UnfoldingHistogramFactory::createLeadingJetHistogram("h_xs_comb", "h_xs_comb");
+    h_combStat = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combStat", "h_combStat"); 
+    h_combSyst = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combSyst", "h_combSyst");
+  }
+  else if (variable=="Zpt"){
+    h_crossSection_combination= UnfoldingHistogramFactory::createZPtHistogram("h_xs_comb", "h_xs_comb");
+    h_combStat = UnfoldingHistogramFactory::createZPtHistogram("h_combStat", "h_combStat"); 
+    h_combSyst = UnfoldingHistogramFactory::createZPtHistogram("h_combSyst", "h_combSyst");
+  }
+  else
+    std::cout<<"UNKNOWN VARIABLE!!!"<<std::endl;
+
+
+  for (int hist=0; hist<nChannels; hist++){
+    std::ostringstream qcdScaleName,PDFsysName,leptTrgEffName,EtsysName, 
+      muMomScaleName, elEnScaleName, pileupSysName, ZZxsName, ZgammaxsName, 
+      dataDrivenName, bckgSysName, xsName, JESsysName, JERsysName;
+    qcdScaleName<<"h_qcdScale_"<<hist;
+    PDFsysName<<"h_PDFsys_"<<hist;
+    leptTrgEffName<<"h_leptTrgEff_"<<hist;
+    EtsysName<<"h_Etsys_"<<hist;
+    muMomScaleName<<"h_muMomScale_"<<hist;
+    elEnScaleName<<"h_elEnScale_"<<hist;
+    pileupSysName<<"h_pileupSys_"<<hist;
+    ZZxsName<<"h_ZZxs_"<<hist;
+    ZgammaxsName<<"h_Zgammaxs_"<<hist;
+    dataDrivenName<<"h_dataDrivensys_"<<hist;
+    bckgSysName<<"h_bckgSys_"<<hist;
+    xsName<<"h_crossSection_"<<hist;
+    JESsysName<<"h_JESsys_"<<hist;
+    JERsysName<<"h_JERsys_"<<hist;
+
+    h_qcdScale[hist] = (TH1D*) (finput ->Get(qcdScaleName.str().c_str())->Clone(qcdScaleName.str().c_str()));
+    h_PDFsys[hist] = (TH1D*) (finput ->Get(PDFsysName.str().c_str())->Clone(PDFsysName.str().c_str()));
+    h_leptTrgEff[hist] = (TH1D*) (finput ->Get(leptTrgEffName.str().c_str())->Clone(leptTrgEffName.str().c_str()));
+    h_Etsys[hist] = (TH1D*) (finput ->Get(EtsysName.str().c_str())->Clone(EtsysName.str().c_str()));
+    h_muMomScale[hist] = (TH1D*) (finput ->Get(muMomScaleName.str().c_str())->Clone(muMomScaleName.str().c_str()));
+    h_elEnScale[hist] = (TH1D*) (finput ->Get(elEnScaleName.str().c_str())->Clone(elEnScaleName.str().c_str()));
+    h_pileupSys[hist] = (TH1D*) (finput ->Get(pileupSysName.str().c_str())->Clone(pileupSysName.str().c_str()));
+    h_ZZxs[hist] = (TH1D*) (finput ->Get(ZZxsName.str().c_str())->Clone(ZZxsName.str().c_str()));
+    h_Zgammaxs[hist] = (TH1D*) (finput ->Get(ZgammaxsName.str().c_str())->Clone(ZgammaxsName.str().c_str()));
+    h_dataDrivensys[hist] = (TH1D*) (finput ->Get(dataDrivenName.str().c_str())->Clone(dataDrivenName.str().c_str()));
+    h_bckgSys[hist] = (TH1D*) (finput ->Get(bckgSysName.str().c_str())->Clone(bckgSysName.str().c_str()));
+    h_crossSection[hist] = (TH1D*) (finput ->Get(xsName.str().c_str())->Clone(xsName.str().c_str()));
+    
+    if (variable!="Zpt"){
+      std::cout<<variable<<"  JET SYSTEMATICS :D"<<std::endl;
+      h_JESsys[hist] = (TH1D*) (finput->Get(JESsysName.str().c_str())->Clone(JESsysName.str().c_str()));
+      h_JERsys[hist] = (TH1D*) (finput->Get(JERsysName.str().c_str())->Clone(JERsysName.str().c_str()));
+    }
+    
+  }
 
   //looop over each bin 
   
@@ -35,20 +154,28 @@ void BLUE_unfolding()
     double elements[16];
     for (int el=0; el<16; el++) elements[el]=0;
 
+    double statisticError[nChannels];
+    double systematicError2[nChannels];
+    double systematicError[nChannels];
     //statistic and systematic errors:
-    for (int nCh=0; nCh<4; nCh++){
+    for (int nCh=0; nCh<nChannels; nCh++){
       statisticError[nCh]=h_crossSection[nCh]->GetBinError(bin);
-      systematicError[nCh]=sqrt(pow(h_qcdScale[nCh]->GetBinContent(bin),2)+
-				pow(h_PDFsys[nCh]->GetBinContent(bin), 2)+
-				pow(h_leptTrgEff[nCh]->GetBinContent(bin),2)+
-				pow(h_Etsys[nCh]->GetBinContent(bin), 2)+
-				pow(h_muMoScale[nCh]->GetBinContent(bin),2)+
-				pow(h_elEnScale[nCh]->GetbinContent(bin),2)+
-				pow(h_pileupSys[nCh]->GetBinContent(bin),2)+
-				pow(h_ZZxs[nCh]->GetBinContent(bin),2)+
-				pow(h_Zgammaxs[nCh]->GetBinContent(bin),2)+
-				pow(h_dataDrivensys[nCh]->GetBinContent(bin),2)+
-				pow(h_bckgSys[nCh]->GetBinContent(bin),2));
+      systematicError2[nCh]=(pow(h_qcdScale[nCh]->GetBinContent(bin),2)+
+			     pow(h_PDFsys[nCh]->GetBinContent(bin), 2)+
+			     pow(h_leptTrgEff[nCh]->GetBinContent(bin),2)+
+			     pow(h_Etsys[nCh]->GetBinContent(bin), 2)+
+			     pow(h_muMomScale[nCh]->GetBinContent(bin),2)+
+			     pow(h_elEnScale[nCh]->GetBinContent(bin),2)+
+			     pow(h_pileupSys[nCh]->GetBinContent(bin),2)+
+			     pow(h_ZZxs[nCh]->GetBinContent(bin),2)+
+			     pow(h_Zgammaxs[nCh]->GetBinContent(bin),2)+
+			     pow(h_dataDrivensys[nCh]->GetBinContent(bin),2)+
+			     pow(h_bckgSys[nCh]->GetBinContent(bin),2));
+      if (variable!="Zpt"){
+	systematicError2[nCh]+= pow (h_JESsys[nCh]->GetBinContent(bin),2)+
+	  pow (h_JERsys[nCh]->GetBinContent(bin),2);
+      }
+      systematicError[nCh]= sqrt(systematicError2[nCh]);
     }
     //common elements
     double commonSys[4][4];
@@ -60,6 +187,10 @@ void BLUE_unfolding()
 	  + (h_PDFsys[cha]->GetBinContent(bin))*(h_PDFsys[chb]->GetBinContent(bin))
 	  + (h_qcdScale[cha]->GetBinContent(bin))*(h_qcdScale[chb]->GetBinContent(bin))
 	  + (h_bckgSys[cha]->GetBinContent(bin))*(h_bckgSys[chb]->GetBinContent(bin));
+	
+	if (variable!="Zpt"){
+	  commonSys[cha][chb]+=(h_JESsys[cha]->GetBinContent(bin))*(h_JESsys[chb]->GetBinContent(bin));
+	}
       }
     }
     
@@ -80,9 +211,9 @@ void BLUE_unfolding()
     
     //channels 0 and 2
     elements[8]=elements[2]=(h_crossSection[0]->GetBinContent(bin))*(h_crossSection[2]->GetBinContent(bin))*
-      (commonSys[0][2] + (h_elEnScale[0]->GetBinContent(bin))*(h+elEnScalse[2]->GetBinContent(bin)) +
+      (commonSys[0][2] + (h_elEnScale[0]->GetBinContent(bin))*(h_elEnScale[2]->GetBinContent(bin)) +
        (h_muMomScale[0]->GetBinContent(bin))*(h_muMomScale[2]->GetBinContent(bin))+
-       (h_leptTrgEff[0]->GetBincontent(bin))*(sqrt(1/3)*(h_leptTrgEff[2]->GetBinContent(2))));
+       (h_leptTrgEff[0]->GetBinContent(bin))*(sqrt(1/3)*(h_leptTrgEff[2]->GetBinContent(2))));
     
     //channels 0 and 3
     elements[12]=elements[3]=(h_crossSection[0]->GetBinContent(bin))*(h_crossSection[3]->GetBinContent(bin))*
