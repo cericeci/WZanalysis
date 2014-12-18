@@ -42,6 +42,7 @@ void SystematicsManager::SetDefaultValues() {
   values["TTWWJets"]        = 0.;
   values["TTGJets"]         = 0.;
   values["WWGJets"]         = 0.;
+  values["dataDriven"]      = 0.;
 }
 
 

@@ -98,11 +98,14 @@ int main(int argc, char **argv) {
   char * dataFileName(0);
   char * unfoldingAlgo(0);
   char * variableName(0);
+  char * outputName(0);
 
   char * bgFileName(0);
   char * bgListName(0);
   char * tauFractionFileName(0);
 
+  bool gotInput  = false;
+  bool gotOutput  = false;
   bool gotDataFile = false;
   bool gotResponse = false;
   bool gotUnfoldingAlgo = false;
@@ -119,7 +122,7 @@ int main(int argc, char **argv) {
 
   char c;
 
-  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:E:S:")) != -1)
+  while ((c = getopt (argc, argv, "r:d:a:v:b:B:t:k:E:S:o:")) != -1)
     switch (c)
       {
       case 'r':
@@ -170,6 +173,11 @@ int main(int argc, char **argv) {
 	gotSystematicsConfig = true;
 	systConfigFile = new char[strlen(optarg)+1];
 	strcpy(systConfigFile,optarg);
+	break;
+      case 'o':
+	gotOutput = true;
+	outputName = new char[strlen(optarg)+1];
+	strcpy(outputName,optarg);
 	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
@@ -503,7 +511,12 @@ int main(int argc, char **argv) {
 
 
   // 
-  TFile * fout = new TFile("unfolding.root","RECREATE");
+  TFile * fout;
+  if (gotOutput) {
+    fout = new TFile(outputName, "RECREATE");    
+  } else {
+    fout = new TFile("unfolding.root","RECREATE");
+  } 
   fout->cd();
   for (int i=0; i<4; i++) {
     std::cout << "Writing histos: " 
