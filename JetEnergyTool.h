@@ -12,6 +12,18 @@ using namespace std;
 
 // Define pure static class with histo definitions
 
+class JES_map {
+
+public:
+
+  JES_map(std::string);
+
+  float etaMin, etaMax;
+  std::vector<float> pt_bins;
+  std::vector<float> scales;
+
+};
+
 
 class JetEnergyTool {
 
@@ -20,8 +32,11 @@ public:
   static JetEnergyTool * GetInstance();
   void LoadEnergyScaleMap();
   float JetEnergyScale(float jetpt, float jeteta);
+  float GetJetEnergyScale(float jetpt, float jeteta);
 
-  void SetJESFile(string s) { jes_fileName = s;}
+  void SetJESFile(string s);
+
+  void FillMaps();
 
 private:
 
@@ -31,6 +46,8 @@ private:
 
   std::string jes_fileName;
 
+
+  std::vector<JES_map *> jesmaps;
 
 }; 
 
