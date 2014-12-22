@@ -13,8 +13,9 @@ MClist=["ZZ", "Zgamma", "WV", "WZZJets", "ZZZJets", "WWZJets", "WWWJets", "TTWJe
 OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 DDlist=["dataDriven"]
 other=["JER", "JES"]
-submit = False
+submit = True
 sysList = open('sysrun2.def', 'r').read().split('\n')
+#sysList = open('sysrunTEST.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
 listOfFiles.append(outputNom)
 sysList = sysList[:-1]
@@ -51,58 +52,40 @@ for v in variables:
     for name in typesList:
         outputFile = "sysResults/unfolding_"+ name +"_"+ v + ".root"
         if name in DDlist:
-            response= "sysResults/response_nominal_"+v+".root"
-            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSyst/data_driven.root"
+            response= "sysResults/response_sys_nominal.root"
+            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSys/data_driven.root"
             WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
             backgroundListName ="backgroundList06"
             systFileName="nominal.def"
             command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-            jobFileName = "jobs/unfolding-"+name+"_"+v+".csh"
-            batchFileName = "jobs/unfolding-"+name+"_"+v+".bat"
-            jobFile = open(jobFileName,"w")
-            jobFile.write("#!/bin/tcsh \n")
-            jobFile.write("cd " + pwd + "\n")
-            jobFile.write(command + "\n");
-            jobFile.close()
-
-            batchFile = open(batchFileName,"w")
-            batchFile.write("executable  =  "+jobFileName + '\n')
-            batchFile.write("universe    =  vanilla \n")
-            batchFile.write("log         =  condorlogs/unfolding-"+name+"_"+v+".log \n")
-            batchFile.write("initialdir  =  "+pwd + "\n")
-            batchFile.write("output      =  "+pwd+"/condorlogs/unfolding-"+name+"_"+v+".out \n")
-            batchFile.write("error       =  "+pwd+"/condorlogs/unfolding-"+name+"_"+v+".err \n")
-            batchFile.write("getenv      =  True \n\n")
-            batchFile.write("queue \n")
-            batchFile.close()
-            
-            p = subprocess.call("chmod +x " +jobFileName,shell=True)
+            #print command
             if submit:
-                p = subprocess.call("condor_submit " +batchFileName,shell=True)	
+                p = subprocess.call(command,shell=True)	
         else:
             for var in variations:
                 if name in MClist:
-                    response= "sysResults/response_nominal.root"
+                    response= "sysResults/response_sys_nominal.root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
-                    backgroundListName ="backgroundList"
+                    backgroundListName ="backgroundList_syst"
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
                     systFileName="sys_"+name+"_"+var+".def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
                 #            print command
             
                 if name in OtherList:
-                    response= "sysResults/response_"+name+"_"+var+".root"
+                    response= "sysResults/response_sys_"+name+"_"+var+".root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/"+name+"_"+var+"/WZ.root"
                     backgroundListName ="backgroundList06"+name+"_"+var
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
-                    systFileName="sys_"+name+"_"+var+".def"
+                    #systFileName="sys_"+name+"_"+var+".def"
+                    systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
                 #print -command
                 
                 if name in other:
-                    response= "sysResults/response_"+name+"_"+var+".root"
+                    response= "sysResults/response_sys_"+name+"_"+var+".root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
                     backgroundListName ="backgroundList06"
@@ -111,27 +94,17 @@ for v in variables:
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
 
-                
-                jobFileName = "jobs/unfolding-"+name+"_"+v+"_"+var+".csh"
-                batchFileName = "jobs/unfolding-"+name+"_"+v+"_"+var+".bat"
-                jobFile = open(jobFileName,"w")
-                jobFile.write("#!/bin/tcsh \n")
-                jobFile.write("cd " + pwd + "\n")
-                jobFile.write(command + "\n");
-                jobFile.close()
-
-                batchFile = open(batchFileName,"w")
-                batchFile.write("executable  =  "+jobFileName + '\n')
-                batchFile.write("universe    =  vanilla \n")
-                batchFile.write("log         =  condorlogs/unfolding-"+name+"_"+v+"_"+var+".log \n")
-                batchFile.write("initialdir  =  "+pwd + "\n")
-                batchFile.write("output      =  "+pwd+"/condorlogs/unfolding-"+name+"_"+v+"_"+var+".out \n")
-                batchFile.write("error       =  "+pwd+"/condorlogs/unfolding-"+name+"_"+v+"_"+var+".err \n")
-                batchFile.write("getenv      =  True \n\n")
-                batchFile.write("queue \n")
-                batchFile.close()
-            
-                p = subprocess.call("chmod +x " +jobFileName,shell=True)
+#                print command                
                 if submit:
-                    p = subprocess.call("condor_submit " +batchFileName,shell=True)	
-        
+                    p = subprocess.call(command,shell=True)	
+
+
+                response= "sysResults/response_sys_nominal.root"
+                dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
+                WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
+                backgroundListName ="backgroundList06"
+                outputFile = "sysResults/unfolding_nominal_"+v+".root"
+                systFileName="sys_nominal.def"
+                command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+                if submit:
+                    p = subprocess.call(command,shell=True)	
