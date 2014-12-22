@@ -1,0 +1,40 @@
+1) Generate Response Matrix for various systematics
+
+
+python runSystematics.py
+python runSystematics_int.py
+
+
+2) Do the unfolding for all systematics
+
+using CONDOR:
+run runSystematics_unfolding.py
+
+or interactively:
+run runSystematics_unfolding_int.py
+
+
+3) Determine systematic uncertainty for all syst. sources
+
+- Look at output of previous step
+- Determines largest deviation for each bin for each systematics
+- writes out histogram output with relative uncertainty for each bin
+- Writes all these histogram in one files
+
+Code:
+systematics.C
+
+Run it:
+./Systematics -v Njets -H binning
+
+4) Combine with BLUE 
+
+- input: ROOT file from previous step
+- Runs BLUE bin by bin
+- Output: histograms with stat. & syst. uncertainties
+
+Code:
+BLUE_unfolding.C
+
+run it:
+./BLUE_unfolding -v <variable> -H <binning> 
