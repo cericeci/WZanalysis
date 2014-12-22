@@ -382,10 +382,14 @@ void WZEvent::ReadEvent()
 
   float jes_strength = sysManager->GetValue("JES");
 
+  SmearJets();
+
   if (jes_strength!=0.) 
     {
       ApplyJESCorrection(jes_strength);
     }
+
+
 
 }
 
@@ -956,11 +960,21 @@ void WZEvent::SmearJets()
   float sigmaJetResolutionDown[5] = { 0.0000, 0.0047, 0.0286, 0.0293, 0.0477 };
 
 
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();
 
+  float jer_syst = sysManager->GetValue("JER");
 
+  float * resolutionCorrections;
+
+  if (jer_syst == 0.) {
+    resolutionCorrections = sigmaJetResolution;
+  } else if (jer_syst == 1.) {
+    resolutionCorrections = sigmaJetResolutionUp;
+  } else if (jer_syst == -1.) {
+    resolutionCorrections = sigmaJetResolutionDown;
+  }
 
   float etaBoundaries[6] = { 0.0, 0.5, 1.1, 1.7, 2.3, 5.0};
-
 
   for (int ijet=0; ijet<recoJets.size(); ijet++) {
     float pt    = recoJets[ijet].Pt();
@@ -975,7 +989,7 @@ void WZEvent::SmearJets()
     for (int ie=0; ie<5; ie++) {
       if (abseta  >= etaBoundaries[ie]
 	  && abseta  < etaBoundaries[ie+1]) {
-	sigma = sigmaJetResolution[ie];
+	sigma = resolutionCorrections[ie];
 	break;
       }
     }
@@ -987,6 +1001,7 @@ void WZEvent::SmearJets()
 
     recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
   }
+
 }
 
 
