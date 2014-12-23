@@ -53,14 +53,13 @@ int main(int argc, char **argv)
   }
 
 
-  bool printBLUEmatrix(true);
+  bool printBLUEmatrix(false);
 
-
-  TFile * finput= TFile::Open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/unfoldingFinalResults/systematics.root");
-  std::ostringstream outfilename;
-  outfilename<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/unfaoldingFinalResults/combination_"<<variable<<".root";
+  std::ostringstream outfilename, infilename;
+  outfilename<<"unfoldingFinalResults/combination_"<<variable<<".root";
+  infilename<<"sysResults/systematics_"<<variable<<".root";
   TFile * fout= new TFile(outfilename.str().c_str(), "RECREATE");  
-
+  TFile * finput= TFile::Open(infilename.str().c_str());
   if (gotHistoBinning) {
 
     UnfoldingHistogramFactory * histoFac = UnfoldingHistogramFactory::GetInstance();
@@ -153,7 +152,6 @@ int main(int argc, char **argv)
   for (int bin=0; bin< (h_crossSection[0]->GetNbinsX()+1); bin++){
     double elements[16];
     for (int el=0; el<16; el++) elements[el]=0;
-
     double statisticError[nChannels];
     double systematicError2[nChannels];
     double systematicError[nChannels];
@@ -200,7 +198,7 @@ int main(int argc, char **argv)
     elements[5]=pow(systematicError[1],2) + pow(statisticError[1],2);
     elements[10]=pow(systematicError[2],2) + pow(statisticError[2],2);
     elements[15]=pow(systematicError[3],2) + pow(statisticError[3],2);
-    
+
     //matrix is symetric
     //channels 0 and 1
     elements[4]= elements[1]= (h_crossSection[0]->GetBinContent(bin))*(h_crossSection[1]->GetBinContent(bin))*
@@ -306,8 +304,10 @@ int main(int argc, char **argv)
       std::cout << endl;
     }
     double total_error=sqrt(stat_err_tot*stat_err_tot + syst_err_tot*syst_err_tot);
+    std::cout<<"TOTAL: "<<final_Xsec<<std::endl;
+    std::cout<<"BIN:   "<<bin<<std::endl;
     h_crossSection_combination->SetBinContent(bin, final_Xsec);
-    h_crossSection_combination->SetBinError(bin, final_Xsec);
+    h_crossSection_combination->SetBinError(bin, total_error);
     h_combStat->SetBinContent(bin, stat_err_tot);
     h_combSyst->SetBinContent(bin, syst_err_tot);
   }
