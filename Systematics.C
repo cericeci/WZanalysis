@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     
   }
 
-
+  double WZbr[4]={0.03363*0.1075,0.03363*0.1057,0.03366*0.1075,0.03366*0.1057};
   const int nChannels(4);
 
   TH1D * h_qcdScale[nChannels];
@@ -73,6 +73,9 @@ int main(int argc, char **argv)
   TH1D * h_Etsys[nChannels];
   TH1D * h_bckgSys[nChannels];
   TH1D * h_crossSection[nChannels];
+  TH1D * h_crossSection_diff[nChannels];
+  TH1D * h_crossSection_inclusive[nChannels];
+  TH1D * h_crossSection_incl_diff[nChannels];
 
 
   TH1D* h_sys[nChannels][19];
@@ -101,7 +104,7 @@ int main(int argc, char **argv)
   for (int hist=0; hist<nChannels; hist++){
     std::ostringstream qcdScaleName,PDFsysName,leptTrgEffName,EtsysName, 
       muMomScaleName, elEnScaleName, pileupSysName, ZZxsName, ZgammaxsName, 
-      dataDrivenName, bckgSysName, xsName, JESsysName, JERsysName, eleSFname, muSFname;
+      dataDrivenName, bckgSysName, xsNameIncl, xsNameInclDiff, JESsysName, JERsysName, eleSFname, muSFname;
     std::ostringstream WVname, WZZname, ZZZname, WWZname, WWWname, TTWname, 
       TTZname, TTWWname, TTGname, WWGname, systName;
     qcdScaleName<<"h_qcdScale_"<<hist;
@@ -117,7 +120,8 @@ int main(int argc, char **argv)
     ZgammaxsName<<"h_Zgammaxs_"<<hist;
     dataDrivenName<<"h_dataDrivensys_"<<hist;
     bckgSysName<<"h_bckgSys_"<<hist;
-    //    xsName<<"h_crossSection_"<<hist;
+    xsNameIncl<<"h_crossSection_inclusive"<<hist;
+    xsNameInclDiff<<"h_crossSection_inclusive_diff"<<hist;
     JESsysName<<"h_JESsys_"<<hist;
     JERsysName<<"h_JERsys_"<<hist;
     WVname<<"h_WVJets_"<<hist;
@@ -139,7 +143,8 @@ int main(int argc, char **argv)
       h_Etsys[hist]=UnfoldingHistogramFactory::createNjetsHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
       h_DataDrivenSys[hist]=UnfoldingHistogramFactory::createNjetsHistogram(dataDrivenName.str().c_str(), dataDrivenName.str().c_str());
       h_bckgSys[hist]=UnfoldingHistogramFactory::createNjetsHistogram(bckgSysName.str().c_str(), bckgSysName.str().c_str());
-      //      h_crossSection[hist]=UnfoldingHistogramFactory::createNjetsHistogram(xsName.str().c_str(), xsName.str().c_str());     
+      h_crossSection_inclusive[hist]=UnfoldingHistogramFactory::createNjetsHistogram(xsNameIncl.str().c_str(), xsNameIncl.str().c_str());     
+      h_crossSection_incl_diff[hist]=UnfoldingHistogramFactory::createNjetsHistogram(xsNameInclDiff.str().c_str(), xsNameInclDiff.str().c_str());     
 
       h_sys[hist][0] =UnfoldingHistogramFactory::createNjetsHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createNjetsHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
@@ -170,7 +175,8 @@ int main(int argc, char **argv)
       h_Etsys[hist]=UnfoldingHistogramFactory::createZPtHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
       h_DataDrivenSys[hist]=UnfoldingHistogramFactory::createZPtHistogram(dataDrivenName.str().c_str(), dataDrivenName.str().c_str());
       h_bckgSys[hist]=UnfoldingHistogramFactory::createZPtHistogram(bckgSysName.str().c_str(), bckgSysName.str().c_str());
-      //      h_crossSection[hist]=UnfoldingHistogramFactory::createZPtHistogram(xsName.str().c_str(), xsName.str().c_str());     
+      h_crossSection_inclusive[hist]=UnfoldingHistogramFactory::createZPtHistogram(xsNameIncl.str().c_str(), xsNameIncl.str().c_str());     
+      h_crossSection_incl_diff[hist]=UnfoldingHistogramFactory::createZPtHistogram(xsNameInclDiff.str().c_str(), xsNameInclDiff.str().c_str());     
 
       h_sys[hist][0] =UnfoldingHistogramFactory::createZPtHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createZPtHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
@@ -201,7 +207,8 @@ int main(int argc, char **argv)
       h_Etsys[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
       h_DataDrivenSys[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(dataDrivenName.str().c_str(), dataDrivenName.str().c_str());
       h_bckgSys[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(bckgSysName.str().c_str(), bckgSysName.str().c_str());
-      //      h_crossSection[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(xsName.str().c_str(), xsName.str().c_str());     
+      h_crossSection_inclusive[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(xsNameIncl.str().c_str(), xsNameIncl.str().c_str());     
+      h_crossSection_incl_diff[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(xsNameInclDiff.str().c_str(), xsNameInclDiff.str().c_str());     
 
       h_sys[hist][0] =UnfoldingHistogramFactory::createLeadingJetHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createLeadingJetHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
@@ -231,7 +238,7 @@ int main(int argc, char **argv)
   nominalName<<"sysResults/unfolding_nominal_"<<variable<<".root";
   
   TFile * fnominal= TFile::Open(nominalName.str().c_str());
-  
+  std::cout<<nominalName.str().c_str()<<std::endl;
 
   for (int i=0; i<types.size(); i++){
     std::ostringstream fileNameUp, fileNameDown;
@@ -242,9 +249,9 @@ int main(int argc, char **argv)
     
     for (int compute=0; compute<nChannels; compute++){
       std::ostringstream histName, histNameNewUp, histNameNewDown, fileNameNominal;
-      histName<<"hdsigmadx"<<variable<<"_"<<(compute+1);
-      histNameNewUp<<"hdsigmadx"<<variable<<"_UP_"<<compute;
-      histNameNewDown<<"hdsigmadx"<<variable<<"_DOWN_"<<compute;
+      histName<<"hdsigma"<<variable<<"_"<<(compute+1);
+      histNameNewUp<<"hdsigma"<<variable<<"_UP_"<<compute;
+      histNameNewDown<<"hdsigma"<<variable<<"_DOWN_"<<compute;
       TH1D * h_up= (TH1D*) (fUP->Get(histName.str().c_str())->Clone(histNameNewUp.str().c_str()));
       TH1D * h_down= (TH1D*) (fDOWN->Get(histName.str().c_str())->Clone(histNameNewDown.str().c_str()));
       TH1D * h_nominal= (TH1D*) (fnominal->Get(histName.str().c_str())->Clone(histName.str().c_str()));    
@@ -270,14 +277,17 @@ int main(int argc, char **argv)
   for (int other=0; other<nChannels; other++){
     
     //cross section
-    std::ostringstream crossSect, dataDrivSys, xsName;
-    crossSect<<"hdsigmadx"<<variable<<"_"<<(other+1);
+    std::ostringstream crossSect, crossSect2, dataDrivSys, xsName, xsName2;
+    crossSect<<"hdsigma"<<variable<<"_"<<(other+1);
     xsName<<"h_crossSection_"<<other;
-    //    dataDrivSys<<""
     h_crossSection[other]= (TH1D*) (fnominal)->Get(crossSect.str().c_str())->Clone(xsName.str().c_str());
+    //    h_crossSection[other]= (TH1D*) (fnominal)->Get(crossSect.str().c_str())->Clone(crossSect.str().c_str());
+    std::cout<<"Integral: "<<h_crossSection[other]->Integral()<<std::endl;
     TH1D * h_dataDrivenUp=(TH1D*)(fDataDriven)->Get(crossSect.str().c_str())->Clone();
 
     for (int bin1=0; bin1<(h_crossSection[other]->GetNbinsX()+1);bin1++){
+      double xs=(h_crossSection[other]->GetBinContent(bin1))/WZbr[other];
+      h_crossSection_inclusive[other]->SetBinContent(bin1, xs);
       double back2=0;
       for (int b=9; b<19; b++){
 	back2+=pow(h_sys[other][b]->GetBinContent(bin1),2);
@@ -285,18 +295,13 @@ int main(int argc, char **argv)
       h_bckgSys[other]->SetBinContent(bin1, sqrt(back2));
       double ltrig=sqrt(pow(h_sys[other][3]->GetBinContent(bin1),2)+pow(h_sys[other][4]->GetBinContent(bin1),2));
       h_leptTrgEff[other]->SetBinContent(bin1, ltrig);
-      h_qcdScale[other]->SetBinContent(bin1, 1.6);
-      h_Etsys[0]->SetBinContent(bin1, 2.9);
-      h_Etsys[1]->SetBinContent(bin1, 2.9);
-      h_Etsys[2]->SetBinContent(bin1, 3.5);
-      h_Etsys[3]->SetBinContent(bin1, 3.1);
-      h_PDFSys[other]->SetBinContent(bin1, 1.4);
+      h_qcdScale[other]->SetBinContent(bin1, 0.016);
+      h_Etsys[0]->SetBinContent(bin1, 0.029);
+      h_Etsys[1]->SetBinContent(bin1, 0.029);
+      h_Etsys[2]->SetBinContent(bin1, 0.035);
+      h_Etsys[3]->SetBinContent(bin1, 0.031);
+      h_PDFSys[other]->SetBinContent(bin1, 0.014);
       double dataDrivenSyst=fabs(h_crossSection[other]->GetBinContent(bin1)-h_dataDrivenUp->GetBinContent(bin1))/(h_crossSection[other]->GetBinContent(bin1));
-      std::cout<<"Up: "<<(h_dataDrivenUp->GetBinContent(bin1))<<std::endl;
-      std::cout<<"Nominal: "<<(h_crossSection[other]->GetBinContent(bin1))<<std::endl;
-      std::cout<<fabs(h_crossSection[other]->GetBinContent(bin1)-h_dataDrivenUp->GetBinContent(bin1))<<std::endl;
-
-      //std::cout<<dataDrivenSyst<<std::endl;
       h_DataDrivenSys[other]->SetBinContent(bin1, dataDrivenSyst);
       
     }
@@ -308,6 +313,12 @@ int main(int argc, char **argv)
   h_crossSection[1]->Write();
   h_crossSection[2]->Write();
   h_crossSection[3]->Write();
+
+  
+  h_crossSection_inclusive[0]->Write();
+  h_crossSection_inclusive[1]->Write();
+  h_crossSection_inclusive[2]->Write();
+  h_crossSection_inclusive[3]->Write();
   
   fout->Write();
   fout->Close();
