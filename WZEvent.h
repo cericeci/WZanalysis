@@ -143,6 +143,7 @@ public:
   void SmearJets();
 
   void ApplyJESCorrection(double strength = 0.);
+  void PrintNjetsLeadingJetPt();
 
   float LeptonPt(int i);
   float LeptonBDT(int i);

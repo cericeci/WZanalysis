@@ -14,6 +14,7 @@ OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 DDlist=["dataDriven"]
 other=["JER", "JES"]
 submit = True
+#submit = False
 sysList = open('sysrun2.def', 'r').read().split('\n')
 #sysList = open('sysrunTEST.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
@@ -45,6 +46,7 @@ for line in sysList:
 
 variations=["UP", "DOWN"]
 variables=["Njets", "LeadingJetPt", "Zpt"]
+#variables=["LeadingJetPt"]
 algorithm="Bayes"
 #global command
 
@@ -71,7 +73,7 @@ for v in variables:
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
                     systFileName="sys_"+name+"_"+var+".def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-                #            print command
+                    print command
             
                 if name in OtherList:
                     response= "sysResults/response_sys_"+name+"_"+var+".root"
@@ -82,7 +84,7 @@ for v in variables:
                     #systFileName="sys_"+name+"_"+var+".def"
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-                #print -command
+                    #print command
                 
                 if name in other:
                     response= "sysResults/response_sys_"+name+"_"+var+".root"
@@ -94,7 +96,7 @@ for v in variables:
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
 
-#                print command                
+                    #print command                
                 if submit:
                     p = subprocess.call(command,shell=True)	
 
@@ -106,5 +108,6 @@ for v in variables:
                 outputFile = "sysResults/unfolding_nominal_"+v+".root"
                 systFileName="sys_nominal.def"
                 command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+                #print command
                 if submit:
                     p = subprocess.call(command,shell=True)	

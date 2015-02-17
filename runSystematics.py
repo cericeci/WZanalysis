@@ -8,7 +8,8 @@ from os.path import isfile, join
 pwd = os.getcwd()
 
 listOfFiles=[]
-submit = True
+submit = False
+#submit = True
 sysList = open('sysrun.def', 'r').read().split('\n')
 outputNom="sys_nominal"+".def"
 listOfFiles.append(outputNom)

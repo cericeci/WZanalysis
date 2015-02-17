@@ -8,7 +8,7 @@ from os.path import isfile, join
 pwd = os.getcwd()
 
 listOfFiles=[]
-submit = True
+submit = False
 sysList = open('sysrun.def', 'r').read().split('\n')
 #sysList = open('sysrunTEST.def', 'r').read().split('\n')
 outputNom="sys_nominal"+".def"

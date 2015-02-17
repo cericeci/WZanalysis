@@ -224,7 +224,6 @@ double UnfoldingAnalysis::GetRecoWeight() {
   float mcEfficiency   = wzevt->GetMCWeight();
 
   double recoWeight = genWeight*mcEfficiency;
-
   return recoWeight;
 
 }
@@ -453,6 +452,7 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
 	// Miss
 	if (nGenJets>0 && nRecoJets<1) response[ch]->Miss(leadingGenJetPt, 
 							  GetGenWeight());
+	
 	
 	// Fill
 	if (nGenJets>0 && nRecoJets>0) {

@@ -149,7 +149,7 @@ int main(int argc, char **argv)
       h_sys[hist][0] =UnfoldingHistogramFactory::createNjetsHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createNjetsHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
       h_sys[hist][2] =UnfoldingHistogramFactory::createNjetsHistogram(muMomScaleName.str().c_str(), muMomScaleName.str().c_str());
-      h_sys[hist][3] =UnfoldingHistogramFactory::createNjetsHistogram(eleSFname.str().c_str(), muSFname.str().c_str());
+      h_sys[hist][3] =UnfoldingHistogramFactory::createNjetsHistogram(eleSFname.str().c_str(), eleSFname.str().c_str());
       h_sys[hist][4] =UnfoldingHistogramFactory::createNjetsHistogram(muSFname.str().c_str(), muSFname.str().c_str());
       h_sys[hist][5] =UnfoldingHistogramFactory::createNjetsHistogram(JERsysName.str().c_str(), JERsysName.str().c_str());
       h_sys[hist][6] =UnfoldingHistogramFactory::createNjetsHistogram(JESsysName.str().c_str(), JESsysName.str().c_str());
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
       h_sys[hist][0] =UnfoldingHistogramFactory::createZPtHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createZPtHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
       h_sys[hist][2] =UnfoldingHistogramFactory::createZPtHistogram(muMomScaleName.str().c_str(), muMomScaleName.str().c_str());
-      h_sys[hist][3] =UnfoldingHistogramFactory::createZPtHistogram(eleSFname.str().c_str(), muSFname.str().c_str());
+      h_sys[hist][3] =UnfoldingHistogramFactory::createZPtHistogram(eleSFname.str().c_str(), eleSFname.str().c_str());
       h_sys[hist][4] =UnfoldingHistogramFactory::createZPtHistogram(muSFname.str().c_str(), muSFname.str().c_str());
       h_sys[hist][5] =UnfoldingHistogramFactory::createZPtHistogram(JERsysName.str().c_str(), JERsysName.str().c_str());
       h_sys[hist][6] =UnfoldingHistogramFactory::createZPtHistogram(JESsysName.str().c_str(), JESsysName.str().c_str());
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
       h_sys[hist][0] =UnfoldingHistogramFactory::createLeadingJetHistogram(pileupSysName.str().c_str(), pileupSysName.str().c_str());
       h_sys[hist][1] =UnfoldingHistogramFactory::createLeadingJetHistogram(elEnScaleName.str().c_str(), elEnScaleName.str().c_str());
       h_sys[hist][2] =UnfoldingHistogramFactory::createLeadingJetHistogram(muMomScaleName.str().c_str(), muMomScaleName.str().c_str());
-      h_sys[hist][3] =UnfoldingHistogramFactory::createLeadingJetHistogram(eleSFname.str().c_str(), muSFname.str().c_str());
+      h_sys[hist][3] =UnfoldingHistogramFactory::createLeadingJetHistogram(eleSFname.str().c_str(), eleSFname.str().c_str());
       h_sys[hist][4] =UnfoldingHistogramFactory::createLeadingJetHistogram(muSFname.str().c_str(), muSFname.str().c_str());
       h_sys[hist][5] =UnfoldingHistogramFactory::createLeadingJetHistogram(JERsysName.str().c_str(), JERsysName.str().c_str());
       h_sys[hist][6] =UnfoldingHistogramFactory::createLeadingJetHistogram(JESsysName.str().c_str(), JESsysName.str().c_str());
@@ -244,6 +244,7 @@ int main(int argc, char **argv)
     std::ostringstream fileNameUp, fileNameDown;
     fileNameUp<<"sysResults/unfolding_"<<types[i]<<"_"<<variable<<"_UP.root";
     fileNameDown<<"sysResults/unfolding_"<<types[i]<<"_"<<variable<<"_DOWN.root";
+
     TFile * fUP= TFile::Open(fileNameUp.str().c_str());
     TFile * fDOWN= TFile::Open(fileNameDown.str().c_str());
     
@@ -255,17 +256,22 @@ int main(int argc, char **argv)
       TH1D * h_up= (TH1D*) (fUP->Get(histName.str().c_str())->Clone(histNameNewUp.str().c_str()));
       TH1D * h_down= (TH1D*) (fDOWN->Get(histName.str().c_str())->Clone(histNameNewDown.str().c_str()));
       TH1D * h_nominal= (TH1D*) (fnominal->Get(histName.str().c_str())->Clone(histName.str().c_str()));    
-   
-      
       for (int bin=0; bin< (h_nominal->GetNbinsX()+1); bin++){
 	double up_value=h_up->GetBinContent(bin);
 	double down_value=h_down->GetBinContent(bin);
 	double nominal_value=h_nominal->GetBinContent(bin);
 	double maxDiff=std::max(fabs(up_value-nominal_value), fabs(down_value-nominal_value));
-	double syst_value= maxDiff/nominal_value;
+	double syst_value=0;
+	//double syst_value= maxDiff/nominal_value;
+	
+	if (nominal_value!=0.0){
+	  syst_value= maxDiff/nominal_value;
+	}
 	h_sys[compute][i]->SetBinContent(bin, syst_value);
       }
       delete h_nominal;
+      delete h_up;
+      delete h_down;
     }
   }
   

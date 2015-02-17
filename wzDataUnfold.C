@@ -267,12 +267,14 @@ int main(int argc, char **argv) {
     TString name;
     while (list>>name) {
       //      std::cout << "Opening background file: " << name << std::endl;
+      std::cout<<"Name: "<<name<<std::endl;
       backgroundFiles.push_back(new TFile(name));
       backgroundNames.push_back(name);
     } 
   }else if (gotBackgroundFile) {
     backgroundFiles.push_back(new TFile(bgFileName));
   }
+  std::cout<<"*************"<<std::endl;
   // WZ Tau fraction
   if (gotTauFraction) {
     fTauFraction  = new TFile(tauFractionFileName);
@@ -341,7 +343,7 @@ int main(int argc, char **argv) {
 
     //substract backgounds with systematics
     
-    double variation(1);    
+
     int ZZ_syst=0;
     int Zgamma_syst=0;
     int WV_syst=0;
@@ -373,6 +375,7 @@ int main(int argc, char **argv) {
     }
     
     for (int ibg=0; ibg<backgroundFiles.size(); ibg++) {
+      double variation(1);    
       if (backgroundNames[ibg].Contains("ZZ.root")){
 	variation=1+ZZ_syst*0.15;
       }
@@ -404,7 +407,8 @@ int main(int argc, char **argv) {
 	variation=1+TTWWJets_syst*0.5;
       }
       if (backgroundNames[ibg].Contains("TTGJets.root")){
-	  variation=1+TTGJets_syst*0.5;
+	std::cout<<backgroundNames[ibg]<<std::endl;
+	variation=1+TTGJets_syst*0.5;
       }
       if (backgroundNames[ibg].Contains("WWGJets.root")){
 	variation=1+WWGJets_syst*0.5;

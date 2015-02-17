@@ -378,18 +378,18 @@ void WZEvent::ReadEvent()
   //    genJets[i].Print();
   //  }
 
+
   SystematicsManager * sysManager = SystematicsManager::GetInstance();
 
   float jes_strength = sysManager->GetValue("JES");
 
   SmearJets();
 
+
   if (jes_strength!=0.) 
     {
       ApplyJESCorrection(jes_strength);
     }
-
-
 
 }
 
@@ -856,7 +856,7 @@ float  WZEvent::GetMCWeight() {
 
   int systEl= sysManager->GetValue("ele_SF");
   int systMu= sysManager->GetValue("mu_SF");
-
+  
   float trigEff = GetTriggerEfficiency();
 
   // Get lepton scale factors
@@ -866,20 +866,23 @@ float  WZEvent::GetMCWeight() {
 			   zLeptonsIndex[1],
 			   wLeptonIndex };
   //
+  //  std::cout<<"SYST: "<<systMu<<std::endl;
   for (int i=0; i<3; i++) {
     if (leptonIndices[i]>=0 
 	&& leptonIndices[i]<leptons.size()) {
       double lsf = leptons[leptonIndices[i]].GetScaleFactor();
-      if (leptons[i].PdgId()==11)
+      if (fabs(leptons[i].PdgId())==11){
 	lsf += systEl*0.01;
-      if (leptons[i].PdgId()==13)
+      }
+      if (fabs(leptons[i].PdgId())==13){
 	lsf += systMu*0.01;
+      }
       leptonSF *= lsf;
     } else {
       std::cout << "Lepton Index out of bounds!!! \n";
     }
   }
-
+  //  std::cout<<"Mu number: "<<muNumb<<std::endl;
   //  float weight = (leptonSF+syst*0.01)*trigEff;
   float weight = (leptonSF)*trigEff;
 
@@ -1034,7 +1037,39 @@ void WZEvent::ApplyJESCorrection(double strength)
 
     double newpt   = (1+scale)* pt;
     double newmass = (1+scale)*mass;
-
+    
     recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
+    
   }
+}
+
+void WZEvent::PrintNjetsLeadingJetPt()
+{
+  int nRecoJets = 0;
+  float leadingRecoJetPt = -9999.;
+  int leadingRecojet = -1;
+    for (int i=0; i<recoJets.size(); i++) {
+
+      if (recoJets[i].Pt() > 30 && fabs(recoJets[i].Eta()) < 2.5) {
+
+	bool closeToLepton = false;
+	float drMin = 3.;
+	for (int il=0; il<leptons.size(); il++) {
+	  if (recoJets[i].DeltaR(leptons[il])<0.5) {
+	    closeToLepton = true;
+	  }
+	}
+	if (closeToLepton) continue;
+	
+	nRecoJets++;
+	if (recoJets[i].Pt() > leadingRecoJetPt) {
+
+	  leadingRecoJetPt = recoJets[i].Pt();
+	  leadingRecojet = i;
+	}
+      }
+      
+    }
+    std::cout<<"Njets: "<<nRecoJets<<std::endl;
+    std::cout<<"LeadingJet Pt: "<<leadingRecoJetPt<<std::endl;
 }
