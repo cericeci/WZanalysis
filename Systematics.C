@@ -267,6 +267,10 @@ int main(int argc, char **argv)
 	if (nominal_value!=0.0){
 	  syst_value= maxDiff/nominal_value;
 	}
+	if ((types[i]=="TTZJets") && (compute==2)){
+	  std::cout<<"up: "<<up_value<<" down: "<<down_value<<" nominal: "<<nominal_value<<std::endl;
+	  std::cout<<"sys: "<<syst_value<<std::endl;
+	}
 	h_sys[compute][i]->SetBinContent(bin, syst_value);
       }
       delete h_nominal;

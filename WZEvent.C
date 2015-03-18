@@ -867,6 +867,7 @@ float  WZEvent::GetMCWeight() {
 			   wLeptonIndex };
   //
   //  std::cout<<"SYST: "<<systMu<<std::endl;
+  
   for (int i=0; i<3; i++) {
     if (leptonIndices[i]>=0 
 	&& leptonIndices[i]<leptons.size()) {
@@ -877,6 +878,7 @@ float  WZEvent::GetMCWeight() {
       if (fabs(leptons[i].PdgId())==13){
 	lsf += systMu*0.01;
       }
+
       leptonSF *= lsf;
     } else {
       std::cout << "Lepton Index out of bounds!!! \n";

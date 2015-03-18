@@ -10,6 +10,8 @@
 #include "TLegend.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#include <iomanip>
+
 //#include "CMS_lumi.h"
 
 TH1F *  DrawOverflow(int rebin, TH1F *h)
@@ -197,6 +199,21 @@ int  plotDataVsMC(TFile * fDataDriven,
 
   TH1F * h_data         = (TH1F*) (fdata    ->Get(histKey))     ->Clone("Data");
   
+  TH1F * h_All=(TH1F*) h_DataDriven->Clone("h_All");
+  h_All->Add(h_Zz);
+  h_All->Add(h_Zgamma);
+  h_All->Add(h_Wv);
+  h_All->Add(h_Vvv);
+  h_All->Add(h_Wz);
+
+  double all_error[5]={0.054, 0.0696, 0.07972, 0.072, 0.037};
+
+  //setting error
+  for (int bins=0; bins<(h_All->GetNbinsX()+1); bins++){
+    double binError=all_error[channel]*(h_All->GetBinContent(bins));
+    h_All->SetBinError(bins, binError);
+  }
+
   THStack *  th = new THStack(histKey,histKey);
   th->Add(h_Zgamma);
   th->Add(h_Wv);  
@@ -221,7 +238,13 @@ int  plotDataVsMC(TFile * fDataDriven,
   h_Vvv        ->SetLineColor(kBlack);    
 
 
-  //c01->RedrawAxis();
+  h_All->SetFillColor(kBlack);
+  h_All->SetFillStyle(3345);
+  //  h_All->SetLineColor(kWhite);
+  // h_All->SetLineWidth(0);
+  //h_All->SetMarkerColor(kOrange-2);
+  //h_All->SetMarkerSize(0);
+  
   
   float dataMax = h_data->GetMaximum();
   float mcMax =   th->GetMaximum();
@@ -233,7 +256,8 @@ int  plotDataVsMC(TFile * fDataDriven,
   if (dataMax > mcMax) {
     th->SetMaximum(dataMax);
   }
-  
+  th->SetMinimum(0);
+  h_data->SetMinimum(0);
   //else {th->SetMaximum(mcMax);}
   float hmin = th->GetMinimum();
   
@@ -249,10 +273,11 @@ int  plotDataVsMC(TFile * fDataDriven,
   styleHisto1D(h_data, xAxisTitle,binWidth, unit);
   
   //th->Draw();
-  th->Draw("SAME");  
+  //th->Draw("SAME");  
+  h_All->Draw("e2");
   
   //  h_data->Draw();  
-  h_data->Draw("SAMEPE1");  
+  //  h_data->Draw("SAMEPE1");  
 
 
   //plotLatex_B(19.602);
@@ -356,13 +381,35 @@ int  plotDataVsMC(TFile * fDataDriven,
   //this might be useful
 
   std::ostringstream nameDataDriven,nameWV,nameVVV, nameWZ, nameData, nameZZ, nameZgamma;
+  int nbins_dd= h_DataDriven->GetNbinsX();
+
+  nameDataDriven<<"data driven"; //("<<fixed<<setprecision(2)<< h_DataDriven->Integral(0, 1000)<<")";
+  nameZZ<<"ZZ";// ("<<fixed<<setprecision(2)<< h_Zz->Integral(0,1000)<<")";
+  nameZgamma<<"Zgamma"; //("<<  fixed<<setprecision(2)<< h_Zgamma->Integral(0,1000)<<")";
+  nameWV<<"WV ";//("<<  fixed<<setprecision(2)<< h_Wv->Integral(0,1000)<<")";
+  nameVVV<<"VVV ";//("<<  fixed<<setprecision(2)<< h_Vvv->Integral(0,1000)<<")";
+  nameWZ<<"WZ ";//("<<  fixed<<setprecision(2)<< h_Wz->Integral(0,1000)<<")";
+
+ if (channel==0)
+   nameData<<"Data eee ";//("<<  fixed<<setprecision(2)<< h_data->Integral(0,1000)<<")";
+  if (channel==1)
+    nameData<<"Data ee#mu ";//("<<   fixed<<setprecision(2)<<h_data->Integral(0,1000)<<")";
+  if (channel==2)
+    nameData<<"Data e#mu#mu ";//("<<   fixed<<setprecision(2)<<h_data->Integral(0,1000)<<")";
+  if (channel==3)
+    nameData<<"Data #mu#mu#mu ";//("<<   fixed<<setprecision(2)<<h_data->Integral(0,1000)<<")";
+  if (channel==4)
+    nameData<<"Data ";//("<<  fixed<<setprecision(2)<< h_data->Integral(0,1000)<<")";
+  /*
   nameDataDriven<<"data driven ("<< h_DataDriven->Integral(0, 500)<<")";
   nameZZ<<"ZZ ("<< h_Zz->Integral(0,500)<<")";
   nameZgamma<<"Zgamma ("<< h_Zgamma->Integral(0,500)<<")";
   nameWV<<"WV ("<< h_Wv->Integral(0,500)<<")";
   nameVVV<<"VVV ("<< h_Vvv->Integral(0,500)<<")";
   nameWZ<<"WZ ("<< h_Wz->Integral(0,500)<<")";
-  if (channel==0)
+  */
+  /* 
+ if (channel==0)
     nameData<<"Data eee ("<< h_data->Integral(0,500)<<")";
   if (channel==1)
     nameData<<"Data ee#mu ("<< h_data->Integral(0,500)<<")";
@@ -372,7 +419,10 @@ int  plotDataVsMC(TFile * fDataDriven,
     nameData<<"Data #mu#mu#mu ("<< h_data->Integral(0,500)<<")";
   if (channel==4)
     nameData<<"Data ("<< h_data->Integral(0,500)<<")";
-  
+  */
+
+
+
   leg2->AddEntry(h_DataDriven, nameDataDriven.str().c_str());
   leg2->AddEntry(h_Zz, nameZZ.str().c_str());
   leg2->AddEntry(h_Zgamma, nameZgamma.str().c_str());
@@ -380,7 +430,8 @@ int  plotDataVsMC(TFile * fDataDriven,
   leg2->AddEntry(h_Vvv, nameVVV.str().c_str());
   leg2->AddEntry(h_Wz, nameWZ.str().c_str());
   leg2->AddEntry(h_data, nameData.str().c_str());
-   /*
+  
+  /*
    leg2->AddEntry(h_Zjets, "zjets");
    leg2->AddEntry(h_Gvjets, "GVjets");
    leg2->AddEntry(h_Tt, "tt");
@@ -445,6 +496,7 @@ void plotHistogramsNew()
 
   TCanvas * c1[n];//, c2[4], c3[4], c4[4];
   TCanvas * c2[n];
+  
   TCanvas * c3[n];
   TCanvas * c4[n];
   TCanvas * c5[n];
@@ -465,7 +517,7 @@ void plotHistogramsNew()
   TCanvas * c20[n];
   TCanvas * c21[n];
   TCanvas * c22[n];
-
+  
   for (int canvas=0; canvas<n; canvas++){
     std::ostringstream name1, name2, name3, name4, name5, name6, name7, name8, name9, name10, name11, name12, name13, name14, name15, name16, name17, name18, name19, name20, name21, name22;
     name1<<"Zmass1_"<<canvas<<std::endl;
@@ -544,9 +596,9 @@ void plotHistogramsNew()
     Wleptonpt2<<"hWleptonpt2_"<<histo;
     MTW1<<"hMTW1_"<<histo;
     MTW2<<"hMTW2_"<<histo;
-    n3Lepmass1<<"h3Lmass1"<<histo;
-    n3Lepmass2<<"h3Lmass2"<<histo;
-    /*
+    n3Lepmass1<<"h3Lmass1_"<<histo;
+    n3Lepmass2<<"h3Lmass2_"<<histo;
+        
     c1[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zmass1.str().c_str(), histo, c1[histo], "M_{Z}(GeV)", 1);
     Zmass1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zmass1_"<<histo<<".pdf";
@@ -563,6 +615,7 @@ void plotHistogramsNew()
     //    CMS_lumi(c2[histo], iPeriod, iPos); 
     c2[histo]->SaveAs(Zmass2save.str().c_str());
     
+    /*
     c3[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, MET1.str().c_str(), histo, c3[histo], "MET(GeV)", 5);
     MET1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/MET1_"<<histo<<".pdf";
@@ -586,7 +639,7 @@ void plotHistogramsNew()
     Zpt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zpt2_"<<histo<<".pdf";
     //CMS_lumi(c6[histo], iPeriod, iPos); 
     c6[histo]->SaveAs(Zpt2save.str().c_str());
-
+    
     c7[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, LeadingJetPt1.str().c_str(), histo, c7[histo], "LeadingJet_{pt}(GeV)", 5);
     LeadingJetPt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt1_"<<histo<<".pdf";
@@ -598,8 +651,8 @@ void plotHistogramsNew()
     LeadingJetPt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/LeadingJetPt2_"<<histo<<".pdf";
     //CMS_lumi(c8[histo], iPeriod, iPos); 
     c8[histo]->SaveAs(LeadingJetPt2save.str().c_str());
-    */
-    /*
+    
+   
     c9[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Njets1.str().c_str(), histo, c9[histo], "N_{jets}", 1, false);
     Njets1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Njets1_"<<histo<<".pdf";
@@ -624,7 +677,8 @@ void plotHistogramsNew()
     DeltaPhi2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/DeltaPhi2_"<<histo<<".pdf";
     //CMS_lumi(c12[histo], iPeriod, iPos); 
     c12[histo]->SaveAs(DeltaPhi2save.str().c_str());
-
+    */
+    /*
     c13[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, Zlepton1pt1.str().c_str(), histo, c13[histo], "p_{T}(GeV)", 10);
     Zlepton1pt1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton1pt1_"<<histo<<".pdf";
@@ -673,8 +727,8 @@ void plotHistogramsNew()
     Zlepton2pt2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/Zlepton2pt2_"<<histo<<".pdf";
     // CMS_lumi(c20[histo], iPeriod, iPos); 
     c20[histo]->SaveAs(Zlepton2pt2save.str().c_str());
-    */
-
+    
+    
     c21[histo]->cd();
     plotDataVsMC(f1,f2,f3,f4,f5,f6,f7, n3Lepmass1.str().c_str(), histo, c21[histo], "M(GeV)", 10);
     n3Lepmass1save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/invMassLep1_"<<histo<<".pdf";
@@ -686,7 +740,7 @@ void plotHistogramsNew()
     n3Lepmass2save<<"/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/plotoviSrpanj/invMassLep2_"<<histo<<".pdf";
     // CMS_lumi(c20[histo], iPeriod, iPos); 
     c22[histo]->SaveAs(n3Lepmass2save.str().c_str());
-  
+    */
   }
  
  return;

@@ -66,6 +66,7 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
   } else   if (unfAlg == "Bayes") {
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kBayes, response, hDataClone, Kterm);
   } else if (unfAlg=="Invert"){
+    std::cout<<"INVERT"<<std::endl;
     RObject = (RooUnfold*) RooUnfold::New( RooUnfold::kInvert, response, hDataClone, Kterm);
   }
   else {
@@ -363,14 +364,14 @@ int main(int argc, char **argv) {
       ZZ_syst=sysManager->GetValue("ZZ");
       Zgamma_syst=sysManager->GetValue("Zgamma");
       WV_syst=sysManager->GetValue("WV");
-      WZZJets_syst=sysManager->GetValue("TTGJets");
-      ZZZJets_syst=sysManager->GetValue("TTWWJets");
-      WWZJets_syst=sysManager->GetValue("TTZJets");
-      WWWJets_syst=sysManager->GetValue("TTWJets");
-      TTWJets_syst=sysManager->GetValue("WWWJets");
-      TTZJets_syst=sysManager->GetValue("WWZJets");
-      TTWWJets_syst=sysManager->GetValue("ZZZJets");
-      TTGJets_syst=sysManager->GetValue("WZZJets");
+      WZZJets_syst=sysManager->GetValue("WZZJets");
+      ZZZJets_syst=sysManager->GetValue("ZZZJets");
+      WWZJets_syst=sysManager->GetValue("WWZJets");
+      WWWJets_syst=sysManager->GetValue("WWWJets");
+      TTWJets_syst=sysManager->GetValue("TTWJets");
+      TTZJets_syst=sysManager->GetValue("TTZJets");
+      TTWWJets_syst=sysManager->GetValue("TTWWJets");
+      TTGJets_syst=sysManager->GetValue("TTGJets");
       WWGJets_syst=sysManager->GetValue("WWGJets");
     }
     
@@ -407,18 +408,19 @@ int main(int argc, char **argv) {
 	variation=1+TTWWJets_syst*0.5;
       }
       if (backgroundNames[ibg].Contains("TTGJets.root")){
-	std::cout<<backgroundNames[ibg]<<std::endl;
 	variation=1+TTGJets_syst*0.5;
       }
+
       if (backgroundNames[ibg].Contains("WWGJets.root")){
 	variation=1+WWGJets_syst*0.5;
       }
-      //  std::cout<<"VAriation: "<<variation<<std::endl;
       if (ibg==0) {
 	backgrounds[chan] = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str())->Clone(bgHistoKey.str().c_str());
+	backgrounds[chan]->Sumw2();
 	backgrounds[chan]->Scale(variation);
       } else {
 	TH1D * hbg = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str());
+	hbg->Sumw2();
 	hbg->Scale(variation);
 	backgrounds[chan]->Add(hbg);
       }
@@ -432,19 +434,18 @@ int main(int argc, char **argv) {
       } else {
 	TH1D * hbg = (TH1D*) backgroundFiles[ibg]->Get(histoKey.str().c_str());
 	backgrounds[chan]->Add(hbg);
-      }
-    }
+	}
+	}
     */
-  
-
-  signal[chan]->Add(backgrounds[chan],-1);
-  
+    
+    signal[chan]->Add(backgrounds[chan],-1);           
   // Read tau fraction and orrect for it
-  
-  tauFraction[chan] = (TH1D*) fTauFraction->Get(histoKey.str().c_str())->Clone(ftauHistoKey.str().c_str());
-  
-  tauCorrection[chan] = GetTauCorrection(tauFraction[chan],tauCorrHistoKey.str());
-  
+
+
+    tauFraction[chan] = (TH1D*) fTauFraction->Get(histoKey.str().c_str())->Clone(ftauHistoKey.str().c_str());
+    
+    tauCorrection[chan] = GetTauCorrection(tauFraction[chan],tauCorrHistoKey.str());
+    
   signal[chan]->Multiply(tauCorrection[chan]);
 
 

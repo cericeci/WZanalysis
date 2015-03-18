@@ -21,10 +21,15 @@ int main(int argc, char **argv)
   //read histograms form .root files
   //definirati file-ove iz kojih citam i u koje pisem
   bool gotHistoBinning(false);
+  bool latexOutput(true);  
   char * binningFileName(0);
   char * variableName(0);
   bool gotVarName  = false;
   char c;
+  ofstream outMain, outError1, outError2;
+  outMain.open("outMain.txt");
+  outError1.open("outError1.txt");
+  outError2.open("outError2.txt");
 
   while ((c = getopt (argc, argv, "v:H:")) != -1)
     switch (c)
@@ -86,32 +91,70 @@ int main(int argc, char **argv)
   TH1D * h_crossSection[nChannels];
   TH1D * h_crossSection_final[nChannels];
   TH1D * h_crossSection_diff[nChannels];
+  TH1D * h_totalSyst[nChannels];
+  TH1D * h_totalSyst_diff[nChannels];
+  TH1D * h_totalStat[nChannels];
+  TH1D * h_totalStat_diff[nChannels];
 
   TH1D * h_crossSection_combination;
   TH1D * h_crossSection_comb_diff;
   TH1D * h_combStat;
   TH1D * h_combSyst;
+  TH1D * h_combStat_diff;
+  TH1D * h_combSyst_diff;
   double crossSection[4]={0,0,0,0};
   
 
   //ovo treba deklarirat!!!!!!!!!
+  for (int fill=0; fill<nChannels; fill++){
+    std::ostringstream totalSysName, totalSysDiffName, totalStatName, totalStatDiffName;
+    totalSysName<<"h_totalSyst_"<<fill;
+    totalSysDiffName<<"h_totalSyst_diff_"<<fill;
+    totalStatName<<"h_totalStat_"<<fill;
+    totalStatDiffName<<"h_totalStat_diff_"<<fill;
+    if (variable=="Njets"){
+      h_totalSyst[fill]=UnfoldingHistogramFactory::createNjetsHistogram(totalSysName.str().c_str(), totalSysName.str().c_str());
+      h_totalSyst_diff[fill]=UnfoldingHistogramFactory::createNjetsHistogram(totalSysDiffName.str().c_str(), totalSysDiffName.str().c_str());
+      h_totalStat[fill]=UnfoldingHistogramFactory::createNjetsHistogram(totalStatName.str().c_str(), totalStatName.str().c_str());
+      h_totalStat_diff[fill]=UnfoldingHistogramFactory::createNjetsHistogram(totalStatDiffName.str().c_str(), totalStatDiffName.str().c_str());
+    }
+    if (variable=="LeadingJetPt"){
+      h_totalSyst[fill]=UnfoldingHistogramFactory::createLeadingJetHistogram(totalSysName.str().c_str(), totalSysName.str().c_str());
+      h_totalSyst_diff[fill]=UnfoldingHistogramFactory::createLeadingJetHistogram(totalSysDiffName.str().c_str(), totalSysDiffName.str().c_str());
+      h_totalStat[fill]=UnfoldingHistogramFactory::createLeadingJetHistogram(totalStatName.str().c_str(), totalStatName.str().c_str());
+      h_totalStat_diff[fill]=UnfoldingHistogramFactory::createLeadingJetHistogram(totalStatDiffName.str().c_str(), totalStatDiffName.str().c_str());
+    }
+    if (variable=="Zpt"){
+      h_totalSyst[fill]=UnfoldingHistogramFactory::createZPtHistogram(totalSysName.str().c_str(), totalSysName.str().c_str());
+      h_totalSyst_diff[fill]=UnfoldingHistogramFactory::createZPtHistogram(totalSysDiffName.str().c_str(), totalSysDiffName.str().c_str());
+      h_totalStat[fill]=UnfoldingHistogramFactory::createZPtHistogram(totalStatName.str().c_str(), totalStatName.str().c_str());
+      h_totalStat_diff[fill]=UnfoldingHistogramFactory::createZPtHistogram(totalStatDiffName.str().c_str(), totalStatDiffName.str().c_str());
+    }
+  }
+
   if (variable=="Njets"){
     h_crossSection_combination= UnfoldingHistogramFactory::createNjetsHistogram("h_xs_comb", "h_xs_comb");
     h_crossSection_comb_diff= UnfoldingHistogramFactory::createNjetsHistogram("h_xs_comb_diff", "h_xs_comb_diff");
     h_combStat = UnfoldingHistogramFactory::createNjetsHistogram("h_combStat", "h_combStat"); 
     h_combSyst = UnfoldingHistogramFactory::createNjetsHistogram("h_combSyst", "h_combSyst");
+    h_combStat_diff = UnfoldingHistogramFactory::createNjetsHistogram("h_combStat_diff", "h_combStat_diff"); 
+    h_combSyst_diff = UnfoldingHistogramFactory::createNjetsHistogram("h_combSyst_diff", "h_combSyst_diff");
   }
   else if (variable=="LeadingJetPt"){
     h_crossSection_combination= UnfoldingHistogramFactory::createLeadingJetHistogram("h_xs_comb", "h_xs_comb");
     h_crossSection_comb_diff= UnfoldingHistogramFactory::createLeadingJetHistogram("h_xs_comb_diff", "h_xs_comb_diff");
     h_combStat = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combStat", "h_combStat"); 
     h_combSyst = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combSyst", "h_combSyst");
+    h_combStat_diff = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combStat_diff", "h_combStat_diff"); 
+    h_combSyst_diff = UnfoldingHistogramFactory::createLeadingJetHistogram("h_combSyst_diff", "h_combSyst_diff");
   }
   else if (variable=="Zpt"){
     h_crossSection_combination= UnfoldingHistogramFactory::createZPtHistogram("h_xs_comb", "h_xs_comb");
     h_crossSection_comb_diff= UnfoldingHistogramFactory::createZPtHistogram("h_xs_comb_diff", "h_xs_comb_diff");
     h_combStat = UnfoldingHistogramFactory::createZPtHistogram("h_combStat", "h_combStat"); 
     h_combSyst = UnfoldingHistogramFactory::createZPtHistogram("h_combSyst", "h_combSyst");
+    h_combStat_diff = UnfoldingHistogramFactory::createZPtHistogram("h_combStat_diff", "h_combStat_diff"); 
+    h_combSyst_diff = UnfoldingHistogramFactory::createZPtHistogram("h_combSyst_diff", "h_combSyst_diff");
   }
   else
     std::cout<<"UNKNOWN VARIABLE!!!"<<std::endl;
@@ -188,8 +231,12 @@ int main(int argc, char **argv)
 	systematicError2[nCh]+= pow (h_JESsys[nCh]->GetBinContent(bin),2)+
 	  pow (h_JERsys[nCh]->GetBinContent(bin),2);
       }
+
+      h_totalStat[nCh]->SetBinContent(bin, statisticError[nCh]);
       //      systematicError[nCh]= (sqrt(systematicError2[nCh]))*(h_crossSection[nCh]->GetBinContent(bin));
       systematicError[nCh]= (sqrt(systematicError2[nCh]))*(h_crossSection_final[nCh]->GetBinContent(bin));
+      h_totalSyst[nCh]->SetBinContent(bin, (systematicError[nCh]));
+      std::cout<<bin<<" , "<<systematicError[nCh]<<" , "<<h_crossSection_final[nCh]->GetBinContent(bin)<<std::endl;
     }
     //common elements
     double commonSys[4][4];
@@ -214,6 +261,10 @@ int main(int argc, char **argv)
     elements[5]=pow(systematicError[1],2) + pow(statisticError[1],2);
     elements[10]=pow(systematicError[2],2) + pow(statisticError[2],2);
     elements[15]=pow(systematicError[3],2) + pow(statisticError[3],2);
+    h_crossSection_final[0]->SetBinError(bin, sqrt(elements[0]));
+    h_crossSection_final[1]->SetBinError(bin, sqrt(elements[5]));
+    h_crossSection_final[2]->SetBinError(bin, sqrt(elements[10]));
+    h_crossSection_final[3]->SetBinError(bin, sqrt(elements[15]));
 
     //matrix is symetric
     //channels 0 and 1
@@ -336,26 +387,87 @@ int main(int argc, char **argv)
   for (int i=1; i<=h_crossSection_combination->GetNbinsX(); i++) {
     double value = h_crossSection_combination->GetBinContent(i);
     double error = h_crossSection_combination->GetBinError(i);
+    double errorStat = h_combStat->GetBinContent(i);
+    double errorSyst = h_combSyst->GetBinContent(i);
     double width = h_crossSection_combination->GetBinWidth(i);
     double dsdx = value/width;
     double dsdx_err = dsdx*error/value;
+    double dsdx_errStat = dsdx*errorStat/value;
+    double dsdx_errSyst = dsdx*errorSyst/value;
     h_crossSection_comb_diff->SetBinContent(i,dsdx);
     h_crossSection_comb_diff->SetBinError(i,dsdx_err);
+    h_combStat->SetBinContent(i,dsdx_errStat);
+    h_combSyst->SetBinContent(i,dsdx_errSyst);
   }
 
   for (int channels=0; channels<4; channels++){
-  for (int i=1; i<=h_crossSection_final[channels]->GetNbinsX(); i++) {
-    double value2 = h_crossSection_final[channels]->GetBinContent(i);
-    double error2 = h_crossSection_final[channels]->GetBinError(i);
-    double width2 = h_crossSection_final[channels]->GetBinWidth(i);
-    double dsdx2 = value2/width2;
-    double dsdx_err2 = dsdx2*error2/value2;
-    h_crossSection_diff[channels]->SetBinContent(i,dsdx2);
-    h_crossSection_diff[channels]->SetBinError(i,dsdx_err2);
+    for (int i=1; i<=h_crossSection_final[channels]->GetNbinsX(); i++) {
+      double value2 = h_crossSection_final[channels]->GetBinContent(i);
+      double error2 = h_crossSection_final[channels]->GetBinError(i);
+      double errorStat2 = h_totalStat[channels]->GetBinContent(i);
+      double errorSyst2 = h_totalSyst[channels]->GetBinContent(i);
+      double width2 = h_crossSection_final[channels]->GetBinWidth(i);
+      double dsdx2 = value2/width2;
+      double dsdx_err2 = dsdx2*error2/value2;
+      double dsdx_errorStat= dsdx2*errorStat2/value2;
+      double dsdx_errorSyst= dsdx2*errorSyst2/value2;
+      h_crossSection_diff[channels]->SetBinContent(i,dsdx2);
+      h_crossSection_diff[channels]->SetBinError(i,dsdx_err2);
+      h_totalSyst_diff[channels]->SetBinContent(i, dsdx_errorSyst);
+      h_totalStat_diff[channels]->SetBinContent(i, dsdx_errorStat);
+    }
+    
   }
 
-  }
+
+
+  //LATEX OUTPUT
+  if (latexOutput){
+    // TString ranges[9]={"","","","","","","","","",""};
+    TString rangesZpt[9]={"0-20 GeV", "20-40 GeV", "40-60 GeV", "60-80 GeV", "80-100 GeV", "100-120 GeV", "120-140 GeV", "140-200 GeV", "200-300 GeV"};
+    TString rangesLeadingJetPt[9]={"30-60 GeV", "60-100 GeV", "100-150 GeV", "150-250 GeV"};
+    TString rangesNjets[9]={"0 jets", "1 jet", "2 jets", "3 jets", "4 jets"};
+   
+   
+    std::cout<<"--------------------------------------------------------"<<std::endl;
+    std::cout<<"Latex output: "<<std::endl;
+    std::cout<<"bin & 3e & 2e1mu & 1e2mu & 3mu & combination \\\\"<<std::endl;
+    std::cout<<"\\hline"<<std::endl;
+
+    
   
+  for (int output=1; output<=h_crossSection_combination->GetNbinsX(); output++){
+    outMain<<output<<" "<<h_crossSection_diff[0]->GetBinContent(output)<<" "<<h_crossSection_diff[1]->GetBinContent(output)<<" "<<h_crossSection_diff[2]->GetBinContent(output)<<" "<<h_crossSection_diff[3]->GetBinContent(output)<<" "<<h_crossSection_comb_diff->GetBinContent(output)<<std::endl; 
+    outError1<<output<<" "<<h_totalStat_diff[0]->GetBinContent(output)<<" "<<h_totalStat_diff[1]->GetBinContent(output)<<" "<<h_totalStat_diff[2]->GetBinContent(output)<<" "<<h_totalStat_diff[3]->GetBinContent(output)<<" "<<h_combStat->GetBinContent(output)<<std::endl;
+    outError2<<output<<" "<<h_totalSyst_diff[0]->GetBinContent(output)<<" "<<h_totalSyst_diff[1]->GetBinContent(output)<<" "<<h_totalSyst_diff[2]->GetBinContent(output)<<" "<<h_totalSyst_diff[3]->GetBinContent(output)<<" "<<h_combSyst->GetBinContent(output)<<std::endl; 
+
+
+    if (variable=="Zpt"){
+      std::cout<<scientific<<setprecision(4)<<rangesZpt[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" & "<<
+      	h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "<<h_combStat->GetBinContent(output)<<" $\\pm$ "<<h_combSyst->GetBinContent(output)<<"\\\\"<<std::endl;
+    }
+    if (variable=="LeadingJetPt"){
+      std::cout<<fixed<<setprecision(4)<<rangesLeadingJetPt[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" & "<<
+      	h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "<<h_combStat->GetBinContent(output)<<" $\\pm$ "<<h_combSyst->GetBinContent(output)<<"\\\\"<<std::endl;
+    }
+    if (variable=="Njets"){
+      std::cout<<fixed<<setprecision(3)<<rangesNjets[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" & "<<
+      	h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "<<h_combStat->GetBinContent(output)<<" $\\pm$ "<<h_combSyst->GetBinContent(output)<<"\\\\"<<std::endl;
+    }
+
+  }
+  }
+  outMain.close();
+  //END OF LATEX OUTPUT
   fout->cd();
   h_crossSection_final[0]->Write();
   h_crossSection_final[1]->Write();
