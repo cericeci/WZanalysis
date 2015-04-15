@@ -6,7 +6,7 @@
 pu_syst         0 
 ele_scale_syst  0
 mu_scale_syst   0
-JER             1
+JER             0
 JES             0
 ele_SF          0
 mu_SF           0
