@@ -1,12 +1,18 @@
+#include "forXS/numbers.h"
+#include "forXS/numMC.h"
+#include "forXS/numMM_met.h"
+#include "forXS/numGEN_met.h"
+#include "forXS/numData_met.h"
+
+/*
 #include "numbers.h"
 #include "numMC.h"
 #include "numMM_met.h"
-//#include "numMM.h"
-//#include "numGEN.h"
-//#include "numData.h"
 #include "numGEN_met.h"
 #include "numData_met.h"
 #include "syst.h"
+*/
+#include "forXS/syst.h"
 #include "VVV.h"    //for systematics
 #include <algorithm>
 #include <iostream>
@@ -18,14 +24,15 @@ void crossSection()
 {
   //  bool latexOutput(false);
   bool latexOutput(true);
-  bool outputNumbers(false);
+  bool outputNumbers(true);
   //0: eee, 1:eem, 2:emm, 3:mmm
   ofstream fileNum;
 
   if (outputNumbers){
-    fileNum.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numWVdown.txt");
+    //    fileNum.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numWVdown.txt");
+    fileNum.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/puw_up.txt");
   }
-  double Axe3eS(dAxe3eS), Axe2e1muS(dAxe2e1muS), Axe1e2muS(dAxe1e2muS), Axe3muS(dAxe3muS);    //Spanish acceptance times eff
+  //  double Axe3eS(dAxe3eS), Axe2e1muS(dAxe2e1muS), Axe1e2muS(dAxe1e2muS), Axe3muS(dAxe3muS);    //Spanish acceptance times eff
   double AxeSJ[4]={dAxe3eSJ, dAxe2e1muSJ, dAxe1e2muSJ, dAxe3muSJ};
   //double sAxeSJ[4]={dsAxe3eSJ, dsAxe2e1muSJ, dsAxe1e2muSJ, dsAxe3muSJ};
   double AxeS[4]={dAxe3eS, dAxe2e1muS, dAxe1e2muS, dAxe3muS};
@@ -44,7 +51,7 @@ void crossSection()
   double sNZgamma[4]={dsNZgamma_3e, dsNZgamma_2e1mu, dsNZgamma_1e2mu, dsNZgamma_3mu};
   double NWV[4]={dNWV_3e, dNWV_2e1mu, dNWV_1e2mu, dNWV_3mu};
 
-  double f=-0.02;
+  double f=0;
   for (int wv=0; wv<4; wv++){
     NWV[wv]+=f*NWV[wv];
   }
@@ -91,8 +98,24 @@ void crossSection()
   double Nsig[4];
   double  systematicErrorZagreb[4]={0,0,0,0};
   double  systematicErrorSpanish[4]={0,0,0,0};
-  double sys[4]={0.055, 0.052, 0.060, 0.056};  ///all together Spanish numbers
+  double sys[4]={0.07, 0.093, 0.10, 0.094};  ///all together Spanish numbers
+  //  double sys[4]={0.055, 0.052, 0.06, 0.056};  ///all together Spanish numbers
   double luminosity (LUMI);
+
+  double sNZZ_all[4], sNZgamma_all[4], sNWV_all[4], sNVVV_all[4], sN_fake_all[4];
+  double sysNZZ[4]={0.16, 0.15, 0.16, 0.15};
+  double sysNZgamma[4]={0.15, 0.15, 0.18, 0};
+  double sysNWV[4]={0,0,0,0.21};
+  double sysNVVV[4]={0.33, 0.32, 0.32, 0.34};
+  double sysN_fake[4]={0.607, 0.64, 0.59, 0.6};
+  //adding systematic errors                                                                                                                                    
+  for (int se=0; se<4; se++){
+    sNZZ_all[se]=sqrt(pow(sysNZZ[se]*NZZ[se],2) + pow(sNZZ[se],2));
+    sNZgamma_all[se]=sqrt(pow(sysNZgamma[se]*NZgamma[se],2) + pow(sNZgamma[se],2));
+    sNWV_all[se]=sqrt(pow(sysNWV[se]*NWV[se],2) + pow(sNWV[se],2));
+    sNVVV_all[se]=sqrt(pow(sysNVVV[se]*NVVV[se],2) + pow(sNVVV[se],2));
+    sN_fake_all[se]=sqrt(pow(sysN_fake[se]*N_fake[se],2) + pow(sN_fake[se],2));
+  }
   
   //  double WZ23lnu=3*Z2ll*(W2e+W2mu+W2tau);
   double WZ23lnu=3.*0.033658*(0.1125+0.1075+0.1057);
@@ -146,7 +169,9 @@ void crossSection()
   double pileUpsys[4]= {pileUp3e/100, pileUp2e1mu/100, pileUp1e2mu/100, pileUp3mu/100};
   double ZZcs[4]= {ZZcs3e/100, ZZcs2e1mu/100, ZZcs1e2mu/100, ZZcs3mu/100};
   double Zgammacs[4]= {Zgammacs3e/100, Zgammacs2e1mu/100, Zgammacs1e2mu/100, Zgammacs3mu/100};
-  double dataDrivensys[4] = {dataDriven3e/100, dataDriven2e1mu/100, dataDriven1e2mu/100, dataDriven3mu/100};
+  //  double dataDrivensys[4] = {dataDriven3e/100, dataDriven2e1mu/100, dataDriven1e2mu/100, dataDriven3mu/100};
+  //double dataDrivensys[4] = {0.0308433,0.0235995, 0.0355038, 0.029011};
+  //  double dataDrivensys[4] = {0.046265, 0.0799321, 0.0859961, 0.0775347};
   double bckgSys[4] = {back3e/100, back2e1mu/100, back1e2mu/100, back3mu/100};
   
   //compose Error Matrix [i = column*4+row] [0-3][0-3] indices
@@ -198,7 +223,7 @@ void crossSection()
   elmZagreb[13]=elmZagreb[7] =crossSectionZagreb[1]*crossSectionZagreb[3] *(commonSys[1][3] + elEnScale[1]*elEnScale[3] + muMomScale[1]*muMomScale[3]+
 									   leptTrgEff[1]*(sqrt(1/3)*leptTrgEff[3]));
   //channels 2 and 3
-  elmZagreb[14]=elmZagreb[11] =crossSectionZagreb[2]*crossSectionZagreb[3] *(commonSys[2][3] + elEnScale[2]*elEnScale[3] + muMomScale[2]*muMomScale[3]+
+  elmZagreb[11]=elmZagreb[14] =crossSectionZagreb[2]*crossSectionZagreb[3] *(commonSys[2][3] + elEnScale[2]*elEnScale[3] + muMomScale[2]*muMomScale[3]+
 									     leptTrgEff[2]*(sqrt(2/3)*leptTrgEff[3]));
  
   std::cout<<"Error matrix finished!!"<<std::endl;
@@ -338,15 +363,22 @@ void crossSection()
   }
   std::cout<<"\\end{tabular}"<<std::endl;
   std::cout<<"\\end{center}"<<std::endl;
+
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"Matrix method results WITH SYSTEMATICS"<<std::endl;
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c|c|c}"<<std::endl;
+  std::cout<<"channel & Ndata  & Nfake\\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  for (int mm=0; mm<4; mm++){
+    std::cout<<names[mm]<<" & " <<N_data[mm]<<"$ & $"<<N_fake[mm]<<"\\pm"<<sN_fake_all[mm]<<"$ \\\\"<<std::endl;
+    std::cout<<"\\hline"<<std::endl;
+  }
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+
   std::cout<<"*****************"<<std::endl;
   std::cout<<"MC  yields"<<std::endl;
-  /*
-    std::cout<<"channel &  ZZ & Zgamma & WV & VVV\\\\"<<std::endl;
-    for (int a=0; a<4; a++){
-    std::cout<<names[a]<<"$  & $"<<NZZ[a]<<"\\pm "<<sNZZ[a]<<"$ & $"<<NZgamma[a]<<"\\pm "<<sNZgamma[a]<<"$ & $"<<NWV[a]<<"\\pm "<<sNWV[a]<<"$ & $"<<NVVV[a]<<"\\pm "<<sNVVV[a]<<"$\\\\"<<std::endl;
-    std::cout<<"\\hline"<<std::endl;
-    }
-    */
   std::cout<<"\\begin{center}"<<std::endl;
   std::cout<<"\\begin{tabular}{c|c|c|c|c}"<<std::endl;
   std::cout<<" & 3e & 2e1mu & 1e2mu & 3mu \\\\"<<std::endl;
@@ -357,6 +389,24 @@ void crossSection()
   std::cout<<"WV & $"<<NWV[0]<<"\\pm "<<sNWV[0]<<"$ & $"<<NWV[1]<<"\\pm "<<sNWV[1]<<"$ & $"<<NWV[2]<<"\\pm "<<sNWV[2]<<"$ & $"<<NWV[3]<<"\\pm "<<sNWV[3]<<"$ \\\\"<<std::endl;
   std::cout<<"\\hline"<<std::endl;
   std::cout<<"VVV & $"<<NVVV[0]<<"\\pm "<<sNVVV[0]<<"$ & $"<<NVVV[1]<<"\\pm "<<sNVVV[1]<<"$ & $"<<NVVV[2]<<"\\pm "<<sNVVV[2]<<"$ & $"<<NVVV[3]<<"\\pm "<<sNVVV[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"\\end{tabular}"<<std::endl;
+  std::cout<<"\\end{center}"<<std::endl;
+
+
+
+  std::cout<<"*****************"<<std::endl;
+  std::cout<<"MC  yields WITH SYSTEMATICS"<<std::endl;
+  std::cout<<"\\begin{center}"<<std::endl;
+  std::cout<<"\\begin{tabular}{c|c|c|c|c}"<<std::endl;
+  std::cout<<" & 3e & 2e1mu & 1e2mu & 3mu \\\\"<<std::endl;
+  std::cout<<"ZZ & $"<<NZZ[0]<<"\\pm "<<sNZZ_all[0]<<"$ & $"<<NZZ[1]<<"\\pm "<<sNZZ_all[1]<<"$ & $"<<NZZ[2]<<"\\pm "<<sNZZ_all[2]<<"$ & $"<<NZZ[3]<<"\\pm "<<sNZZ_all[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"Zgamma & $"<<NZgamma[0]<<"\\pm "<<sNZgamma_all[0]<<"$ & $"<<NZgamma[1]<<"\\pm "<<sNZgamma_all[1]<<"$ & $"<<NZgamma[2]<<"\\pm "<<sNZgamma_all[2]<<"$ & $"<<NZgamma[3]<<"\\pm "<<sNZgamma_all[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"WV & $"<<NWV[0]<<"\\pm "<<sNWV_all[0]<<"$ & $"<<NWV[1]<<"\\pm "<<sNWV_all[1]<<"$ & $"<<NWV[2]<<"\\pm "<<sNWV_all[2]<<"$ & $"<<NWV[3]<<"\\pm "<<sNWV_all[3]<<"$ \\\\"<<std::endl;
+  std::cout<<"\\hline"<<std::endl;
+  std::cout<<"VVV & $"<<NVVV[0]<<"\\pm "<<sNVVV_all[0]<<"$ & $"<<NVVV[1]<<"\\pm "<<sNVVV_all[1]<<"$ & $"<<NVVV[2]<<"\\pm "<<sNVVV_all[2]<<"$ & $"<<NVVV[3]<<"\\pm "<<sNVVV_all[3]<<"$ \\\\"<<std::endl;
   std::cout<<"\\hline"<<std::endl;
   std::cout<<"\\end{tabular}"<<std::endl;
   std::cout<<"\\end{center}"<<std::endl;

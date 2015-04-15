@@ -3,6 +3,7 @@
 #include "UnfoldingHistogramFactory.h"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -224,7 +225,6 @@ double UnfoldingAnalysis::GetRecoWeight() {
   float mcEfficiency   = wzevt->GetMCWeight();
 
   double recoWeight = genWeight*mcEfficiency;
-
   return recoWeight;
 
 }
@@ -253,9 +253,7 @@ void UnfoldingLeadingJetPt::Init() {
   //  CreateBaseHistos();
   //  std::cout << "Calling Init method \n";
   //  std::cout << "Entered Jet Pt Init method \n";
-
   for (int i=0; i<5; i++) {
-
     std::ostringstream genhistoKey;
     std::ostringstream genhistoTitle;
     genhistoKey << "hnGenJets_" << i;
@@ -442,9 +440,10 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
 	  if (ch!= recoChannel) {
 	    std::cout << "Mismatch in reco & Gen Channel: Gen " << ch
 		      << "\t Reco: " << recoChannel << std::endl;
+	    std::cout<<GetRecoWeight()<<std::endl;
 	  }
+	  
 	}
-	
 	// Fake
 	//	if (nGenJets<1 && nRecoJets>0) responseJetPt[recoChannel-1]->Fake(leadingRecoJetPt, weight);
 	if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, 
@@ -453,6 +452,7 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
 	// Miss
 	if (nGenJets>0 && nRecoJets<1) response[ch]->Miss(leadingGenJetPt, 
 							  GetGenWeight());
+	
 	
 	// Fill
 	if (nGenJets>0 && nRecoJets>0) {
@@ -489,6 +489,7 @@ void UnfoldingLeadingJetPt::Finish(TFile * fout) {
 
   std::cout << "Jet Pt Finish \n";
 
+  //END OF TESTTING
   UnfoldingAnalysis::Finish(fout);
 
   fout->cd();

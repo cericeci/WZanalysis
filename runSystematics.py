@@ -9,6 +9,7 @@ pwd = os.getcwd()
 
 listOfFiles=[]
 submit = False
+#submit = True
 sysList = open('sysrun.def', 'r').read().split('\n')
 outputNom="sys_nominal"+".def"
 listOfFiles.append(outputNom)
@@ -47,7 +48,7 @@ for line in sysList:
 for l in listOfFiles:
     name=l.split('.')
     outputFile = "sysResults/response_"+ name[0] + ".root"
-    command = "./wzMCUnfoldingAnalysis -l fullList_pucorr  -H Binnings/binning06 -o " + outputFile+"+ -S "+l
+    command = "./wzMCUnfoldingAnalysis -l fullList_pucorr  -H Binnings/binning06 -o " + outputFile+" -S "+l
     print command
     jobFileName = "jobs/response-"+name[0]+".csh"
     batchFileName = "jobs/response-"+name[0]+".bat"

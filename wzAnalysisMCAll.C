@@ -65,6 +65,7 @@ int main()
   //***write output numbers
   bool writeOutputNumbers(false);
   //  bool writeOutputNumbers(true);
+  std::ostingstream outMain, outError1, outError2;
 
   if (writeOutputNumbers){
     fileNumMC.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMC.h");

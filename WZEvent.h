@@ -146,6 +146,7 @@ public:
   float GetShiftedMET(int met_syst);
 
   void ApplyJESCorrection(double strength = 0.);
+  void PrintNjetsLeadingJetPt();
 
   float LeptonPt(int i);
   float LeptonBDT(int i);

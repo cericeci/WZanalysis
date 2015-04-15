@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from random import choice
 from os import listdir
 from os.path import isfile, join
+import time
 
 pwd = os.getcwd()
 
@@ -14,6 +15,7 @@ OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 DDlist=["dataDriven"]
 other=["JER", "JES"]
 submit = True
+#submit = False
 sysList = open('sysrun2.def', 'r').read().split('\n')
 #sysList = open('sysrunTEST.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
@@ -27,6 +29,7 @@ for line in sysList:
         continue
     types= line.split()
     typesList.append(types[0])
+    ####
     newfileNom.write(line+'\n')
     outputUp="sys_"+types[0]+"_UP.def"
     outputDown="sys_"+types[0]+"_DOWN.def"
@@ -42,9 +45,11 @@ for line in sysList:
             else:
                 newfileUp.write(types[0]+'\t'+'1 \n')
                 newfileDown.write(types[0]+'\t'+'-1 \n')
-
+        newfileUp.close()
+        newfileDown.close()
 variations=["UP", "DOWN"]
 variables=["Njets", "LeadingJetPt", "Zpt"]
+#variables=["LeadingJetPt"]
 algorithm="Bayes"
 #global command
 
@@ -58,7 +63,7 @@ for v in variables:
             backgroundListName ="backgroundList06"
             systFileName="nominal.def"
             command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-            #print command
+            print command
             if submit:
                 p = subprocess.call(command,shell=True)	
         else:
@@ -71,18 +76,20 @@ for v in variables:
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
                     systFileName="sys_"+name+"_"+var+".def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-                #            print command
-            
+                    print command
+                    if submit:
+                        p=subprocess.call(command, shell=True)
                 if name in OtherList:
                     response= "sysResults/response_sys_"+name+"_"+var+".root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/"+name+"_"+var+"/WZ.root"
                     backgroundListName ="backgroundList06"+name+"_"+var
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
-                    #systFileName="sys_"+name+"_"+var+".def"
+                    systFileName="sys_"+name+"_"+var+".def"
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-                #print -command
+                    if submit:
+                        p=subprocess.call(command, shell=True)
                 
                 if name in other:
                     response= "sysResults/response_sys_"+name+"_"+var+".root"
@@ -90,21 +97,19 @@ for v in variables:
                     WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
                     backgroundListName ="backgroundList06"
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
-                    #systFileName="sys_"+name+"_"+var+".def"
+                    systFileName="sys_"+name+"_"+var+".def"
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+                    if submit:
+                        p = subprocess.call(command,shell=True)	
 
-#                print command                
-                if submit:
-                    p = subprocess.call(command,shell=True)	
-
-
-                response= "sysResults/response_sys_nominal.root"
-                dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
-                WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
-                backgroundListName ="backgroundList06"
-                outputFile = "sysResults/unfolding_nominal_"+v+".root"
-                systFileName="sys_nominal.def"
-                command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-                if submit:
-                    p = subprocess.call(command,shell=True)	
+    response= "sysResults/response_sys_nominal.root"
+    dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
+    WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
+    backgroundListName ="backgroundList06"
+    outputFile = "sysResults/unfolding_nominal_"+v+".root"
+    systFileName="sys_nominal.def"
+    command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+    print command
+    if submit:
+        p = subprocess.call(command,shell=True)	

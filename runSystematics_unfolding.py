@@ -13,7 +13,8 @@ MClist=["ZZ", "Zgamma", "WV", "WZZJets", "ZZZJets", "WWZJets", "WWWJets", "TTWJe
 OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 DDlist=["dataDriven"]
 other=["JER", "JES"]
-submit = False
+submit = True
+#submit = False
 sysList = open('sysrun2.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
 listOfFiles.append(outputNom)
@@ -51,12 +52,13 @@ for v in variables:
     for name in typesList:
         outputFile = "sysResults/unfolding_"+ name +"_"+ v + ".root"
         if name in DDlist:
-            response= "sysResults/response_nominal_"+v+".root"
-            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSyst/data_driven.root"
+            response= "sysResults/response_sys_nominal.root"
+            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSys/data_driven.root"
             WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
             backgroundListName ="backgroundList06"
             systFileName="nominal.def"
             command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+#            print command
             jobFileName = "jobs/unfolding-"+name+"_"+v+".csh"
             batchFileName = "jobs/unfolding-"+name+"_"+v+".bat"
             jobFile = open(jobFileName,"w")
@@ -77,32 +79,33 @@ for v in variables:
             batchFile.close()
             
             p = subprocess.call("chmod +x " +jobFileName,shell=True)
+            #print command
             if submit:
                 p = subprocess.call("condor_submit " +batchFileName,shell=True)	
         else:
             for var in variations:
                 if name in MClist:
-                    response= "sysResults/response_nominal.root"
+                    response= "sysResults/response_sys_nominal.root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
-                    backgroundListName ="backgroundList"
+                    backgroundListName ="backgroundList_syst"
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
                     systFileName="sys_"+name+"_"+var+".def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
                 #            print command
             
                 if name in OtherList:
-                    response= "sysResults/response_"+name+"_"+var+".root"
+                    response= "sysResults/response_sys_"+name+"_"+var+".root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/"+name+"_"+var+"/WZ.root"
                     backgroundListName ="backgroundList06"+name+"_"+var
                     outputFile = "sysResults/unfolding_"+ name +"_"+ v +"_"+var+ ".root"
-                    systFileName="sys_"+name+"_"+var+".def"
+                    systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
                 #print -command
                 
                 if name in other:
-                    response= "sysResults/response_"+name+"_"+var+".root"
+                    response= "sysResults/response_sys_"+name+"_"+var+".root"
                     dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
                     WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
                     backgroundListName ="backgroundList06"
@@ -111,6 +114,13 @@ for v in variables:
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
 
+                response= "sysResults/response_sys_nominal.root"
+                dataFile= "inputHistograms2/forVukoNew/binning06/data_driven.root"
+                WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
+                backgroundListName ="backgroundList06"
+                outputFile = "sysResults/unfolding_nominal_"+v+".root"
+                systFileName="sys_nominal.def"
+                command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName    
                 
                 jobFileName = "jobs/unfolding-"+name+"_"+v+"_"+var+".csh"
                 batchFileName = "jobs/unfolding-"+name+"_"+v+"_"+var+".bat"
@@ -132,6 +142,7 @@ for v in variables:
                 batchFile.close()
             
                 p = subprocess.call("chmod +x " +jobFileName,shell=True)
+                #print command
                 if submit:
                     p = subprocess.call("condor_submit " +batchFileName,shell=True)	
         
