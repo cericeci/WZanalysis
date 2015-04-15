@@ -1,12 +1,14 @@
 #include "WZEvent.h"
 
 #include "JetEnergyTool.h"
+#include "MetSystematicsTool.h"
 #include "SystematicsManager.h"
 
 #include "TLorentzVector.h"
 #include "TMath.h"
 
 #include <iostream>
+#include <math.h>
 
 
 //
@@ -388,6 +390,21 @@ void WZEvent::ReadEvent()
     {
       ApplyJESCorrection(jes_strength);
     }
+
+
+  // MET Systematics
+
+  int met_syst = sysManager->GetValue("MET");
+
+  if (met_syst != 0) {
+
+    float met_new = GetShiftedMET(met_syst);
+
+    //    std::cout << "Got new MET: " 
+    //	      << met_new 
+    //	      << "\t old = " << pfmetTypeI
+    //	      << std::endl;
+  }
 
 
 
@@ -1035,6 +1052,21 @@ void WZEvent::ApplyJESCorrection(double strength)
     double newpt   = (1+scale)* pt;
     double newmass = (1+scale)*mass;
 
+    std::cout << "\t Jet JES: eta " << eta << " pt : "  << pt << "\t scale = " 
+	      << scale << " newPt =" << newpt << std::endl;
+
     recoJets[ijet].SetPtEtaPhiM(newpt,eta,phi,newmass);
   }
+}
+
+float WZEvent::GetShiftedMET(int met_syst){
+
+  float newmet = -999.;
+
+  MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
+
+  newmet = metTool->GetMETValue(run,event,met_syst);
+
+  return newmet;
+
 }

@@ -17,6 +17,7 @@
 
 #include "WZAnalysis.h"
 #include "JetEnergyTool.h"
+#include "MetSystematicsTool.h"
 #include "SystematicsManager.h"
 
 #include "constants.h"
@@ -126,6 +127,10 @@ int main(int argc, char **argv)
     fout = new TFile("wzJets-test.root", "RECREATE");
   }
 
+  TH1F * hMetSys_dmet      = new TH1F ("hMetSyst_dmet", "DMet", 100, -30.,30.);
+  TH1F * hMetSys_met_dphi  = new TH1F ("hMetSyst_met_dphi", "Met-Dphi", 100, -3.,3.);
+
+
   TH1D * hZmassMu1         = new TH1D ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
   TH1D * hZmassEl1         = new TH1D ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
@@ -213,6 +218,10 @@ int main(int argc, char **argv)
   JetEnergyTool * jesTool = JetEnergyTool::GetInstance();
   jesTool->SetJESFile("START53_V15_Uncertainty_AK5PF.txt");
 
+  MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
+  metTool->SetInputFile("wzMetSystematics.root");
+
+
   //
   // Event loop
   // 
@@ -228,6 +237,12 @@ int main(int argc, char **argv)
 
     //    cWZ->SmearJets();
     //    cWZ->ApplyJESCorrection(1);
+
+    
+    float dMet = cWZ->pfmetTypeI - 
+      metTool->GetMETValue(cWZ->run,cWZ->event,1);
+
+    hMetSys_dmet->Fill(dMet);
 
     if (debug) {
       std::cout << "============  Run: " << cWZ->run << "\t Event: " 
@@ -370,6 +385,7 @@ int main(int argc, char **argv)
 //   hXChanelTriggerEff2->Write();
 //   hXChanelTrigEffDiff->Write();
 
+  hMetSys_dmet->Write();
   hRecoVsGenChannel->Write(); 
   genAnalysis.Finish(fout);
   unfoldJetPt.ApplyLuminosityNormalization(lumiNormalization);

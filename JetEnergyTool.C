@@ -14,7 +14,6 @@ using namespace std;
 JetEnergyTool * JetEnergyTool::_instance = NULL; 
 
 
-
 JES_map::JES_map(std::string line) {
 
   pt_bins.clear();

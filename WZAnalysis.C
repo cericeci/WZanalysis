@@ -1,11 +1,15 @@
 #include "WZAnalysis.h"
 
+#include "MetSystematicsTool.h"
+
 #include <ios>
 #include <iostream>
 #include <fstream>
 
 
 WZAnalysis::WZAnalysis(WZEvent * e) {
+
+  doMetStudy = true;
 
   wzevt = e;
 
@@ -37,6 +41,15 @@ void WZAnalysis::Init() {
   jetResolutionTree->Branch("dR", &_drRecoGenJet, "dR/F");
 
 
+  if (doMetStudy) {
+    metSystematicsTree = new TTree("metsys","MET Systematics");
+    metSystematicsTree->Branch("trpfmet",    &_trpfMet,    "trpfmet/F");
+    metSystematicsTree->Branch("trpfmetphi", &_trpfMetPhi, "trpfmetphi/F");
+    metSystematicsTree->Branch("pfmet",      &_pfMet,      "pfmet/F");
+    metSystematicsTree->Branch("pfmetphi",   &_pfMetPhi,    "pfmetphi/F");
+    metSystematicsTree->Branch("pfmettype1",      &_pfMetType1,    "pfmettype1/F");
+    metSystematicsTree->Branch("pfmettype1",   &_pfMetType1Phi, "pfmettype1phi/F");
+  }
 
   eventSummaryTree = new TTree("event","Event Summary");
   eventSummaryTree->Branch("channel",  &_channel,  "channel/I");
@@ -243,6 +256,29 @@ void WZAnalysis::EventAnalysis() {
     }
 
   }
+
+
+  if (doMetStudy) {
+
+    // MET Systematics analysis
+
+    MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
+
+
+    TLorentzVector pmet1,pmet2;
+
+    _trpfMet    = wzevt->pfmetTypeI;
+    _trpfMetPhi = wzevt->pfmetTypeIphi;
+    pmet1 =  metTool->GetMETVector(wzevt->run,wzevt->event,20);
+    _pfMet    = pmet1.Pt();
+    _pfMetPhi = pmet1.Phi();
+    pmet2 =  metTool->GetMETVector(wzevt->run,wzevt->event,1);
+    _pfMetType1    = pmet2.Pt();
+    _pfMetType1Phi = pmet2.Phi();
+  
+    metSystematicsTree->Fill();
+
+  }
 }
 
 void WZAnalysis::Finish(TFile * fout) {
@@ -344,6 +380,9 @@ void WZAnalysis::Finish(TFile * fout) {
   // 
   if (fout) {
     jetResolutionTree->Write();
+    if (doMetStudy) {
+      metSystematicsTree->Write();
+    }
     eventSummaryTree->Write();
   }
 

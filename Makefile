@@ -44,7 +44,7 @@ wzWZ: wzWZ.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C
 wzMCSignalAnalysis: wzMCSignalAnalysis.C wzToolsNew.C WZ.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C  UnfoldingAnalysis.h
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent_v140710.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h UnfoldingHistogramFactory.C JetEnergyTool.C SystematicsManager.C
+wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent_v140710.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h UnfoldingHistogramFactory.C JetEnergyTool.C SystematicsManager.C MetSystematicsTool.C metsys.C
 	g++ -D NEWMCPUFIX $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzExampleAnalysis: wzExampleAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C WZAnalysis.C 

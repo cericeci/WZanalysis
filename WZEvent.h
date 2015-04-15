@@ -102,6 +102,7 @@ public:
     } else if (abs(id) == 13) {
       mass = 0.1057;
     }
+
     SetPtEtaPhiM(pt, eta, phi, mass);
 
     motherBoson     = oVpid;
@@ -141,6 +142,8 @@ public:
   bool PassesGenCuts();
 
   void SmearJets();
+
+  float GetShiftedMET(int met_syst);
 
   void ApplyJESCorrection(double strength = 0.);
 
