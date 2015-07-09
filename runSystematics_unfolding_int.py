@@ -12,10 +12,15 @@ listOfFiles=[]
 typesList=[]
 MClist=["ZZ", "Zgamma", "WV", "WZZJets", "ZZZJets", "WWZJets", "WWWJets", "TTWJets", "TTZJets", "TTWWJets", "TTGJets", "WWGJets"]
 OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
-DDlist=["dataDriven"]
+#DDlist=["dataDriven"]
+DDlist=["dataDriven_el", "dataDriven_mu"]
+#METlist=["met_elEn", "met_jetEn", "met_jetRes", "met_muEn", "met_tauEn", "met_unEn"]
+METlist=[]
+#ktermList=["kterm_up", "kterm_down"]
+ktermDict={'kterm_up':6,'kterm_down':4}
 other=["JER", "JES"]
-submit = True
-#submit = False
+#submit = True
+submit = False
 sysList = open('sysrun2.def', 'r').read().split('\n')
 #sysList = open('sysrunTEST.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
@@ -54,13 +59,38 @@ algorithm="Bayes"
 #global command
 
 for v in variables:
+    for var in variations:
+        for nameMET in METlist:
+            response= "sysResults/response_"+nameMET+"_"+var+".root"
+            dataFile="inputHistograms2/forVukoNew/binning06/data_driven.root"
+            WZfile="inputHistograms2/forVukoNew/binning06/"+nameMET+"_"+var+"/WZ.root"
+            backgroundListName ="backgroundList06"
+            outputFile="sysResults/unfolding_"+nameMET+"_"+v+"_"+var+".root"
+            systFileName="sys_nominal.def"
+            command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+            #print command        
+            #if submit:
+             #   p=subprocess.call(command,shell=True)
+                
+    for name in ktermDict:
+        response="sysResults/response_sys_nominal.root"
+        dataFile="inputHistograms2/forVukoNew/binning06/data_driven.root"
+        WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
+        backgroundListName ="backgroundList06"
+        outputFile="sysResults/unfolding_"+name+"_"+v+".root"
+        command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -k "+ str(ktermDict[name])
+        print command        
+        if submit:
+            p=subprocess.call(command,shell=True)
+
     for name in typesList:
         outputFile = "sysResults/unfolding_"+ name +"_"+ v + ".root"
         if name in DDlist:
             response= "sysResults/response_sys_nominal.root"
-            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSys/data_driven.root"
+            dataFile= "inputHistograms2/forVukoNew/binning06/dataDrivenSys/data_driven_"+name+".root"
             WZfile= "inputHistograms2/forVukoNew/binning06/WZ.root"
             backgroundListName ="backgroundList06"
+            outputFile = "sysResults/unfolding_"+ name +"_"+ v + ".root"
             systFileName="nominal.def"
             command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
             print command
@@ -109,6 +139,18 @@ for v in variables:
     backgroundListName ="backgroundList06"
     outputFile = "sysResults/unfolding_nominal_"+v+".root"
     systFileName="sys_nominal.def"
+    command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+    print command
+    if submit:
+        p = subprocess.call(command,shell=True)	
+
+
+    response= "sysResults/response_met_nominal.root"
+    dataFile="inputHistograms2/forVukoNew/binning06/data_driven.root"
+    WZfile="inputHistograms2/forVukoNew/binning06/met_nominal/WZ.root"
+    backgroundListName ="backgroundList06"
+    outputFile="sysResults/unfolding_met_nominal_"+v+".root"
+    systFileName="nominal.def"
     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
     print command
     if submit:
