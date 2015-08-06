@@ -210,11 +210,11 @@ void plotFinal(TString variable, float adjustMin=-999)
   c2->SaveAs(saveNameDiffLog.str().c_str());
 
   //ovo se treba zakomentirati pa onda nece crtati gluposti tu prije
-  fout->cd();
-  hComb_diff->Write();
-  mg_histos[0]->Write();
-  if (variable!="Njets")
-    mcfmPlots[0]->Write();
-  fout->Close();
+  //  fout->cd();
+  //hComb_diff->Write();
+  //mg_histos[0]->Write();
+  //if (variable!="Njets")
+  //  mcfmPlots[0]->Write();
+  //fout->Close();
 }
 
