@@ -11,11 +11,12 @@ pwd = os.getcwd()
 listOfFiles=[]
 typesList=[]
 MClist=["ZZ", "Zgamma", "WV", "WZZJets", "ZZZJets", "WWZJets", "WWWJets", "TTWJets", "TTZJets", "TTWWJets", "TTGJets", "WWGJets"]
+#MClist=[]
 OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 #DDlist=["dataDriven"]
 DDlist=["dataDriven_el", "dataDriven_mu"]
-#METlist=["met_elEn", "met_jetEn", "met_jetRes", "met_muEn", "met_tauEn", "met_unEn"]
-METlist=[]
+METlist=["met_elEn", "met_jetEn", "met_jetRes", "met_muEn", "met_tauEn", "met_unEn"]
+#METlist=[]
 #ktermList=["kterm_up", "kterm_down"]
 ktermDict={'kterm_up':6,'kterm_down':4}
 other=["JER", "JES"]
@@ -68,9 +69,9 @@ for v in variables:
             outputFile="sysResults/unfolding_"+nameMET+"_"+v+"_"+var+".root"
             systFileName="sys_nominal.def"
             command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
-            #print command        
-            #if submit:
-             #   p=subprocess.call(command,shell=True)
+            print command        
+            if submit:
+                p=subprocess.call(command,shell=True)
                 
     for name in ktermDict:
         response="sysResults/response_sys_nominal.root"
@@ -118,6 +119,7 @@ for v in variables:
                     systFileName="sys_"+name+"_"+var+".def"
                     systFileName="sys_nominal.def"
                     command = "./wzDataUnfold -r "+ response + " -d " + dataFile + " -B "+ backgroundListName + " -t "+ WZfile+ " -v "+ v + " -a "+algorithm+" -o "+ outputFile + " -S "+ systFileName
+                    print command
                     if submit:
                         p=subprocess.call(command, shell=True)
                 
