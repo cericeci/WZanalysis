@@ -16,7 +16,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
+#include <iomanip>
 
 #define DEBUG_LEVEL 0
 // #define LUMINOSITY 19602
@@ -81,6 +81,16 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
 
   RObject->PrintTable(cout, h_mcTruth, (RooUnfold::ErrorTreatment)errorType);
   
+  TMatrixD covMatrix= RObject->Ereco(errorType);
+  covMatrix.Print();
+
+  //int nBins=11;
+  //for (int m=0; m<nBins; m++){
+  //  for (int n=0; n<nBins; n++){
+  //   std::cout<<"  "<<fixed<<setprecision(2)<<covMatrix[m][n]<<" &  ";
+  // }
+  //  std::cout<<" \\\\ "<<endl;
+  //}
   return hCorrected;
 }
   
