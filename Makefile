@@ -56,6 +56,8 @@ unfold: unfold.C
 wzDataUnfold: wzDataUnfold.C SystematicsManager.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+plotResponse: plotResponse.C  
+
 wzDataUnfoldRegStudy: wzDataUnfoldRegStudy.C SystematicsManager.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
