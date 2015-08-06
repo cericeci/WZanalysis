@@ -57,6 +57,8 @@ wzDataUnfold: wzDataUnfold.C SystematicsManager.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 plotResponse: plotResponse.C  
+
+wzDataUnfoldRegStudy: wzDataUnfoldRegStudy.C SystematicsManager.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C 
@@ -64,6 +66,10 @@ BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C
 
 Systematics: Systematics.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+mcfmPlots: mcfmPlots.C mcfmTree.C UnfoldingHistogramFactory.C 
+	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
 
 
 #test: test.C wzTools2.C WZ2012Data.C

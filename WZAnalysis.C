@@ -9,7 +9,7 @@
 
 WZAnalysis::WZAnalysis(WZEvent * e) {
 
-  doMetStudy = true;
+  doMetStudy = false;
 
   wzevt = e;
 
