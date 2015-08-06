@@ -48,6 +48,8 @@ protected:
   TH1D * genHistos[5];
   TH1D * recoHistos[5];
 
+  TH1D * genXSHistos[5];
+
   TH1D * controlRecoHistos[5];
   TH1D * controlGenHistos[5];
 

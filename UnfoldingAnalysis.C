@@ -2,6 +2,8 @@
 
 #include "UnfoldingHistogramFactory.h"
 
+#include "constants.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -34,9 +36,20 @@ void UnfoldingAnalysis::CreateBaseHistos() {
     std::ostringstream genhistoKey;
     std::ostringstream genhistoTitle;
     genhistoKey << "hGen" << key << "_" << i;
+
     genhistoTitle << "Gen " << key << "  for channel " << i;
     genHistos[i] = createHistogram(genhistoKey.str(), genhistoTitle.str());
     genHistos[i]->Sumw2();
+
+
+//     std::ostringstream genxshistoKey;
+//     std::ostringstream genxshistoTitle;
+//     genxshistoKey << "hGenXs" << key << "_" << i;
+//     genxshistoTitle << "Truth XS " << key << "  for channel " << i;
+//     genXSHistos[i] = createHistogram(genxshistoKey.str(), 
+// 				     genxshistoTitle.str());
+//     genXSHistos[i]->Sumw2();
+
 
     std::ostringstream recohistoKey;
     std::ostringstream recohistoTitle;
@@ -111,12 +124,50 @@ void UnfoldingAnalysis::ApplyLuminosityNormalization(double norm){
   std::cout << "APPLY LUMI NORMALIZATION TO UNF. HISTOS: "
 	    << norm << std::endl;
 
+  double BrZToL    = 0.0337;
+  double BrWtoE    = 0.1075;
+  double BrWtoMu   = 0.1057;
+  double BrWZto3L  = BrZToL*BrWtoE;
+
   for (int i=0; i<5; i++) {
     if (i>0) {
       genHistos[i]->Scale(norm);
       recoHistos[i]->Scale(norm);
       controlRecoHistos[i]->Scale(norm);
       controlGenHistos[i]->Scale(norm);
+
+      // Copy gen histos to diff xs histos
+      std::ostringstream genxshistoKey;
+      std::ostringstream genxshistoTitle;
+      genxshistoKey << "hGenXs" << key << "_" << i;
+      genxshistoTitle << "Truth XS " << key << "  for channel " << i;
+
+      genXSHistos[i] = (TH1D*) genHistos[i]->Clone(genxshistoKey.str().c_str());
+
+      // Now loop over bins and rescale each bin by
+      //   1/LUMINOSITY * 1/binWidth * 1/BR
+      
+      double totalXs = 0;
+
+      for (int k=0; k<=genXSHistos[i]->GetNbinsX()+1; k++) {
+
+	double binxs    = genXSHistos[i]->GetBinContent(k);
+	double binxs_err= genXSHistos[i]->GetBinError(k);
+	double binWidth = genXSHistos[i]->GetBinWidth(k);
+	double scaleFactor = 1./ (LUMINOSITY*BrWZto3L*binWidth);
+	double bindxs     = binxs*scaleFactor;
+	double bindxs_err = binxs_err*scaleFactor;
+
+	totalXs += bindxs;
+
+	genXSHistos[i]->SetBinContent(k,bindxs);
+	genXSHistos[i]->SetBinError(k,bindxs_err);
+
+      }
+      std::cout << "Total xs in channel : " << i << " = " << totalXs/BrWZto3L
+		<< std::endl;
+
+
     }
   }
 }
@@ -137,6 +188,7 @@ void UnfoldingAnalysis::Finish(TFile * fout) {
       recoHistos[i]->Write();
       controlRecoHistos[i]->Write();
       controlGenHistos[i]->Write();
+      genXSHistos[i]->Write();
       std::ostringstream respkey;
       respkey << "response" << key << "_" << i;
       fout->WriteTObject(response[i],respkey.str().c_str());
@@ -618,10 +670,12 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
   }
   if (eventPassed) {
     if (recoZPt>=0.) {
-      if (isControlSample) {
-	controlRecoHistos[wzGenChannel+1]->Fill(recoZPt,GetRecoWeight());
-      } else {
-	recoHistos[wzGenChannel+1]->Fill(recoZPt, GetRecoWeight());
+      if (wzGenChannel >=0 && wzGenChannel <4) {
+	if (isControlSample) {
+	  controlRecoHistos[wzGenChannel+1]->Fill(recoZPt,GetRecoWeight());
+	} else {
+	  recoHistos[wzGenChannel+1]->Fill(recoZPt, GetRecoWeight());
+	}
       }
     } else {
       std::cout << "Z Pt negative: " << recoZPt << std::endl;

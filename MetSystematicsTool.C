@@ -36,6 +36,10 @@ MetSystematicsTool * MetSystematicsTool::GetInstance(){
 void MetSystematicsTool::LoadMETMap(int type)
 {
 
+  std::cout << "MetSystematicsTool - Loading new MAP for MET type " 
+	    << type << std::endl;
+
+
   METEventMap * newmap = new METEventMap();
 
   TChain metch("MET");
@@ -136,9 +140,6 @@ TLorentzVector MetSystematicsTool::GetMETVector(int run, int event, int type)
 
 
   TLorentzVector pmet;
-
-  std::cout << "Entering MET MAP: " << type
-	    << "\t # of maps : " << metMaps.size() << std::endl;
 
   // Load the map if it isn't loaded already
 

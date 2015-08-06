@@ -180,6 +180,7 @@ int main(int argc, char **argv)
   std::cout<<"number of events: "<<events << std::endl;
 
   float yields[5];
+  float yields_signal[5];   // Count only events generated in that decay channel
   float genYields[5];
   double totalMCYield=0;
 
@@ -187,6 +188,7 @@ int main(int argc, char **argv)
 
   for (int i=0; i<5; i++) {
     yields[i] = 0;
+    yields_signal[i] = 0;
     genYields[i] = 0;
   }
   float nZYield(0.),nWYield(0.);
@@ -222,7 +224,7 @@ int main(int argc, char **argv)
   jesTool->SetJESFile("START53_V15_Uncertainty_AK5PF.txt");
 
   MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
-  metTool->SetInputFile("wzMetSystematics.root");
+  metTool->SetInputFile("metValues-v3.root");
 
 
   //
@@ -309,6 +311,9 @@ int main(int argc, char **argv)
 
     if (eventPassed) {
       yields[channel] += genWeight*cWZ->GetMCWeight();
+      if (channel == wzGenChannel+1 ) {
+	yields_signal[channel] += genWeight*cWZ->GetMCWeight();
+      }
 
       cWZ->DumpEvent(eventLists[channel-1],1);
 
@@ -352,31 +357,40 @@ int main(int argc, char **argv)
   float totalGenYield = 0.;
 
   double lumiNormalizedYields[5];
+  double lumiNormalizedYieldsSignal[5];
   double lumiNormalization = LUMINOSITY*WZ3LXSECTION/totalMCYield;
 
 
   for (int i=0; i<5; i++) {
     lumiNormalizedYields[i] = yields[i]*lumiNormalization;
+    lumiNormalizedYieldsSignal[i] = yields_signal[i]*lumiNormalization;
     totalGenYield += genYields[i];
   }
+
+  ofstream acc_out("Aeff.out");
 
   for (int i=0; i<5; i++) {
 
     double Aeff = 1.;
     double Aeff_spanish =1.;
     if (i>0) {
-      Aeff = yields[i] / genYields[i-1]; 
+      Aeff = yields_signal[i] / genYields[i-1]; 
       Aeff_spanish = yields[i] / totalGenYield;
+      acc_out << Aeff << std::endl;
     }
     std::cout << "yield  for : " 
 	      << i << "\t:\t" << yields[i] 
 	      << "\t scaled to lumi : " << lumiNormalizedYields[i] 
+	      << "\t A*eff nume : " << lumiNormalizedYieldsSignal[i] 
 	      << "\t gen :" << genYields[i-1]
 	      << "\t A*eff = " << Aeff
 	      << "\t spanish way  = " << Aeff_spanish
 	      << std::endl;
-    if (i>0) signalYield+= yields[i];
+    if (i>0) {
+      signalYield+= yields[i];
+    }
   }
+  acc_out.close();
   std::cout << "Total Signal = " << signalYield << std::endl;
   std::cout << "Total Gen Signal = " << totalGenYield << std::endl;
   std::cout << "Luminosity normalization = " << lumiNormalization << std::endl;

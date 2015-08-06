@@ -401,10 +401,12 @@ void WZEvent::ReadEvent()
 
     float met_new = GetShiftedMET(met_syst);
 
-    //    std::cout << "Got new MET: " 
-    //	      << met_new 
-    //	      << "\t old = " << pfmetTypeI
-    //	      << std::endl;
+//    std::cout << "Old MET = " << pfmetTypeI
+//	      << "\t new = " << met_new << std::endl;
+
+
+    pfmetTypeI = met_new;
+
   }
 
 
