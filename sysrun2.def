@@ -1,0 +1,27 @@
+#VVV_xs 0
+#WV_xs 0
+#ZZ_xs 0
+#Zgamma_xs 0
+
+MET             0
+pu_syst         0 
+ele_scale_syst  0
+mu_scale_syst   0
+JER             0
+JES             0
+ele_SF          0
+mu_SF           0
+ZZ              0
+Zgamma          0
+WV              0
+WZZJets         0
+ZZZJets         0
+WWZJets         0
+WWWJets         0
+TTWJets         0
+TTZJets         0
+TTWWJets        0
+TTGJets         0
+WWGJets         0
+dataDriven_el    0
+dataDriven_mu    0

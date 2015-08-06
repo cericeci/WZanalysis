@@ -13,8 +13,9 @@ MClist=["ZZ", "Zgamma", "WV", "WZZJets", "ZZZJets", "WWZJets", "WWWJets", "TTWJe
 OtherList=["pu_syst", "ele_scale_syst", "mu_scale_syst", "ele_SF", "mu_SF"]
 DDlist=["dataDriven"]
 other=["JER", "JES"]
-submit = True
-#submit = False
+response=["kterm"]
+#submit = True
+submit = False
 sysList = open('sysrun2.def', 'r').read().split('\n')
 outputNom="sys_nominal.def"
 listOfFiles.append(outputNom)
@@ -50,6 +51,7 @@ algorithm="Bayes"
 
 for v in variables:
     for name in typesList:
+        print name
         outputFile = "sysResults/unfolding_"+ name +"_"+ v + ".root"
         if name in DDlist:
             response= "sysResults/response_sys_nominal.root"

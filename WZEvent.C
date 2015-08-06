@@ -503,9 +503,18 @@ bool WZEvent::passesSelection(){
   TLorentzVector EventMET;
   float pfmet= this->pfmetTypeI;
   float pfmetphi=this->pfmetTypeIphi;
-  EventMET= GetMET(pfmet, pfmetphi); 
+  SystematicsManager * sysManager = SystematicsManager::GetInstance();    
+  int metSys = sysManager->GetValue("MET");
+  if (metSys){
+    MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
+    metTool->SetInputFile("metValues-v3.root");
+    EventMET=metTool->GetMETVector(this->run,this->event,metSys);
+  }
+  else{
+    EventMET= GetMET(pfmet, pfmetphi); 
+  }
   /*
-  for (int i1=0; i1<leptonNumber; i1++){
+    for (int i1=0; i1<leptonNumber; i1++){
      if ((fabs(*pdgid[i1])==11)&& (*pt[i1]>0))
        analysisLepton[i1].SetPtEtaPhiM(*pt[i1], *eta[i1], *phi[i1], electronMass);
      if ((fabs(*pdgid[i1])==13) && (*pt[i1]>0))
@@ -522,7 +531,7 @@ bool WZEvent::passesSelection(){
   if (hScaleEE==0)
     hScaleEE    = GetHistogramFromGraph("hScaleEE",    "gScaleEE");
   
-  SystematicsManager * sysManager = SystematicsManager::GetInstance();
+  //  SystematicsManager * sysManager = SystematicsManager::GetInstance();
 
   int scaleSyst_mu= sysManager->GetValue("mu_scale_syst");
   int scaleSyst_el= sysManager->GetValue("ele_scale_syst");

@@ -455,11 +455,14 @@ int main(int argc, char **argv) {
     response[chan] = (RooUnfoldResponse * ) fUnfoldingMatrix->Get(responseKey.str().c_str());
 
     // Do the unfolding
+    int kterm(5);
+    if (gotKterm)
+      kterm=inputKterm;
     unfoldedDataDistribution[chan] = Unfold(algorithm  // "Bayes"
 					    ,response[chan]
 					    ,errorType
 					    ,signal[chan], backgrounds[chan]
-					    , 5 // kterm
+					    , kterm // kterm
 					    , resultKey.str().c_str()
 					    , 1 ); // userOverflow
 					    // , truth[chan] );

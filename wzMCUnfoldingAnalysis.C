@@ -225,6 +225,7 @@ int main(int argc, char **argv)
 
   MetSystematicsTool * metTool = MetSystematicsTool::GetInstance();
   metTool->SetInputFile("metValues-v3.root");
+//  metTool->SetInputFile("wzMetSystematics.root");
 
 
   //
