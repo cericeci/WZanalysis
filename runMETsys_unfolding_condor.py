@@ -15,6 +15,7 @@ for l in sysList:
 
     if (name[0].split("_")[1]=="nominal"):
         outputFile="sysResults/response_met_"+name[0].split("_")[1]+".root"
+        name_all=name[0].split("_")[1]
     else:
         if (name[0].split("_")[2]=="up"):
             outputFile="sysResults/response_met_"+name[0].split("_")[1]+"_UP.root"
@@ -24,6 +25,7 @@ for l in sysList:
             name_all= name[0].split("_")[1]+"_DOWN"
     command = "./wzMCUnfoldingAnalysis -l fullList_pucorr  -H Binnings/binning06 -o " + outputFile+" -S "+l
     print command
+    print name_all
     jobFileName="jobs/response_met_"+name_all+".csh"
     batchFileName="jobs/response_met_"+name_all+".bat"
     jobFile = open(jobFileName,"w")
