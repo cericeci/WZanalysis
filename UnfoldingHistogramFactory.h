@@ -25,6 +25,8 @@ public:
   static TH1D * createLeadingJetHistogram(std::string name, std::string title);
   static TH1D * createNjetsHistogram(std::string name, std::string title);
 
+  static TH1D * createHistogramForVar(std::string variable, std::string s, std::string title);
+
 private:
 
   UnfoldingHistogramFactory() {};

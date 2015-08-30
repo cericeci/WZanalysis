@@ -12,6 +12,8 @@
 #include "RooUnfoldResponse.h"
 #include "SystematicsManager.h"
 
+#include "HistogramKeeper.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -83,6 +85,12 @@ TH1D* Unfold(string unfAlg, RooUnfoldResponse* response,
   
   TMatrixD covMatrix= RObject->Ereco(errorType);
   covMatrix.Print();
+  std::ostringstream covMatName;
+  covMatName << "Covariance_" << hOutName;
+
+  HistogramKeeper * histoKeeper = HistogramKeeper::GetInstance();
+
+  histoKeeper->AddObject(new TMatrixD(covMatrix),covMatName.str().c_str());
 
   //int nBins=11;
   //for (int m=0; m<nBins; m++){
@@ -549,6 +557,10 @@ int main(int argc, char **argv) {
     dSigma[i]->Write();
     dSigmaDX[i]->Write();
   }
+
+  HistogramKeeper * histoKeeper = HistogramKeeper::GetInstance();
+  histoKeeper->WriteAll(fout);
+
   fout->Close();
 
 

@@ -53,7 +53,7 @@ wzExampleAnalysis: wzExampleAnalysis.C wzToolsNew.C WZGenEvent.C WZEvent.C WZAna
 unfold: unfold.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzDataUnfold: wzDataUnfold.C SystematicsManager.C 
+wzDataUnfold: wzDataUnfold.C SystematicsManager.C  HistogramKeeper.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 plotResponse: plotResponse.C  
@@ -64,10 +64,22 @@ wzDataUnfoldRegStudy: wzDataUnfoldRegStudy.C SystematicsManager.C
 BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+BLUE_unfoldingV2: BLUE_unfoldingV2.C UnfoldingHistogramFactory.C 
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+
+combine_unfolded: combine_unfolded.C
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+
 Systematics: Systematics.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 mcfmPlots: mcfmPlots.C mcfmTree.C UnfoldingHistogramFactory.C 
+	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+
+MatrixPlay: MatrixPlay.C
 	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 
