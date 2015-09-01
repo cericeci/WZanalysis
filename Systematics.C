@@ -86,6 +86,8 @@ int main(int argc, char **argv)
 
   TH1D* h_sys[nChannels][25];
 
+  TMatrixD* covariance_unfolding[nChannels];
+
   std::vector<TString>types;
   types.push_back("pu_syst");
   types.push_back("ele_scale_syst");
@@ -369,6 +371,12 @@ int main(int argc, char **argv)
     crossSect<<"hdsigma"<<variable<<"_"<<(other+1);
     xsName<<"h_crossSection_"<<other;
     h_crossSection[other]= (TH1D*) (fnominal)->Get(crossSect.str().c_str())->Clone(xsName.str().c_str());
+
+    // Adding Covariance matrix reading
+    std::ostringstream covarianceInName;
+    std::ostringstream covarianceOutName;
+    covarianceInName << "Covariance_hresult" << variable << "_" << other+1;
+    covariance_unfolding[other] = (TMatrixD*) (fnominal)->Get(covarianceInName.str().c_str())->Clone(covarianceOutName.str().c_str());
     //    h_crossSection[other]= (TH1D*) (fnominal)->Get(crossSect.str().c_str())->Clone(crossSect.str().c_str());
     std::cout<<"Integral: "<<h_crossSection[other]->Integral()<<std::endl;
     TH1D * h_dataDrivenUp_el=(TH1D*)(fDataDriven_el)->Get(crossSect.str().c_str())->Clone();
@@ -419,6 +427,18 @@ int main(int argc, char **argv)
   h_crossSection_inclusive[1]->Write();
   h_crossSection_inclusive[2]->Write();
   h_crossSection_inclusive[3]->Write();
+
+  for (int ich=0; ich<nChannels; ich++) {
+
+    std::ostringstream matrixName;
+    matrixName << "unfolding_covariance_" << variable << "_ch" << ich;
+    covariance_unfolding[ich]->Write(matrixName.str().c_str());
+  // covariance_unfolding[0]->Write("covariance_unfolding_0");
+  // covariance_unfolding[1]->Write("covariance_unfolding_1");
+  // covariance_unfolding[2]->Write("covariance_unfolding_2");
+  // covariance_unfolding[3]->Write("covariance_unfolding_3");
+
+  }
   
   fout->Write();
   fout->Close();

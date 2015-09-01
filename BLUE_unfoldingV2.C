@@ -4,6 +4,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TMatrixD.h"
+#include "TVectorD.h"
 #include "TLorentzVector.h"
 
 #include <algorithm>
@@ -159,6 +160,11 @@ int main(int argc, char **argv)
 
   std::map<string, std::vector<TH1D *> > inputHistos;
 
+  std::map<std::string, TMatrixD *>  unfoldingCovariance;
+  std::map<int, TMatrixD *> errorMatrices;
+  std::map<int, TVectorD *> measuredValues;
+  TVectorD * allMeasurements;
+
   TH1D * h_crossSection_combination;
   TH1D * h_crossSection_comb_diff;
   TH1D * h_combStat;
@@ -247,6 +253,22 @@ int main(int argc, char **argv)
 	exit;
       } 
     }
+    // Get unfolding covariance matrices
+    std::ostringstream unfCovKey_input,unfCovKey_clone;
+    unfCovKey_input << "unfolding_covariance_" << variable << "_ch" << hist;
+    unfCovKey_clone << "covarianceMatrix_unfolding_" << variable  << "_ch" <<  hist;
+    TMatrixD * m = (TMatrixD *) finput ->Get(unfCovKey_input.str().c_str());
+    if ( m!=0) {
+
+      unfoldingCovariance.insert(std::pair<std::string, TMatrixD *>
+				 (unfCovKey_clone.str(),	
+				  (TMatrixD *) m->Clone(unfCovKey_clone.str().c_str())));
+    } else {
+	std::cout << "NONEXISTENT UNFOLDING COVAR. MATRIX: " << unfCovKey_input.str()
+		  << "\t exiting... "<< std::endl;
+	exit;
+    }
+    
   }
 
   //loop over each bin 
@@ -418,8 +440,10 @@ int main(int argc, char **argv)
       TMatrixD errMatInv(4,4);
       TMatrixD errMatCopy(errMat);
 
+      errorMatrices.insert(std::pair<int,TMatrixD *> ( bin, new TMatrixD(errMat)));
+
       std::ostringstream matrixName;
-      matrixName << "covMatrix_" << variable << "_" << bin;
+      matrixName << "covMatrix_" << variable << "_bin" << bin;
 
       covarianceMatrices.insert(std::pair<std::string,TMatrixD*>
 				(matrixName.str(), new TMatrixD(errMat)));
@@ -513,7 +537,26 @@ int main(int argc, char **argv)
     }   // End of loop over bins
 
 
-	 for (int i=1; i<=h_crossSection_combination->GetNbinsX(); i++) {
+	//  std::map<int, TMatrixD *> errorMatrices;
+	//  std::map<int, TVectorD *> measuredValues;
+
+	for (int ich=0; ich<4; ich++) {
+
+	  TVectorD * values = new TVectorD(nBins);
+	  for (int bin=1; bin<nBins+1; bin++) {
+	      (*values)[bin] = (inputHistos["crossSection_incl_diff"][ich])->GetBinContent(bin);
+	    }
+		 measuredValues.insert(std::pair<int, TVectorD *>(ich,values));
+
+	       }
+
+
+
+	// Fill Vecor of all measurements
+	allMeasurements = new TVectorD(nBins*nChannels);
+      TMatrixD fullCovarianceMatrix(nBins*nChannels,nBins*nChannels);
+
+	for (int i=1; i<=h_crossSection_combination->GetNbinsX(); i++) {
 	   double value = h_crossSection_combination->GetBinContent(i);
 	   double error = h_crossSection_combination->GetBinError(i);
 	   double errorStat = h_combStat->GetBinContent(i);
@@ -672,6 +715,16 @@ int main(int argc, char **argv)
 	    it != covarianceMatrices.end(); it++ ) {
 	 it->second->Write(it->first.c_str()); //
        }
+
+
+       for (std::map<std::string,TMatrixD*>::iterator it = unfoldingCovariance.begin();
+	    it != unfoldingCovariance.end(); it++ ) {
+	 it->second->Write(it->first.c_str()); //
+       }
+
     fmat->Close();
+
+    
+
        
        }
