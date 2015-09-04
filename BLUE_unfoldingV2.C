@@ -45,6 +45,17 @@ using namespace std;
 //   ( this is assuming full correlation: cov(x,y) = sigma_x*sigma_y )
 //
 
+
+// Decleare externals
+
+void Combine_unfolded( std::map<int, TH1D* >      & ,
+		       std::map<int, TH1D* >      & ,
+		       std::map<int, TMatrixD *>  &, 
+		       std::map<int, TMatrixD *> &   );
+
+
+
+
 int main(int argc, char **argv)
 {
   //read histograms form .root files
@@ -160,9 +171,13 @@ int main(int argc, char **argv)
 
   std::map<string, std::vector<TH1D *> > inputHistos;
 
-  std::map<std::string, TMatrixD *>  unfoldingCovariance;
+  std::map<int, TMatrixD *>  unfoldingCovariance;
   std::map<int, TMatrixD *> errorMatrices;
   std::map<int, TVectorD *> measuredValues;
+
+  std::map<int, TH1D* >  dxsections;
+  std::map<int, TH1D* >  differential_xsections;
+
   TVectorD * allMeasurements;
 
   TH1D * h_crossSection_combination;
@@ -173,12 +188,13 @@ int main(int argc, char **argv)
   TH1D * h_combStat_diff;
   TH1D * h_combSyst_diff;
 
+
   TH1D * h_totalSyst[nChannels];
   TH1D * h_totalSyst_diff[nChannels];
   TH1D * h_totalStat[nChannels];
   TH1D * h_totalStat_diff[nChannels];
 
-
+  TH1D * h_Dsigma[nChannels];
 
   double crossSection[4]={0,0,0,0};
   
@@ -253,6 +269,11 @@ int main(int argc, char **argv)
 	exit;
       } 
     }
+
+
+
+
+
     // Get unfolding covariance matrices
     std::ostringstream unfCovKey_input,unfCovKey_clone;
     unfCovKey_input << "unfolding_covariance_" << variable << "_ch" << hist;
@@ -260,8 +281,9 @@ int main(int argc, char **argv)
     TMatrixD * m = (TMatrixD *) finput ->Get(unfCovKey_input.str().c_str());
     if ( m!=0) {
 
-      unfoldingCovariance.insert(std::pair<std::string, TMatrixD *>
-				 (unfCovKey_clone.str(),	
+      unfoldingCovariance.insert(std::pair<int, TMatrixD *>
+				 //				 (unfCovKey_clone.str(),	
+				 ( hist,
 				  (TMatrixD *) m->Clone(unfCovKey_clone.str().c_str())));
     } else {
 	std::cout << "NONEXISTENT UNFOLDING COVAR. MATRIX: " << unfCovKey_input.str()
@@ -270,6 +292,20 @@ int main(int argc, char **argv)
     }
     
   }
+
+
+  // Copy dSigma before we starting messing with it (Vuko addition for global BLUE extension)
+  for (int ich=0; ich<4 ;ich++) {
+    std::ostringstream dSigmaName, dSigmaDxName;
+    dSigmaName   << "h_Dsigma_" << ich;
+    dSigmaDxName << "h_DsigmaDx_" << ich;
+    TH1D * hds    = (TH1D*) inputHistos["crossSection_inclusive"][ich]->Clone( dSigmaName.str().c_str());
+    TH1D * hdsdx  = (TH1D*) inputHistos["crossSection_incl_diff"][ich]->Clone( dSigmaDxName.str().c_str());
+    dxsections.insert(std::pair<int, TH1D*> (ich, hds));
+    differential_xsections.insert(std::pair<int, TH1D*> (ich, hdsdx));
+    }
+
+
 
   //loop over each bin 
 
@@ -709,22 +745,11 @@ int main(int argc, char **argv)
 
        fout->Close();
 
-       TFile * fmat = new TFile("matrices.root","recreate");
-       fmat->cd();
-       for (std::map<std::string,TMatrixD*>::iterator it = covarianceMatrices.begin();
-	    it != covarianceMatrices.end(); it++ ) {
-	 it->second->Write(it->first.c_str()); //
-       }
 
-
-       for (std::map<std::string,TMatrixD*>::iterator it = unfoldingCovariance.begin();
-	    it != unfoldingCovariance.end(); it++ ) {
-	 it->second->Write(it->first.c_str()); //
-       }
-
-    fmat->Close();
-
-    
+       Combine_unfolded( dxsections
+			 , differential_xsections
+			 , unfoldingCovariance
+			 , errorMatrices);
 
        
-       }
+	}
