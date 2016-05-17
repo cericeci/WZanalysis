@@ -12,6 +12,8 @@
 
 #define USENORMALIZEDWEIGHTS  true
 #define NORMALIZETOLUMINOSITY true
+#define MODIFYSHAPE           false
+
 
 
 UnfoldingAnalysis::UnfoldingAnalysis(std::string k, WZEvent * e) :
@@ -26,6 +28,12 @@ UnfoldingAnalysis::UnfoldingAnalysis(std::string k, WZEvent * e) :
 
   useNormalizedWeights = USENORMALIZEDWEIGHTS;
   normalizeToLumi      = NORMALIZETOLUMINOSITY;
+  useModifiedShape      = MODIFYSHAPE;
+
+  missYield = 0;
+  fakeYield = 0;
+  fillYield = 0;
+
 };
 
 
@@ -115,6 +123,21 @@ void UnfoldingAnalysis::CreateBaseHistos() {
   resolutionTree->Branch("genValue", trueValue, "genValue/D");
   resolutionTree->Branch("recoValue", recoValue, "genValue/D");
 
+
+  // Fill weights for reweighting shape
+  if (genHistos[0]) {
+
+    int nbins = genHistos[0]->GetNbinsX(); 
+    shapeWeights = new double[nbins+2]; // include under- and overflow bins
+ 
+    shapeWeights[0] = 1.;
+    shapeWeights[nbins+1] = 1.;
+    for (int ibin=1; ibin<=nbins; ibin++) {
+      shapeWeights[ibin] = 1.;
+    }
+
+  }
+
 }
 
 void UnfoldingAnalysis::ApplyLuminosityNormalization(double norm){
@@ -175,6 +198,15 @@ void UnfoldingAnalysis::ApplyLuminosityNormalization(double norm){
 void UnfoldingAnalysis::Finish(TFile * fout) {
 
   std::cout << "Base Finish \n";
+
+  std::cout << "Miss Yield = " <<  missYield << std::endl;
+  std::cout << "Fake Yield = " <<  fakeYield << std::endl;
+  std::cout << "Fill Yield = " <<  fillYield << std::endl;
+
+  std::cout << "Fill : Miss : Fake = " 
+	    << fillYield/fillYield << " : " << missYield/fillYield << " : " << fakeYield / fillYield
+	    << std::endl;
+
 
   if (!fout) return; // No output file: nothing to do
 
@@ -334,20 +366,25 @@ void UnfoldingLeadingJetPt::Init() {
   // Create tree to study resolution
 
 
+  TTree* wz = new TTree();
+  float  WZgen_ptZ = 0.;
+  int  WZpass_3e = 0.;
+  float  WZweight_total = 0.;
+  float  WZweight_reweighted = 0.;
+  wz->Branch("WZgen_ptZ", &WZgen_ptZ, "WZgen_ptZ/F");
+  wz->Branch("WZpass_3e", &WZpass_3e, "WZpass_3e/I");
+  wz->Branch("WZweight_total", &WZweight_total, "WZweight_total/F");
+  wz->Branch("WZweight_reweighted", &WZweight_reweighted,
+	     "WZweight_reweighted/F");
 
 
-TTree* wz = new TTree();
-float  WZgen_ptZ = 0.;
-int  WZpass_3e = 0.;
-float  WZweight_total = 0.;
-float  WZweight_reweighted = 0.;
-wz->Branch("WZgen_ptZ", &WZgen_ptZ, "WZgen_ptZ/F");
-wz->Branch("WZpass_3e", &WZpass_3e, "WZpass_3e/I");
-wz->Branch("WZweight_total", &WZweight_total, "WZweight_total/F");
-wz->Branch("WZweight_reweighted", &WZweight_reweighted,
-"WZweight_reweighted/F");
+  // Shape reweighting
 
-
+  shapeWeights[0] = 3.;
+  shapeWeights[1] = 0.7;
+  shapeWeights[2] = 0.85;
+  shapeWeights[3] = 1.15;
+  shapeWeights[4] = 1.3;
 
 }
 
@@ -410,6 +447,10 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
   }
 
 
+ double shapeWeight = GetShapeWeight(leadingGenJetPt);
+  // std::cout << "Shape weight = " << shapeWeight 
+  // 	    << "\t JPt = " <<   leadingGenJetPt << std::endl;
+
   /////////////////////////////////
   // Look at RECO jets
   
@@ -463,6 +504,16 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
   
   // Fill Unfolding matrix for Jet Pt spectrum
 
+
+  if (// shapeWeight > 2. && 
+      nGenJets>0  && nRecoJets<1) {
+    std::cout << "Shape weight = " << shapeWeight 
+	      << "\t # gen jets : " << nGenJets
+	      << "  Leading Pt = " << leadingGenJetPt 
+	      << "\t # reco jets : " << nRecoJets 
+	      << "  Leading Pt = " << leadingRecoJetPt << std::endl;
+  }
+
   // fill ngen vs nreco jets
 
   // Check that it is the MC channel I want to look at
@@ -473,14 +524,14 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
       //      hnGenJets->Fill(nGenJets);
       if (nGenJets>0) {
 	if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (genHistos[wzGenChannel+1])->Fill(leadingGenJetPt,GetGenWeight());
+	  (genHistos[wzGenChannel+1])->Fill(leadingGenJetPt,GetGenWeight()*shapeWeight);
 	}
       }
       
       //      hnrecoJets->Fill(nRecoJets); 
       if (nRecoJets > 0 ) {
 	if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (recoHistos[wzGenChannel+1])->Fill(leadingRecoJetPt,GetRecoWeight());
+	  (recoHistos[wzGenChannel+1])->Fill(leadingRecoJetPt,GetRecoWeight()*shapeWeight);
 	}
       }
       
@@ -498,22 +549,27 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
 	}
 	// Fake
 	//	if (nGenJets<1 && nRecoJets>0) responseJetPt[recoChannel-1]->Fake(leadingRecoJetPt, weight);
-	if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, 
-							  GetRecoWeight());
+	if (nGenJets<1 && nRecoJets>0)  {
+	  fakeYield += GetRecoWeight()*shapeWeight;
+	  response[ch]->Fake(leadingRecoJetPt, 
+			     GetRecoWeight()*shapeWeight);
+	}
 	
 	// Miss
-	if (nGenJets>0 && nRecoJets<1) response[ch]->Miss(leadingGenJetPt, 
-							  GetGenWeight());
-	
-	
+	if (nGenJets>0 && nRecoJets<1) { 
+	  missYield += GetGenWeight()*shapeWeight;
+	  response[ch]->Miss(leadingGenJetPt, 
+			     GetGenWeight()*shapeWeight);
+	}	
 	// Fill
 	if (nGenJets>0 && nRecoJets>0) {
+	  fillYield += GetRecoWeight()*shapeWeight;
 	  //	  response[ch]->Fill(leadingRecoJetPt,leadingGenJetPt, recoWeight);
 	  response[ch]->Fill(leadingRecoJetPt,leadingGenJetPt, 
-			     GetRecoWeight());
+			     GetRecoWeight()*shapeWeight);
 	  if (useNormalizedWeights) {
 	    response[ch]->Miss(leadingGenJetPt,
-			       GetGenWeight()*(1-mcEfficiency));
+			       GetGenWeight()*(1-mcEfficiency)*shapeWeight);
 	  }
 	  if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
 	}
@@ -526,10 +582,10 @@ void UnfoldingLeadingJetPt::EventAnalysis(bool controlSample) {
     if (wzevt->PassesGenCuts()) {
       if (wzGenChannel >=0 && wzGenChannel <4) {
 	if (nGenJets>0) {
-	  controlGenHistos[wzGenChannel+1]->Fill(leadingGenJetPt, GetGenWeight());
+	  controlGenHistos[wzGenChannel+1]->Fill(leadingGenJetPt, GetGenWeight()*shapeWeight);
 	}
 	if ( nRecoJets>0) {
-	  controlRecoHistos[wzGenChannel+1]->Fill(leadingRecoJetPt, GetRecoWeight());
+	  controlRecoHistos[wzGenChannel+1]->Fill(leadingRecoJetPt, GetRecoWeight()*shapeWeight);
 	}
       }
     }
@@ -592,6 +648,47 @@ TH1D * UnfoldingLeadingJetPt::createHistogram(std::string s,
 
 }
 
+void UnfoldingAnalysis::UseModifiedShape(bool use) {
+
+  useModifiedShape = use;
+
+}
+
+
+//double UnfoldingLeadingJetPt::GetShapeWeight(double jpt) {
+double UnfoldingAnalysis::GetShapeWeight(double val) {
+
+
+  double weight = 1.;
+
+  if (useModifiedShape) {
+    //MODIFYSHAPE) {
+
+    if (! genHistos[0]) {
+      std::cout << "GetShapeWeight: no histogram, return 1. \n";
+      return 1;
+    }
+
+    int ibin = genHistos[0]->FindBin(val);
+    weight = shapeWeights[ibin];
+    // if (ibin==0) {
+    //   std::cout << "Using weight for underflow bin \n";
+    // }
+
+    // std::cout << "Getting shape w for jpt = " << jpt
+    // 	      << "\t bin nur:"  << ibin << std::endl;
+    // for (int i=1; i<=genHistos[0]->GetNbinsX(); i++) {
+    //   std::cout << "\t bin " << i << "\t = " << genHistos[0]->GetBinCenter(i);
+    // }
+    // std::cout << std::endl;
+  }
+
+  return  weight;
+
+}
+
+
+
 ////////////////////////////////////////////////////////////////
 
 
@@ -612,6 +709,21 @@ UnfoldingZPt::UnfoldingZPt(WZEvent * e) :
 
 
 void UnfoldingZPt::Init () {
+
+
+  // Shape reweighting
+
+  shapeWeights[1] = 0.8;
+  shapeWeights[2] = 0.7;
+  shapeWeights[3] = 0.8;
+  shapeWeights[4] = 1.2;
+  shapeWeights[5] = 1.1;
+  shapeWeights[6] = 1.1;
+  shapeWeights[7] = 1.;
+  shapeWeights[8] = 1.;
+  shapeWeights[9] = 1.;
+
+
 
   if (!resolutionTree) return;
 
@@ -640,6 +752,8 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
 
   genZPt = wzevt->PtZ;
 
+  double shapeWeight = GetShapeWeight(genZPt);
+
   bool eventPassed = (wzevt->GetSelectionLevel() == passesFullSelection);
   FinalState recoChannel = wzevt->GetFinalState();
   int wzGenChannel = wzevt->WZchan;
@@ -663,18 +777,18 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
 
   if (wzGenChannel >=0 && wzGenChannel <4) {
     if (isControlSample) {
-      controlGenHistos[wzGenChannel+1]->Fill(wzevt->PtZ,GetGenWeight());      
+      controlGenHistos[wzGenChannel+1]->Fill(wzevt->PtZ,GetGenWeight()*shapeWeight);      
     } else {
-      genHistos[wzGenChannel+1]->Fill(wzevt->PtZ, GetGenWeight());      
+      genHistos[wzGenChannel+1]->Fill(wzevt->PtZ, GetGenWeight()*shapeWeight);            
     }
   }
   if (eventPassed) {
     if (recoZPt>=0.) {
       if (wzGenChannel >=0 && wzGenChannel <4) {
 	if (isControlSample) {
-	  controlRecoHistos[wzGenChannel+1]->Fill(recoZPt,GetRecoWeight());
+	  controlRecoHistos[wzGenChannel+1]->Fill(recoZPt,GetRecoWeight()*shapeWeight);
 	} else {
-	  recoHistos[wzGenChannel+1]->Fill(recoZPt, GetRecoWeight());
+	  recoHistos[wzGenChannel+1]->Fill(recoZPt, GetRecoWeight()*shapeWeight);
 	}
       }
     } else {
@@ -691,16 +805,20 @@ void UnfoldingZPt::EventAnalysis(bool isControlSample) {
     //    if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, weight);
     
     // Miss
-    if (!eventPassed ) response[wzGenChannel+1]->Miss(genZPt, GetGenWeight());
+    if (!eventPassed ) {
+      missYield += GetGenWeight()*shapeWeight;
+      response[wzGenChannel+1]->Miss(genZPt, GetGenWeight()*shapeWeight);
+    }
 
     // Fill
     if (eventPassed  ) {
+      fillYield += GetRecoWeight()*shapeWeight;
       response[recoChannel]->Fill(recoZPt,genZPt, 
-				  GetRecoWeight());
+				  GetRecoWeight()*shapeWeight);
       //				  genWeight*mcEfficiency);
       if (useNormalizedWeights) {
 	response[wzGenChannel+1]->Miss(genZPt, 
-				       GetGenWeight()*(1-mcEfficiency));
+				       GetGenWeight()*(1-mcEfficiency)*shapeWeight);
       }
       if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
     }
@@ -723,9 +841,21 @@ UnfoldingNjets::UnfoldingNjets(WZEvent * e) :
   CreateBaseHistos();
   //std::cout << "Calling Init method \n";
   //std::cout << "Entered Jet Pt Init method \n";
-  //Init();
+  Init();
 
 };
+
+void UnfoldingNjets::Init() {
+  // Shape reweighting
+
+  shapeWeights[1] = 0.8;
+  shapeWeights[2] = 0.9;
+  shapeWeights[3] = 1.2;
+  shapeWeights[4] = 1.1;
+
+}
+
+
 
 TH1D * UnfoldingNjets::createHistogram(std::string s, 
 				     std::string title) {
@@ -787,6 +917,12 @@ void UnfoldingNjets::EventAnalysis(bool controlSample) {
   }
   */
 
+
+  double shapeWeight = GetShapeWeight(nGenJets);
+
+  // std::cout << "Shape weights for njets: # gen jets " << nGenJets
+  // 	    << "\t weight = " << shapeWeight << std::endl;
+
   /////////////////////////////////
   // Look at RECO jets
   
@@ -827,13 +963,13 @@ void UnfoldingNjets::EventAnalysis(bool controlSample) {
       
       //if (nGenJets>0) {
 	if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (genHistos[wzGenChannel+1])->Fill(nGenJets,GetGenWeight());
+	  (genHistos[wzGenChannel+1])->Fill(nGenJets,GetGenWeight()*shapeWeight);
 	}
 	//}
       
       //      hnrecoJets->Fill(nRecoJets); 
       if (wzGenChannel >=0 && wzGenChannel <4) {
-	  (recoHistos[wzGenChannel+1])->Fill(nRecoJets,GetRecoWeight());
+	  (recoHistos[wzGenChannel+1])->Fill(nRecoJets,GetRecoWeight()*shapeWeight);
 	}
       }
 
@@ -856,16 +992,16 @@ void UnfoldingNjets::EventAnalysis(bool controlSample) {
 	//    if (nGenJets<1 && nRecoJets>0) response[ch]->Fake(leadingRecoJetPt, weight);
 	
 	// Miss
-	if (!eventPassed ) response[wzGenChannel+1]->Miss(nGenJets, GetGenWeight());
+	if (!eventPassed ) response[wzGenChannel+1]->Miss(nGenJets, GetGenWeight()*shapeWeight);
 	
 	// Fill
 	if (eventPassed  ) {
 	  response[recoChannel]->Fill(nRecoJets, nGenJets, 
-				  GetRecoWeight());
+				  GetRecoWeight()*shapeWeight);
 	  //				  genWeight*mcEfficiency);
 	  if (useNormalizedWeights) {
 	    response[wzGenChannel+1]->Miss(nGenJets, 
-					   GetGenWeight()*(1-mcEfficiency));
+					   GetGenWeight()*(1-mcEfficiency)*shapeWeight);
 	  }
 	  if (!eventPassed) std::cout << "ALARM: filling response matrix for not passed event \n";
 	}
@@ -874,10 +1010,10 @@ void UnfoldingNjets::EventAnalysis(bool controlSample) {
     if (wzevt->PassesGenCuts()) {
       if (wzGenChannel >=0 && wzGenChannel <4) {
 	if (nGenJets>=0) {
-	  controlGenHistos[wzGenChannel+1]->Fill(nGenJets, GetGenWeight());
+	  controlGenHistos[wzGenChannel+1]->Fill(nGenJets, GetGenWeight()*shapeWeight);
 	}
 	if ( nRecoJets>=0) {
-	  controlRecoHistos[wzGenChannel+1]->Fill(nRecoJets, GetRecoWeight());
+	  controlRecoHistos[wzGenChannel+1]->Fill(nRecoJets, GetRecoWeight()*shapeWeight);
 	}
       }
     }

@@ -15,6 +15,10 @@
 #define WZBASECLASS WZGenEvent
 #include "WZGenEvent.h"
 #endif
+#ifdef TZMC
+#define WZBASECLASS TZJets
+#include "TZJets.h"
+#endif
 
 //Lucija commented it
 //#define WZBASECLASS WZGenEvent

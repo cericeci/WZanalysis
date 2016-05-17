@@ -44,6 +44,8 @@ void SystematicsManager::SetDefaultValues() {
   values["WWGJets"]         = 0.;
   values["dataDriven"]      = 0.;
   values["MET"]             = 0.;
+  values["UnfoldingStat"]   = 0.;
+
 }
 
 

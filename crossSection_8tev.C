@@ -66,7 +66,7 @@ void solveBLUE(TMatrixD covMat, double* xs)
 
 
 
-void crossSection()
+void crossSection_8tev()
 {
   //  bool latexOutput(false);
   bool latexOutput(true);
@@ -96,6 +96,20 @@ void crossSection()
   double NZgamma[4]={dNZgamma_3e, dNZgamma_2e1mu, dNZgamma_1e2mu, dNZgamma_3mu};
   double sNZgamma[4]={dsNZgamma_3e, dsNZgamma_2e1mu, dsNZgamma_1e2mu, dsNZgamma_3mu};
   double NWV[4]={dNWV_3e, dNWV_2e1mu, dNWV_1e2mu, dNWV_3mu};
+
+  //  tZ yields
+  // 3e:     7.13574+/-0.0538207
+  // 2e1mu:  9.28783+/-0.0623957
+  // 1e2mu:  11.8205+/-0.0715391
+  // 3mu:    15.8795+/-0.0843204
+  double NTZ[4] = { 0,0,0,0
+		    /*  7.13574 
+			, 9.28783
+			, 11.8205
+			, 15.8795  */
+  };
+
+
 
   double f=0;
   for (int wv=0; wv<4; wv++){
@@ -168,7 +182,7 @@ void crossSection()
   TString names[4]={"3e", "2e1mu","1e2mu", "3mu"};
 
   for (int i=0; i<4; i++){
-    Nsig[i]=(N_good[i]-NZgamma[i]-NWV[i]-NVVV[i]-NZZ[i]);
+    Nsig[i]=(N_good[i]-NZgamma[i]-NWV[i]-NVVV[i]-NZZ[i] - NTZ[i]);
     std::cout<<N_good[i]<<" , "<<NZgamma[i]<<" , "<<NWV[i]<<" , "<<NVVV[i]<<" , "<<NZZ[i]<<std::endl;
     std::cout<<Nsig[i]<<std::endl;
     csSpNum[i]=Nsig[i];
@@ -200,6 +214,15 @@ void crossSection()
     //systematics
     systematicErrorZagreb[i]=sys[i]*crossSectionZagreb[i];
     systematicErrorSpanish[i]=sys[i]*crossSectionSpanish[i];
+
+
+    std::cout << "CROSS SECTION: Channel: " << i << "\t xs = " << crossSectionZagreb[i] 
+	      << "\t +/- \t" << errorCsZagreb[i]
+	      << "\t +/- \t" << systematicErrorZagreb[i] 
+	      << "\t +/- \t" << 0.026*crossSectionZagreb[i] 
+	      << std::endl;
+
+
   }
 
 
@@ -221,6 +244,7 @@ void crossSection()
   double dataDrivensys[4] = {dataDriven3e/100, dataDriven2e1mu/100, dataDriven1e2mu/100, dataDriven3mu/100};
   double dataDrivensys_el[4] = {dataDriven3e_el/100, dataDriven2e1mu_el/100, dataDriven1e2mu_el/100, dataDriven3mu_el/100};
   double dataDrivensys_mu[4] = {dataDriven3e_mu/100, dataDriven2e1mu_mu/100, dataDriven1e2mu_mu/100, dataDriven3mu_mu/100};
+  // This is probably VVV: corresponds to numbers in Table 15 of AN-14-145
   double bckgSys[4] = {back3e/100, back2e1mu/100, back1e2mu/100, back3mu/100};
 
   
@@ -238,7 +262,7 @@ void crossSection()
     m_pdf[elm]=0;
     m_leptE[elm]=0;
     m_leptM[elm]=0;
-vv    m_met[elm]=0;
+    m_met[elm]=0;
     m_muScale[elm]=0;
     m_elScale[elm]=0;
     m_pup[elm]=0;
@@ -253,9 +277,14 @@ vv    m_met[elm]=0;
   double lumi_matrix[4][4];
   for (int cha=0; cha<4; cha++){
     for (int chb=0; chb<4; chb++){
-      commonSys[cha][chb]= Etsys[cha]*Etsys[chb]+ pileUpsys[cha]*pileUpsys[chb]
-	+ PDFsys[cha]*PDFsys[chb] + qcdScale[cha]*qcdScale[chb] +
-	bckgSys[cha]*bckgSys[chb]+ ZZcs[cha]*ZZcs[chb]+ Zgammacs[cha]*Zgammacs[chb]+lumiSyst[cha]*lumiSyst[chb];
+      commonSys[cha][chb]= Etsys[cha]*Etsys[chb]
+	+ pileUpsys[cha]*pileUpsys[chb]
+	+ PDFsys[cha]*PDFsys[chb] 
+	+ qcdScale[cha]*qcdScale[chb] 
+	+ bckgSys[cha]*bckgSys[chb]
+	+ ZZcs[cha]*ZZcs[chb]
+	+ Zgammacs[cha]*Zgammacs[chb]
+	+ lumiSyst[cha]*lumiSyst[chb];
       lumi_matrix[cha][chb]=lumiSyst[cha]*lumiSyst[chb]*crossSectionZagreb[cha]*crossSectionZagreb[chb];
     }
   }
@@ -296,9 +325,12 @@ vv    m_met[elm]=0;
   
   //matrix is symmetric
   //channels 0 and 1 : [ trigger&scaleFactors, electronEnergyScale, muonEnergyScale]
-  elmZagreb[4]=elmZagreb[1]= crossSectionZagreb[0]*crossSectionZagreb[1]* (commonSys[0][1] + elEnScale[0]*elEnScale[1] + muMomScale[0]*muMomScale[1]+
-									   leptTrgEff_el[0]*leptTrgEff_el[1] + leptTrgEff_mu[0]*leptTrgEff_mu[1]+
-									   dataDrivensys_el[0]*dataDrivensys_el[1]+dataDrivensys_mu[0]*dataDrivensys_mu[1]);
+  elmZagreb[4]=elmZagreb[1]= crossSectionZagreb[0]*crossSectionZagreb[1]* (commonSys[0][1] 
+									   + elEnScale[0]*elEnScale[1] 
+									   + muMomScale[0]*muMomScale[1]
+									   + leptTrgEff_el[0]*leptTrgEff_el[1] 
+									   + leptTrgEff_mu[0]*leptTrgEff_mu[1]
+									   + dataDrivensys_el[0]*dataDrivensys_el[1]+dataDrivensys_mu[0]*dataDrivensys_mu[1]);
   //dataDrivensys[0]*dataDrivensys[1]*corr_matrix_dd[0][1]);
 									  
   //channels 0 and 2: 

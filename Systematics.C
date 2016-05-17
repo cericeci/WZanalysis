@@ -16,6 +16,109 @@
 
 #include "UnfoldingHistogramFactory.h"
 
+
+#define  USEFLATQCD  false
+#define  USEFLATPDF  false
+
+
+using namespace std;
+
+TH1D * GetTheorySystematics(std::string errorType,
+			    std::string variable, 
+			    std::string name, 
+			    std::string title) {
+
+
+  bool    useConstantUncertainty = true;
+  double  qcdUncertainty        = 0.03;
+  double  pdfUncertainty        = 0.014;
+  double flatUncertainty;
+
+  if (errorType == "qcd") {
+    flatUncertainty = qcdUncertainty;
+    useConstantUncertainty = USEFLATQCD;
+  } else if (errorType == "pdf") {
+    flatUncertainty = pdfUncertainty;   
+    useConstantUncertainty = USEFLATPDF;
+  }
+
+
+
+  TH1D * hqcd = UnfoldingHistogramFactory::createHistogramForVar(variable,
+								 name, title); 
+  std::vector<double> values;
+
+  // See table at
+  // https://docs.google.com/spreadsheets/d/1NU-O7KRW2muRuzbYHBXY-UCr5idTlTBEZppDt5QCWvA/edit?usp=sharing
+
+  if (errorType == "qcd") {
+
+    if (variable == "Njets") {
+      values.push_back(0.03);
+      values.push_back(0.03);
+      values.push_back(0.03);
+      values.push_back(0.03);
+    } else if (variable == "LeadingJetPt") {
+      values.push_back(0.04);
+      values.push_back(0.02);
+      values.push_back(0.05);
+      values.push_back(0.05);    
+    } else if ( variable =="Zpt"){
+      values.push_back(0.02);
+      values.push_back(0.06);
+      values.push_back(0.06);
+      values.push_back(0.04);
+      values.push_back(0.015);
+      values.push_back(0.015);
+      values.push_back(0.018);
+      values.push_back(0.04);
+      values.push_back(0.04);
+    } 
+  } else if (errorType == "pdf") {
+    if (variable == "Njets") {
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+    } else if (variable == "LeadingJetPt") {
+      values.push_back(0.03);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+    } else if ( variable =="Zpt"){
+      values.push_back(0.03);
+      values.push_back(0.03);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+      values.push_back(pdfUncertainty);
+    } 
+  }
+  //
+  int nbins = hqcd->GetNbinsX();
+
+  if (nbins != values.size())  {
+    std::cout << "QCD scale: nr of values does not correspond to nr of bins!!! \n";
+    exit;
+  }
+
+
+  hqcd->SetBinContent(0, flatUncertainty);
+  for (int ibin=1; ibin<=nbins; ibin++) {
+    if (useConstantUncertainty) {
+      hqcd->SetBinContent(ibin, flatUncertainty);
+    } else {
+      hqcd->SetBinContent(ibin, values[ibin-1]);
+    }
+  }
+
+}
+
+
+
 int main(int argc, char **argv)
 {
   bool gotHistoBinning(false);
@@ -84,7 +187,7 @@ int main(int argc, char **argv)
   TH1D * h_met_nominal[nChannels];
   TH1D * h_kterm[nChannels];
 
-  TH1D* h_sys[nChannels][25];
+  TH1D* h_sys[nChannels][26];
 
   TMatrixD* covariance_unfolding[nChannels];
 
@@ -114,12 +217,14 @@ int main(int argc, char **argv)
   types.push_back("met_muEn");
   types.push_back("met_tauEn");
   types.push_back("met_unEn");
+  types.push_back("UnfoldingStat");
   //  types.push_back("met_nominal");
 
   for (int hist=0; hist<nChannels; hist++){
     std::ostringstream qcdScaleName,PDFsysName,leptTrgEffName_el, leptTrgEffName_mu,EtsysName, 
       muMomScaleName, elEnScaleName, pileupSysName, ZZxsName, ZgammaxsName, 
-      dataDrivenName, bckgSysName, xsNameIncl, xsNameInclDiff, JESsysName, JERsysName, eleSFname, muSFname;
+      dataDrivenName, bckgSysName, xsNameIncl, xsNameInclDiff, JESsysName, JERsysName, eleSFname, muSFname,
+      unfStatName;
     std::ostringstream WVname, WZZname, ZZZname, WWZname, WWWname, TTWname, 
       TTZname, TTWWname, TTGname, WWGname, systName, lumiName;
     std::ostringstream metElEnName, metJetEnName, metJetResName, metMuEnName, metTauEnName, metUnEnName, metNominalName;
@@ -135,6 +240,7 @@ int main(int argc, char **argv)
     pileupSysName<<"h_pileupSys_"<<hist;
     eleSFname<<"ele_SF_"<<hist;
     muSFname<<"mu_SF_"<<hist;
+    unfStatName << "h_unfoldingStat_" << hist;
     ZZxsName<<"h_ZZxs_"<<hist;
     ZgammaxsName<<"h_Zgammaxs_"<<hist;
     dataDrivenName<<"h_dataDrivensys_"<<hist;
@@ -165,9 +271,22 @@ int main(int argc, char **argv)
     metNominalName<<"h_metNominal_"<<hist;
     unfSystName<<"h_unfSyst_"<<hist;
 
+    h_qcdScale[hist] = GetTheorySystematics("qcd",variable, 
+					    qcdScaleName.str().c_str(), 
+					    qcdScaleName.str().c_str());
+    h_PDFSys[hist]  = GetTheorySystematics("pdf",variable, 
+					   PDFsysName.str().c_str(), 
+					   PDFsysName.str().c_str());
+
+    h_sys[hist][25] = UnfoldingHistogramFactory::createHistogramForVar(variable,
+								       unfStatName.str().c_str(),
+								       unfStatName.str().c_str());
+    std::cout << "Unfolding stat histo : " << unfStatName.str().c_str() << std::endl;
+
+
     if (variable=="Njets"){
-      h_qcdScale[hist]=UnfoldingHistogramFactory::createNjetsHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
-      h_PDFSys[hist]= UnfoldingHistogramFactory::createNjetsHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
+      //      h_qcdScale[hist]=UnfoldingHistogramFactory::createNjetsHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
+      //      h_PDFSys[hist]= UnfoldingHistogramFactory::createNjetsHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
       h_leptTrgEff_el[hist]=UnfoldingHistogramFactory::createNjetsHistogram(leptTrgEffName_el.str().c_str(), leptTrgEffName_el.str().c_str());
       h_leptTrgEff_mu[hist]=UnfoldingHistogramFactory::createNjetsHistogram(leptTrgEffName_mu.str().c_str(), leptTrgEffName_mu.str().c_str());
       h_Etsys[hist]=UnfoldingHistogramFactory::createNjetsHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
@@ -209,8 +328,8 @@ int main(int argc, char **argv)
     }
 
     if (variable=="Zpt"){
-      h_qcdScale[hist]=UnfoldingHistogramFactory::createZPtHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
-      h_PDFSys[hist]= UnfoldingHistogramFactory::createZPtHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
+      //      h_qcdScale[hist]=UnfoldingHistogramFactory::createZPtHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
+      //      h_PDFSys[hist]= UnfoldingHistogramFactory::createZPtHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
       h_leptTrgEff_el[hist]=UnfoldingHistogramFactory::createZPtHistogram(leptTrgEffName_el.str().c_str(), leptTrgEffName_el.str().c_str());
       h_leptTrgEff_mu[hist]=UnfoldingHistogramFactory::createZPtHistogram(leptTrgEffName_mu.str().c_str(), leptTrgEffName_mu.str().c_str());
       h_Etsys[hist]=UnfoldingHistogramFactory::createZPtHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
@@ -253,8 +372,8 @@ int main(int argc, char **argv)
 
 
     if (variable=="LeadingJetPt"){
-      h_qcdScale[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
-      h_PDFSys[hist]= UnfoldingHistogramFactory::createLeadingJetHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
+      //      h_qcdScale[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(qcdScaleName.str().c_str(), qcdScaleName.str().c_str());
+      //      h_PDFSys[hist]= UnfoldingHistogramFactory::createLeadingJetHistogram(PDFsysName.str().c_str(), PDFsysName.str().c_str());
       h_leptTrgEff_el[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(leptTrgEffName_el.str().c_str(), leptTrgEffName_el.str().c_str());
       h_leptTrgEff_mu[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(leptTrgEffName_mu.str().c_str(), leptTrgEffName_mu.str().c_str());
       h_Etsys[hist]=UnfoldingHistogramFactory::createLeadingJetHistogram(EtsysName.str().c_str(), EtsysName.str().c_str());
@@ -309,16 +428,20 @@ int main(int argc, char **argv)
     std::ostringstream fileNameUp, fileNameDown;
     fileNameUp<<"sysResults/unfolding_"<<types[i]<<"_"<<variable<<"_UP.root";
     fileNameDown<<"sysResults/unfolding_"<<types[i]<<"_"<<variable<<"_DOWN.root";
-    TFile* fnominal;
-    std::cout<<"Nominal name MET: "<<nominalNameMet.str().c_str()<<std::endl;;
-    if (i>=19){
-      fnominal= TFile::Open(nominalNameMet.str().c_str());  
-    }
-    else
-      fnominal= TFile::Open(nominalName.str().c_str());  
 
     TFile * fUP= TFile::Open(fileNameUp.str().c_str());
     TFile * fDOWN= TFile::Open(fileNameDown.str().c_str());
+
+    TFile* fnominal;
+    std::cout<<"Nominal name MET: "<<nominalNameMet.str().c_str()<<std::endl;;
+    if (i>=19 && i<25){
+      fnominal= TFile::Open(nominalNameMet.str().c_str());
+    }
+    else if (i==25) {
+      fnominal = fUP;
+    } else 
+      fnominal= TFile::Open(nominalName.str().c_str());
+
     
     for (int compute=0; compute<nChannels; compute++){
       std::ostringstream histName, histNameNewUp, histNameNewDown, fileNameNominal;
@@ -350,6 +473,32 @@ int main(int argc, char **argv)
       delete h_up;
       delete h_down;
     }
+  }
+
+  // Unfolding Statistics: make an average of the variation for each bin and 
+  // apply it to all
+
+  TH1D * h_unfoldStatSys_all =  
+    UnfoldingHistogramFactory::createHistogramForVar(variable
+						     ,"h_unfoldingStat_mean"
+						     ,"Mean unfolding stat. sys");
+
+
+  for (int ichan=0; ichan<nChannels; ichan++) {
+    h_unfoldStatSys_all->Add(h_sys[ichan][25]);    
+  }
+  // factors:
+  // 4 for average
+  // sqrt(2) for going from difference between elments to sigma
+  // sqrt(2) as stat. of full sample two times larger
+  h_unfoldStatSys_all->Scale(1/8.); 
+
+  // Copy this for all 4 channels
+  TH1D * unfStatHistos[4];
+  for (int ichan=0; ichan<nChannels; ichan++) {
+    std::ostringstream key;
+    key << "h_unfStat_" << ichan;
+    unfStatHistos[ichan] = (TH1D*) h_unfoldStatSys_all->Clone(key.str().c_str());
   }
   
   std::ostringstream dataDrivenName, dataDrivenName_el, dataDrivenName_mu, ktermName_up, ktermName_down;
@@ -399,9 +548,12 @@ int main(int argc, char **argv)
       h_Etsys[other]->SetBinContent(bin1,sqrt(met2));
       double ltrig=sqrt(pow(h_sys[other][3]->GetBinContent(bin1),2)+pow(h_sys[other][4]->GetBinContent(bin1),2));
       //      h_leptTrgEff_el[other]->SetBinContent(bin1, ltrig);
-      h_qcdScale[other]->SetBinContent(bin1, 0.03);
+      // ORIGINAL VALUE      
+      //      h_qcdScale[other]->SetBinContent(bin1, 0.03);
+      // NEW 
+      //      h_qcdScale[other]->SetBinContent(bin1, 0.05);
       h_lumi[other]->SetBinContent(bin1, 0.026);
-      h_PDFSys[other]->SetBinContent(bin1, 0.014);
+      //      h_PDFSys[other]->SetBinContent(bin1, 0.014);
       double dataDrivenSyst_el=fabs(h_crossSection[other]->GetBinContent(bin1)-h_dataDrivenUp_el->GetBinContent(bin1))/(h_crossSection[other]->GetBinContent(bin1));
       double dataDrivenSyst_mu=fabs(h_crossSection[other]->GetBinContent(bin1)-h_dataDrivenUp_mu->GetBinContent(bin1))/(h_crossSection[other]->GetBinContent(bin1));
       h_DataDrivenSys_el[other]->SetBinContent(bin1, dataDrivenSyst_el);
@@ -439,6 +591,10 @@ int main(int argc, char **argv)
   // covariance_unfolding[3]->Write("covariance_unfolding_3");
 
   }
+
+  h_unfoldStatSys_all->Write();
+  for (int i=0; i<nChannels; i++) 
+    unfStatHistos[i]->Write();
   
   fout->Write();
   fout->Close();

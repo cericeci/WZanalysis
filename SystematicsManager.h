@@ -10,7 +10,7 @@
 
 using namespace std;
 
-// Define pure static class with histo definitions
+// Singleton clas
 
 
 class SystematicsManager {

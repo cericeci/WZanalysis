@@ -20,6 +20,10 @@
 #define WZBASECLASS WZGenEvent_v140710
 #include "WZGenEvent_v140710.h"
 #endif
+#ifdef TZMC
+#define WZBASECLASS TZJets
+#include "TZJets.h"
+#endif
 
 #define _ISWZMC_
 

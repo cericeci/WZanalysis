@@ -12,7 +12,10 @@
 #include "WZEventMCOld.h"
 //#include "WZ2012Data.h"
 
+#include "MatrixTools.h"
+
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -43,7 +46,9 @@ double promptWeight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* Muon
 
 float promptError(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, 
 		  int * WZcandidates, int * pass2012ICHEP, 
-		  int channel, float* pt, float* eta, float weight);
+		  int channel, float* pt, float* eta, float weight,
+		  std::vector<MatrixTerm> * xterms_pf=0,
+		  std::vector<MatrixTerm> * xterms_eff=0);
 
 
 float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.);
@@ -60,6 +65,159 @@ double deltaPhiWMET(int * WZcandidates, TLorentzVector* analysisLepton, TLorentz
 //float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label);
 
 double wTransverseMass(int index, TLorentzVector* analysisLepton, TLorentzVector EventMET);
+
+
+
+// Put correct stat. uncertainties in electron FR map
+//  (values in the input histogram are weird, way too large)
+void fixElectronFRErrors(TH2F* ElectronFR) {
+
+  std::map< pair<float,float>, float> errorMap;
+
+  float pt(10.),eta(2.), error(0.1);
+  errorMap.insert( make_pair( make_pair(12.,0.5), 0.005));
+  errorMap.insert( make_pair( make_pair(12.,1.2), 0.004));
+  errorMap.insert( make_pair( make_pair(12.,1.8), 0.002));
+  errorMap.insert( make_pair( make_pair(12.,2.2), 0.005));
+
+  errorMap.insert( make_pair( make_pair(17.,0.5), 0.003));
+  errorMap.insert( make_pair( make_pair(17.,1.2), 0.003));
+  errorMap.insert( make_pair( make_pair(17.,1.8), 0.001));
+  errorMap.insert( make_pair( make_pair(17.,2.2), 0.002));
+
+  errorMap.insert( make_pair( make_pair(22.,0.5), 0.002));
+  errorMap.insert( make_pair( make_pair(22.,1.2), 0.003));
+  errorMap.insert( make_pair( make_pair(22.,1.8), 0.002));
+  errorMap.insert( make_pair( make_pair(22.,2.2), 0.002));
+
+  errorMap.insert( make_pair( make_pair(27.,0.5), 0.003));
+  errorMap.insert( make_pair( make_pair(27.,1.2), 0.005));
+  errorMap.insert( make_pair( make_pair(27.,1.8), 0.003));
+  errorMap.insert( make_pair( make_pair(27.,2.2), 0.003));
+
+  errorMap.insert( make_pair( make_pair(33.,0.5), 0.006));
+  errorMap.insert( make_pair( make_pair(33.,1.2), 0.009));
+  errorMap.insert( make_pair( make_pair(33.,1.8), 0.006));
+  errorMap.insert( make_pair( make_pair(33.,2.2), 0.005));
+
+  std::map< pair<float,float>, float>::iterator it;
+
+  for (it=errorMap.begin();it!=errorMap.end(); it++) {
+    float pt  = it->first.first;
+    float eta = it->first.second;
+    float err = it->second;
+    cout << "Error map: Pt = " << pt << "\t Eta = " << eta << "\t error = " << err << std::endl;
+
+    ElectronFR->SetBinError( ElectronFR->FindBin(pt,eta), err);
+
+  }
+
+
+}
+
+
+
+void printFakeRates(TH2F* ElectronFR, TH2F* MuonFR)
+{
+  // Print out Prompt rates
+  float ptBinLimits [6] = {10,15,20,25,30,14000};
+  float etaBinLimits[5] = {0., 1., 1.479, 2., 2.5};
+
+  ofstream ele_fr_list("fakerates_ele.txt");
+  ofstream mu_fr_list("fakerates_mu.txt");
+
+  ele_fr_list << " Pt  ";
+  mu_fr_list  << " Pt  ";
+
+  for (int ieta = 0; ieta<4; ieta++) {
+    ele_fr_list << "\t\t|\t" 
+		<< etaBinLimits[ieta] << " - " 
+		<< etaBinLimits[ieta+1];
+    mu_fr_list << "\t\t|\t" 
+		<< etaBinLimits[ieta] << "    -      " 
+		<< etaBinLimits[ieta+1];
+  }
+  ele_fr_list << std::endl;
+  mu_fr_list << std::endl;
+
+  for (int ipt = 0; ipt<6; ipt++) {
+    float pt = 0.5*(ptBinLimits[ipt]+ptBinLimits[ipt+1]);
+
+    ele_fr_list << "Pt = " << pt;
+    mu_fr_list  << "Pt = " << pt;
+    for (int ieta = 0; ieta<4; ieta++) {
+      float eta = 0.5*(etaBinLimits[ieta]+etaBinLimits[ieta+1]);
+      float elepf  = GetFactor(ElectronFR, pt, eta);
+      float eledpf = GetError(ElectronFR, pt, eta);
+      float mupf  = GetFactor(MuonFR, pt, eta);
+      float mudpf = GetError(MuonFR, pt, eta);
+
+      ele_fr_list << "\t|\t" << setprecision(4) << elepf << " +/- " << setprecision(4) << eledpf;
+      mu_fr_list  << "\t|\t" << setprecision(4) << mupf  << " +/- " << setprecision(4) << mudpf;
+    }
+    ele_fr_list << std::endl;
+    mu_fr_list << std::endl;
+  }
+  
+}
+
+
+double computeXtermUncertainty(std::vector<MatrixTerm>  & xterms, bool useOnlyDiagonalTerms=false) {
+
+    double sumXterms(0.);
+    double sumDiagTerms(0.);
+
+    int nXterms = 0;
+    
+    for (int ievt1=0; ievt1<xterms.size(); ievt1++) {
+      for (int ievt2=ievt1; ievt2<xterms.size(); ievt2++) {
+	for (int ilep1=0; ilep1<3; ilep1++) {
+	  for (int ilep2=0; ilep2<3; ilep2++) {
+	    if (xterms[ievt1].histoBin[ilep1] == xterms[ievt2].histoBin[ilep2]) {
+
+
+	      // std::cout << "Found xterm " 
+	      // 		<< " bins: " << xterms[ievt1].histoBin[ilep1] 
+	      // 		<< "\t" <<  xterms[ievt2].histoBin[ilep2] 
+	      // 		<< "\t errors = " << xterms[ievt1].effError[ilep1]
+	      // 		<< "\t " << xterms[ievt2].effError[ilep2] << std::endl;
+	      //	      if (ilep1 != 2 && ilep2 != 2) {
+	      double x = xterms[ievt1].derivative[ilep1] * xterms[ievt2].derivative[ilep2];
+	      x  *=  pow(xterms[ievt1].effError[ilep1],2);
+
+	      if (ievt1 == ievt2) {
+		if (ilep1 == ilep2) {
+		  sumDiagTerms += x;
+		} else {
+		  //  std::cout << "Found same efficiency bin in different leptons in same event : " 
+		  //    << ilep1 << "\t" << ilep2 << std::endl;
+		}
+	      } else {
+		sumXterms += x;
+		nXterms++;
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    sumXterms  *= 2;
+    std::cout << "xterm : " << sqrt(sumXterms) 
+	      << "\t diag.term : " << sqrt(sumDiagTerms)
+	      << "\t # x-terms : " << nXterms
+	      << "\t events : " << xterms.size()
+	      << std::endl;
+
+
+    double sum = sumDiagTerms;
+    if (! useOnlyDiagonalTerms) sum+=sumXterms;
+
+    return sum;
+
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -254,11 +412,16 @@ int main(int argc, char **argv)
   TH2F* ElectronPR;
 
 
-  
+  //nominal!!!  
   MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet20_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR"); //nominal!!!
   //syst
-  //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet10_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
-  //  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet15_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  // MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet10_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR")
+  // MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet15_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  // MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet30_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  // MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet35_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  // MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet40_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+  //  MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet50_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
+
   //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet30_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
   //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet35_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
   //MuonFR=LoadHistogram("auxiliaryFiles/MuFR_Moriond13_jet40_EWKcorr.root", "FR_pT_eta_EWKcorr", "MuonFR");
@@ -272,6 +435,9 @@ int main(int argc, char **argv)
   //ElectronFR=LoadHistogram("auxiliaryFiles/EleFR_Moriond13_jet50_EWKcorr.root", "fakeElH2", "ElectronFR");
 
   ElectronPR=LoadHistogram("auxiliaryFiles/ElePR_Moriond13_2012.root", "h2inverted", "ElectronPR");
+
+  fixElectronFRErrors(ElectronFR);
+  printFakeRates(ElectronFR, MuonFR);
     
   const int leptonNumber(4);
   const float electronMass(0.000511);
@@ -308,6 +474,13 @@ int main(int argc, char **argv)
   // Vuko's additions
   double N_prompt[4]={0,0,0,0};
   double dN_prompt[4]={0,0,0,0};
+  double N_fakelep[4]={0,0,0,0};
+  double dN_fakelep[4]={0,0,0,0};
+
+
+
+  std::vector<MatrixTerm> xtermsFR[4];
+  std::vector<MatrixTerm> xtermsPR[4];
 
 
   double data_driven_syst[4]={0.029, 0.022, 0.032, 0.028};
@@ -372,8 +545,11 @@ int main(int argc, char **argv)
   
   std::cout<<"number of events: "<<events << std::endl;
 
+  //////////////////////////////////////////////
+  //   EVENT LOOP
 
-  for  (Int_t k = 0; k<events /*&& k<1000*/;k++) {
+
+  for  (Int_t k = 0; k<events  /* && k<1000000 */ ;k++) {
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
@@ -662,8 +838,11 @@ int main(int argc, char **argv)
 		     WZcandidates, pass2012ICHEP, 
 		     matrix, pt, eta);
       promptMMErrors2[matrix] = promptError(ElectronFR, ElectronPR, MuonFR, MuonPR, 
-				       WZcandidates, pass2012ICHEP, 
-				       matrix, pt, eta, promptWeights[matrix]);
+					    WZcandidates, pass2012ICHEP, 
+					    matrix, pt, eta, promptWeights[matrix], 
+					    &xtermsFR[matrix],
+					    &xtermsPR[matrix]); // xxx
+
       //      double xc_diff = MMweights[matrix] - promptWeights[matrix];
       //      if (fabs(xc_diff) > 0.0001) {
 	  // std::cout << "Channel: " << matrix
@@ -765,8 +944,13 @@ int main(int argc, char **argv)
 	N_fake_plus[final]+=(Nttt-MMweights[final]);
 	ferror_plus[final]+=MMerrors_fake[final];
       }
-      N_prompt[final]  += promptWeights[final];
+      double  w_prompt = promptWeights[final];
+      //      N_prompt[final]  += promptWeights[final];
+      N_prompt[final]  += w_prompt;
       dN_prompt[final] += promptMMErrors2[final];
+      N_fakelep[final] += Nttt - w_prompt;
+      dN_fakelep[final] += pow(Nttt - w_prompt,2);
+
     }
 
 
@@ -1027,11 +1211,66 @@ int main(int argc, char **argv)
   fout->Write();
   fout->Close();
 
+  ofstream texMMoutput("mmresults.tex");
+
+
+  texMMoutput << "\\begin{tabular}{ccccccc} \\hline \n";
+
+  texMMoutput << "Channel "
+	      << "  &  $N_{prompt}$" 
+	      << "  &  error "
+	      << "   &  $\\sqrt{A}$"
+	      << "   &  $\\sqrt{B}$"
+	      << "   &  $\\sqrt{C}$"
+	      << "   &  $\\sqrt{B_{diag}}$"
+	      << "   &  $\\sqrt{C_{diag}}$"
+	      << "\t  \\\\ \\hline" << std::endl;
+
+
+  std::string names[4] = {"$eee$", "$ee\\mu$", "$\\mu\\mu e$", "$\\mu\\mu\\mu$"};
+
   for (int chan=0; chan<4; chan++) {
     std::cout << "Prompt weight = " << N_prompt[chan] 
 	      << " +/- " << sqrt(dN_prompt[chan]) 
+	      << "\t Fake weight = " << N_fakelep[chan] 
+	      << " +/- " << sqrt(dN_fakelep[chan]) 
 	      << std::endl;
+
+    double sumXtermsFR = computeXtermUncertainty(xtermsFR[chan]);
+    double sumXtermsFR_diag = computeXtermUncertainty(xtermsFR[chan],true);
+    double sumXtermsPR      = computeXtermUncertainty(xtermsPR[chan]);
+    double sumXtermsPR_diag = computeXtermUncertainty(xtermsPR[chan],true);
+
+
+
+
+    double total_prompt_err = sqrt(dN_prompt[chan] + sumXtermsFR + sumXtermsFR );
+    std::cout << "sum of weights (A) : " << sqrt(dN_prompt[chan])
+	      << "\t xterm FR (B) : " << sqrt(sumXtermsFR) 
+	      << "\t xterm FR (B) diag. : " << sqrt(sumXtermsFR_diag) 
+	      << "\t xterm PR (C): " << sqrt(sumXtermsPR) 
+	      << "\t xterm PR (C) diag: " << sqrt(sumXtermsPR_diag) 
+	      << "\t total err = " << total_prompt_err
+	      << "\t events : " << xtermsFR[chan].size()
+	      << std::endl;
+
+    texMMoutput << names[chan]
+		<< "\t & \t" << N_prompt[chan] 
+		<< "\t & \t" << total_prompt_err 
+		<< "\t & \t" << sqrt(dN_prompt[chan])
+		<< "\t & \t" << setprecision(5) << sqrt(sumXtermsFR) 
+		<< "\t & \t" << setprecision(5) << sqrt(sumXtermsPR) 
+		<< "\t & \t" << setprecision(5) << sqrt(sumXtermsFR_diag) 	
+		<< "\t & \t" << setprecision(5) << sqrt(sumXtermsPR_diag) 	
+	<< "\t \\\\" << std::endl;
+
+
   }
 
+  texMMoutput << "\\end{tabular} \\hline \n";
+  texMMoutput.close();
 
 }
+
+
+

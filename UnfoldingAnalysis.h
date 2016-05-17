@@ -34,6 +34,9 @@ public:
   void FillPurityStability();
   void ApplyLuminosityNormalization(double norm);
 
+
+  void UseModifiedShape(bool use=true);
+
 protected:
 
   virtual TH1D * createHistogram(std::string s, std::string title)=0;
@@ -41,6 +44,7 @@ protected:
   double GetRecoWeight();
   double GetGenWeight();
 
+  virtual double GetShapeWeight(double var); // { return 1.;}
 
   
   WZEvent * wzevt;
@@ -71,8 +75,17 @@ protected:
 
   bool    normalizeToLumi;
   bool    useNormalizedWeights;
+  bool    useModifiedShape;
 
   TTree * resolutionTree;
+
+  double * shapeWeights;
+
+  double missYield;
+  double fakeYield;
+  double fillYield;
+
+
 
 };
 
@@ -96,6 +109,8 @@ public:
   void Init();
 
 protected:
+
+  //  double GetShapeWeight(double var);
 
   double leadingRecoJetPt;
   double leadingGenJetPt;
@@ -129,7 +144,7 @@ public:
 
   // void Finish(TFile * fout=0);
 
-  //  void Init();
+  void Init();
 
 protected:
   /*

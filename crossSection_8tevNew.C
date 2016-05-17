@@ -20,6 +20,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include <map>
+
 
 void solveBLUE(TMatrixD covMat, double* xs)
 {
@@ -66,7 +68,7 @@ void solveBLUE(TMatrixD covMat, double* xs)
 
 
 
-void crossSection()
+void crossSection_8tevNew()
 {
   //  bool latexOutput(false);
   bool latexOutput(true);
@@ -97,12 +99,27 @@ void crossSection()
   double sNZgamma[4]={dsNZgamma_3e, dsNZgamma_2e1mu, dsNZgamma_1e2mu, dsNZgamma_3mu};
   double NWV[4]={dNWV_3e, dNWV_2e1mu, dNWV_1e2mu, dNWV_3mu};
 
+  //  tZ yields
+  // 3e:     7.13574+/-0.0538207
+  // 2e1mu:  9.28783+/-0.0623957
+  // 1e2mu:  11.8205+/-0.0715391
+  // 3mu:    15.8795+/-0.0843204
+  double NTZ[4] = { 0,0,0,0
+		    /*  7.13574 
+			, 9.28783
+			, 11.8205
+			, 15.8795  */
+  };
+
+
+
   double f=0;
   for (int wv=0; wv<4; wv++){
     NWV[wv]+=f*NWV[wv];
   }
   double sNWV[4]={dsNWV_3e, dsNWV_2e1mu, dsNWV_1e2mu, dsNWV_3mu};
   double NVVV[4]={dNVVV_3e, dNVVV_2e1mu, dNVVV_1e2mu, dNVVV_3mu};
+
   //part for systematics VVV
   //**************************
   /*
@@ -168,7 +185,7 @@ void crossSection()
   TString names[4]={"3e", "2e1mu","1e2mu", "3mu"};
 
   for (int i=0; i<4; i++){
-    Nsig[i]=(N_good[i]-NZgamma[i]-NWV[i]-NVVV[i]-NZZ[i]);
+    Nsig[i]=(N_good[i]-NZgamma[i]-NWV[i]-NVVV[i]-NZZ[i] - NTZ[i]);
     std::cout<<N_good[i]<<" , "<<NZgamma[i]<<" , "<<NWV[i]<<" , "<<NVVV[i]<<" , "<<NZZ[i]<<std::endl;
     std::cout<<Nsig[i]<<std::endl;
     csSpNum[i]=Nsig[i];
@@ -177,7 +194,6 @@ void crossSection()
     csSpJonDen[i]=(AxeSJ[i]*luminosity);
     crossSectionSpanish[i]=csSpNum[i]/csSpDen[i];
     crossSectionSpanishJonatan[i]=csSpNum[i]/csSpJonDen[i];
-    
 
     csZgNum[i]=(1-tauFactor[i])*Nsig[i];
     csZgDen[i]=(AxeZ[i]*luminosity*WZbr[i]);
@@ -200,45 +216,57 @@ void crossSection()
     //systematics
     systematicErrorZagreb[i]=sys[i]*crossSectionZagreb[i];
     systematicErrorSpanish[i]=sys[i]*crossSectionSpanish[i];
+
+
+    std::cout << "CROSS SECTION: Channel: " << i << "\t xs = " << crossSectionZagreb[i] 
+	      << "\t +/- \t" << errorCsZagreb[i]
+	      << "\t +/- \t" << systematicErrorZagreb[i] 
+	      << "\t +/- \t" << 0.026*crossSectionZagreb[i] 
+	      << std::endl;
+
+
   }
 
+
+//  std::map<string, float[4]> sysSources;
 
 
   /////BLUE METHOD////////
 
-  double lumiSyst[4]={lumiSyst3e/100, lumiSyst2e1mu/100, lumiSyst1e2mu/100, lumiSyst3mu/100};
-  double qcdScale[4]={qcdScale3e/100, qcdScale2e1mu/100, qcdScale1e2mu/100, qcdScale3mu/100};
-  double PDFsys[4]={PDF3e/100, PDF2e1mu/100, PDF1e2mu/100, PDF3mu/100};
-  //  double leptTrgEff[4] ={LepTrgEff3e/100, LepTrgEff2e1mu/100, LepTrgEff1e2mu/100, LepTrgEff3mu/100};
-  double leptTrgEff_el[4] ={LepTrgEff3e_el/100, LepTrgEff2e1mu_el/100, LepTrgEff1e2mu_el/100, LepTrgEff3mu_el/100};
-  double leptTrgEff_mu[4] ={LepTrgEff3e_mu/100, LepTrgEff2e1mu_mu/100, LepTrgEff1e2mu_mu/100, LepTrgEff3mu_mu/100};
-  double Etsys[4] = {Etmiss3e/100, Etmiss2e1mu/100, Etmiss1e2mu/100, Etmiss3mu/100};
-  double muMomScale[4] = {muMomScale3e/100, muMomScale2e1mu/100, muMomScale1e2mu/100, muMomScale3mu/100};
-  double elEnScale[4]= {elEnScale3e/100, elEnScale2e1mu/100, elEnScale1e2mu/100, elEnScale3mu/100};
-  double pileUpsys[4]= {pileUp3e/100, pileUp2e1mu/100, pileUp1e2mu/100, pileUp3mu/100};
-  double ZZcs[4]= {ZZcs3e/100, ZZcs2e1mu/100, ZZcs1e2mu/100, ZZcs3mu/100};
-  double Zgammacs[4]= {Zgammacs3e/100, Zgammacs2e1mu/100, Zgammacs1e2mu/100, Zgammacs3mu/100};
+  double lumiSyst[4]   = {lumiSyst3e/100, lumiSyst2e1mu/100, lumiSyst1e2mu/100, lumiSyst3mu/100};
+  double qcdScale[4]   = {qcdScale3e/100, qcdScale2e1mu/100, qcdScale1e2mu/100, qcdScale3mu/100};
+  double PDFsys[4]     = {PDF3e/100, PDF2e1mu/100, PDF1e2mu/100, PDF3mu/100};
+
+  double leptTrgEff_el[4] = {LepTrgEff3e_el/100, LepTrgEff2e1mu_el/100, LepTrgEff1e2mu_el/100, LepTrgEff3mu_el/100};
+  double leptTrgEff_mu[4] = {LepTrgEff3e_mu/100, LepTrgEff2e1mu_mu/100, LepTrgEff1e2mu_mu/100, LepTrgEff3mu_mu/100};
+  double Etsys[4]         = {Etmiss3e/100, Etmiss2e1mu/100, Etmiss1e2mu/100, Etmiss3mu/100};
+  double muMomScale[4]    = {muMomScale3e/100, muMomScale2e1mu/100, muMomScale1e2mu/100, muMomScale3mu/100};
+  double elEnScale[4]     = {elEnScale3e/100, elEnScale2e1mu/100, elEnScale1e2mu/100, elEnScale3mu/100};
+  double pileUpsys[4]     = {pileUp3e/100, pileUp2e1mu/100, pileUp1e2mu/100, pileUp3mu/100};
+  double ZZcs[4]          = {ZZcs3e/100, ZZcs2e1mu/100, ZZcs1e2mu/100, ZZcs3mu/100};
+  double Zgammacs[4]      = {Zgammacs3e/100, Zgammacs2e1mu/100, Zgammacs1e2mu/100, Zgammacs3mu/100};
   double dataDrivensys[4] = {dataDriven3e/100, dataDriven2e1mu/100, dataDriven1e2mu/100, dataDriven3mu/100};
   double dataDrivensys_el[4] = {dataDriven3e_el/100, dataDriven2e1mu_el/100, dataDriven1e2mu_el/100, dataDriven3mu_el/100};
   double dataDrivensys_mu[4] = {dataDriven3e_mu/100, dataDriven2e1mu_mu/100, dataDriven1e2mu_mu/100, dataDriven3mu_mu/100};
-  double bckgSys[4] = {back3e/100, back2e1mu/100, back1e2mu/100, back3mu/100};
+  // This is probably VVV: corresponds to numbers in Table 15 of AN-14-145
+  double otherMCbgSys[4] = {back3e/100, back2e1mu/100, back1e2mu/100, back3mu/100};
 
   
   //compose Error Matrix [i = column*4+row] [0-3][0-3] indices
 //matrix is symmetric
 //channel legend: 0 = 3e, 1 = 2e1mu, 2 = 2mu1e,  3 = 3mu
   
-  Double_t elmZagreb[16];
+//  Double_t elmZagreb[16];
   Double_t m_qcd[4][4], m_pdf[4][4], m_leptE[4][4], m_leptM[4][4], m_met[4][4], m_muScale[4][4], m_elScale[16], m_pup[16], m_zz[16], m_zg[16], m_bck[16];
 
-  for (size_t elm=0;elm<16;elm++) elmZagreb[elm]=0;
+//  for (size_t elm=0;elm<16;elm++) elmZagreb[elm]=0;
   /*
   for (size_t elm=0;elm<16;elm++) {
     m_qcd[elm]=0;
     m_pdf[elm]=0;
     m_leptE[elm]=0;
     m_leptM[elm]=0;
-vv    m_met[elm]=0;
+    m_met[elm]=0;
     m_muScale[elm]=0;
     m_elScale[elm]=0;
     m_pup[elm]=0;
@@ -253,9 +281,14 @@ vv    m_met[elm]=0;
   double lumi_matrix[4][4];
   for (int cha=0; cha<4; cha++){
     for (int chb=0; chb<4; chb++){
-      commonSys[cha][chb]= Etsys[cha]*Etsys[chb]+ pileUpsys[cha]*pileUpsys[chb]
-	+ PDFsys[cha]*PDFsys[chb] + qcdScale[cha]*qcdScale[chb] +
-	bckgSys[cha]*bckgSys[chb]+ ZZcs[cha]*ZZcs[chb]+ Zgammacs[cha]*Zgammacs[chb]+lumiSyst[cha]*lumiSyst[chb];
+      commonSys[cha][chb]= Etsys[cha]*Etsys[chb]
+	+ pileUpsys[cha]*pileUpsys[chb]
+	+ PDFsys[cha]*PDFsys[chb] 
+	+ qcdScale[cha]*qcdScale[chb] 
+	+ otherMCbgSys[cha]*otherMCbgSys[chb]
+	+ ZZcs[cha]*ZZcs[chb]
+	+ Zgammacs[cha]*Zgammacs[chb]
+	+ lumiSyst[cha]*lumiSyst[chb];
       lumi_matrix[cha][chb]=lumiSyst[cha]*lumiSyst[chb]*crossSectionZagreb[cha]*crossSectionZagreb[chb];
     }
   }
@@ -288,59 +321,38 @@ vv    m_met[elm]=0;
     {0, 1, 0, 1}
   };
 
-  //diagonals elements:
-  elmZagreb[0]=pow(systematicErrorZagreb[0],2) + pow(errorCsZagreb[0],2) + pow(lumiSyst[0]*crossSectionZagreb[0],2);
-  elmZagreb[5]=pow(systematicErrorZagreb[1],2) + pow(errorCsZagreb[1],2) + pow(lumiSyst[1]*crossSectionZagreb[1],2);
-  elmZagreb[10]=pow(systematicErrorZagreb[2],2) + pow(errorCsZagreb[2],2) + pow(lumiSyst[2]*crossSectionZagreb[2],2);
-  elmZagreb[15]=pow(systematicErrorZagreb[3],2) + pow(errorCsZagreb[3],2) + pow(lumiSyst[3]*crossSectionZagreb[3],2);
-  
-  //matrix is symmetric
-  //channels 0 and 1 : [ trigger&scaleFactors, electronEnergyScale, muonEnergyScale]
-  elmZagreb[4]=elmZagreb[1]= crossSectionZagreb[0]*crossSectionZagreb[1]* (commonSys[0][1] + elEnScale[0]*elEnScale[1] + muMomScale[0]*muMomScale[1]+
-									   leptTrgEff_el[0]*leptTrgEff_el[1] + leptTrgEff_mu[0]*leptTrgEff_mu[1]+
-									   dataDrivensys_el[0]*dataDrivensys_el[1]+dataDrivensys_mu[0]*dataDrivensys_mu[1]);
-  //dataDrivensys[0]*dataDrivensys[1]*corr_matrix_dd[0][1]);
-									  
-  //channels 0 and 2: 
-  elmZagreb[8]=elmZagreb[2]=  crossSectionZagreb[0]*crossSectionZagreb[2]* (commonSys[0][2] + elEnScale[0]*elEnScale[2] + muMomScale[0]*muMomScale[2]+
-									    leptTrgEff_el[0]*leptTrgEff_el[2]+leptTrgEff_mu[0]*leptTrgEff_mu[2]+
-									    dataDrivensys_el[0]*dataDrivensys_el[2]+dataDrivensys_mu[0]*dataDrivensys_mu[2]);
-  //dataDrivensys[0]*dataDrivensys[2]*corr_matrix_dd[0][2]);
 
-  //channels 0 and 3
-  elmZagreb[12]=elmZagreb[3]= crossSectionZagreb[0]*crossSectionZagreb[3]* (commonSys[0][3] + elEnScale[0]*elEnScale[3] + muMomScale[0]*muMomScale[3]+
-									    leptTrgEff_el[0]*leptTrgEff_el[3] + leptTrgEff_mu[0]*leptTrgEff_mu[3]+
-									    dataDrivensys_el[0]*dataDrivensys_el[3]+dataDrivensys_mu[0]*dataDrivensys_mu[3]);
-  //dataDrivensys[0]*dataDrivensys[3]*corr_matrix_dd[0][3]);
+  TMatrixD  auxiliaryMatrix(4,4);
 
-  //channels 1 and 2
-  elmZagreb[9]=elmZagreb[6] =crossSectionZagreb[1]*crossSectionZagreb[2]* (commonSys[1][2] +elEnScale[1]*elEnScale[2] + muMomScale[1]*muMomScale[2]+
-									   leptTrgEff_el[1]*leptTrgEff_el[2]+ leptTrgEff_mu[1]*leptTrgEff_mu[2]+
-									   dataDrivensys_el[1]*dataDrivensys_el[2]+dataDrivensys_mu[1]*dataDrivensys_mu[2]);
-  //dataDrivensys[1]*dataDrivensys[2]*corr_matrix_dd[1][2]);
-  //channels 1 and 3
-  elmZagreb[13]=elmZagreb[7] =crossSectionZagreb[1]*crossSectionZagreb[3] *(commonSys[1][3] + elEnScale[1]*elEnScale[3] + muMomScale[1]*muMomScale[3]+
-									    leptTrgEff_el[1]*leptTrgEff_el[3] + leptTrgEff_mu[1]*leptTrgEff_mu[3]+ 
-									    dataDrivensys_el[1]*dataDrivensys_el[3]+dataDrivensys_mu[1]*dataDrivensys_mu[3]);
-  //dataDrivensys[1]*dataDrivensys[3]*corr_matrix_dd[1][3]);
-  //channels 2 and 3
-  elmZagreb[11]=elmZagreb[14] =crossSectionZagreb[2]*crossSectionZagreb[3] *(commonSys[2][3] + elEnScale[2]*elEnScale[3] + muMomScale[2]*muMomScale[3]+
-									     leptTrgEff_el[2]*leptTrgEff_el[3] + leptTrgEff_mu[2]*leptTrgEff_mu[3] +
-									     dataDrivensys_el[2]*dataDrivensys_el[3]+dataDrivensys_mu[2]*dataDrivensys_mu[3]);		   				       				   
-  //dataDrivensys[2]*dataDrivensys[3]*corr_matrix_dd[2][3]);		   				       
- 
-  std::cout<<"Error matrix finished!!"<<std::endl;
-  for (int emi=0;emi<4;emi++) {
-    for (int emj=0;emj<4;emj++) {
-      //      std::cout<<"!!"<<std::endl;
-      std:: cout << "       " << elmZagreb[emj*4+emi] << "       ";
-    }
-    std::cout << endl;
+  for (int irow=0; irow<4; irow++) {
+      for (int icol=irow; icol<4; icol++) {
+		  if (irow==icol) continue;  // Diagonal elements treated specially earlier
+		  double x = 
+			  crossSectionZagreb[irow]*crossSectionZagreb[icol]
+			  * (commonSys[irow][icol] 
+				 + elEnScale[irow]*elEnScale[icol] 
+				 + muMomScale[irow]*muMomScale[icol]
+				 + leptTrgEff_el[irow]*leptTrgEff_el[icol] 
+				 + leptTrgEff_mu[irow]*leptTrgEff_mu[icol]
+				 + dataDrivensys_el[irow]*dataDrivensys_el[icol]
+				 + dataDrivensys_mu[irow]*dataDrivensys_mu[icol]);
+			  	// Matrix is symmetric
+		  auxiliaryMatrix(irow,icol) = x;
+		  auxiliaryMatrix(icol,irow) = x;	
+	  }
+// Diagonal elements
+	  auxiliaryMatrix(irow,irow) = pow(systematicErrorZagreb[irow],2) 
+		  + pow(errorCsZagreb[irow],2) 
+		  + pow(lumiSyst[irow]*crossSectionZagreb[irow],2);
   }
-  std::cout << endl; 
+
   
 //initialize matrix for inversion
-  TMatrixD errMat(4,4,elmZagreb);
+  TMatrixD errMat(auxiliaryMatrix);
+
+  //TMatrixD errMat(4,4,elmZagreb);
+  std::cout<<"Error matrix finished!!"<<std::endl;
+  errMat.Print();
   TMatrixD errMatInv(4,4);
   
   TMatrixD errMatCopy(errMat);
@@ -377,7 +389,10 @@ vv    m_met[elm]=0;
   std::cout << "al0 " << alphaCH[0] << " al1 " << alphaCH[1] << " al2 " << alphaCH[2] << " al3 " << alphaCH[3] << endl;
   std::cout << "consistency check:" << alphaCH[0]+alphaCH[1]+alphaCH[2]+alphaCH[3] <<endl;
   std::cout << endl;
-  double final_Xsec = alphaCH[0]*crossSectionZagreb[0] + alphaCH[1]*crossSectionZagreb[1] + alphaCH[2]*crossSectionZagreb[2] + alphaCH[3]*crossSectionZagreb[3];
+  double final_Xsec = 0;
+  for (int ich=0; ich<4; ich++) {
+	  final_Xsec += alphaCH[ich]*crossSectionZagreb[ich];
+  }
 
   Double_t combined_error=0;
   Double_t *copyRef = errMatCopy.GetMatrixArray();

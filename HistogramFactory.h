@@ -12,12 +12,15 @@ public:
   static TH1F * createMETbigHisto(std::string s, std::string title);
   static TH1F * createMETHisto(std::string s, std::string title);
   static TH1F * createZptHisto(std::string s, std::string title);
+  static TH1D * createZPtHistogram_aTGC(std::string s, std::string title);
   static TH1F * createWcandptHisto(std::string s, std::string title);
   static TH1F * createLeadingJetptHisto(std::string s, std::string title);
   static TH1F * createNjetsHisto(std::string s, std::string title);
+  static TH1F * createNjetsHistoBigger(std::string s, std::string title);
   static TH1F * createDeltaPhi(std::string s, std::string title);
   static TH1F * createMTW(std::string s, std::string title);
-  //
+  static TH1F * create3LmassHisto(std::string s, std::string title);
+  static TH1F * createEtaHisto(std::string s, std::string title);
 }; 
 
 

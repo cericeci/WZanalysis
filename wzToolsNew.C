@@ -20,11 +20,6 @@
 #ifdef DATA
 #define WZTREE WZ2012Data
 #include "WZ2012Data.h"
-// <<<<<<< HEAD
-// #else
-// #define WZTREE WZGenEvent
-// #include "WZGenEvent.h"
-// =======
 #endif
 #ifdef OLDMC
 #define WZTREE WZ
@@ -41,9 +36,18 @@
 #define WZTREE WZGenEvent_v140710
 #include "WZGenEvent_v140710.h"
 #endif
+#ifdef TZMC
+#define WZTREE TZJets
+#include "TZJets.h"
+#endif
+
 
 #define WZTEST WZEvent
 #include "WZEvent.h"
+
+
+#include "MatrixTools.h"
+
 
 //#include "WZ.h"
 void readChainFromList(TString fileList, TChain * chain)
@@ -258,6 +262,17 @@ double wTransverseMass(int index, TLorentzVector* analysisLepton, TLorentzVector
 }
 
 
+float GetBin(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.){
+
+  float aeta=fabs(leptonEta);
+  int nbins= h2->GetNbinsX();
+  float ptMax = (leptonPtMax > 0) ? leptonPtMax : h2->GetXaxis()->GetBinCenter(nbins);
+  //  float ptMax= h2->GetXaxis()->GetBinCenter(nbins);
+  float factor= h2->GetBinContent(h2->FindBin(TMath::Min(leptonPt, ptMax), aeta));
+  int binNr = h2->FindBin(TMath::Min(leptonPt, ptMax), aeta);
+  return binNr;
+}
+
 
 float GetFactor(TH2F* h2, float leptonPt, float leptonEta, float leptonPtMax= -999.){
 
@@ -430,6 +445,92 @@ float TriggerWeight(int* WZcandidates, TH2F* DoubleElLead, TH2F* DoubleMuLead, T
   return factor;
 }
 
+// Vuko: new prompt weight expression using simplified expressions
+double promptWeight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, 
+		    int * WZcandidates, int * pass2012ICHEP, 
+		    int channel, float* pt, float* eta) {
+
+
+  int index1=WZcandidates[0];
+  int index2=WZcandidates[1];
+  int index3=WZcandidates[2];
+  float pt1=pt[index1];
+  float pt2=pt[index2];
+  float pt3=pt[index3];
+  float eta1=eta[index1];
+  float eta2=eta[index2];
+  float eta3=eta[index3];
+
+  float pfake[3],effprompt[3];
+  float dpfake[3];
+
+  TH2F * ZleptonFR(0), *WleptonFR(0), *ZleptonPR(0), *WleptonPR(0);
+  double zlepPtMax = -999.;
+  double wlepPtMax = -999.;
+  
+  if (channel == 0 || channel ==1) { // eee  or eemu
+    ZleptonFR = ElectronFR;
+    ZleptonPR = ElectronPR;
+  } else if (channel == 2 || channel == 3) { // eee  or eemu
+    ZleptonFR = MuonFR;
+    ZleptonPR = MuonPR;
+    zlepPtMax = 34.;
+  }
+  if (channel == 0 || channel == 2) { // eee  or eemu
+    WleptonFR = ElectronFR;
+    WleptonPR = ElectronPR;
+  } else if (channel == 1 || channel == 3) { // eee  or eemu
+    WleptonFR = MuonFR;
+    WleptonPR = MuonPR;
+    wlepPtMax = 34;
+  }
+
+  pfake[0]  = GetFactor(ZleptonFR, pt1, eta1, zlepPtMax);
+  dpfake[0] = GetError(ZleptonFR, pt1, eta1,  zlepPtMax);
+
+  pfake[1]  = GetFactor(ZleptonFR, pt2, eta2, zlepPtMax);
+  dpfake[1] = GetError(ZleptonFR, pt2, eta2,  zlepPtMax);
+  pfake[2]  = GetFactor(WleptonFR, pt3, eta3, wlepPtMax);
+  dpfake[2] = GetError(WleptonFR, pt3, eta3,  wlepPtMax);
+    
+  effprompt[0] = GetFactor(ZleptonPR, pt1, eta1);
+  effprompt[1] = GetFactor(ZleptonPR, pt2, eta2);
+  effprompt[2] = GetFactor(WleptonPR, pt3, eta3);
+
+  double w=1;
+  // For each lepton:        factor e/(e-p)
+  // for each tight lepton:  factor (1-p)
+  // for each fake lepton:   factor -p
+
+
+
+  for (int ilep=0; ilep<3; ilep++) {
+    //    std::cout << ilep << "\t p = " << pfake[ilep]
+    //	      << "\t eff = " << effprompt[ilep] << std::endl;
+    int index = WZcandidates[ilep];
+
+    w *= effprompt[ilep] / (effprompt[ilep] - pfake[ilep]);
+
+    bool isTight = false;
+    if ((pass2012ICHEP[index]==true) ) isTight = true;
+    if (isTight) {
+      w *= 1 - pfake[ilep];
+    } else {
+      w *= pfake[ilep];
+      w *= -1;
+    }
+  }
+
+  // std::cout << "New: " << effprompt[0] << " " << effprompt[1] << " " << effprompt[2]
+  // 	    << " " << pfake[0] << " " << pfake[1] << " " << pfake[2]  
+  // 	    << " Pt = " << pt1 << "  " << pt2 << "  " << pt3
+  // 	    << " Eta = " << eta1 << "  " << eta2 << "  " << eta3
+  // 	    << std::endl;
+
+  return w;
+
+}
+
 double weight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label)
 {
   int index1=WZcandidates[0];
@@ -520,6 +621,13 @@ double weight(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, in
   if (label==8) Cfactor=p1*p2*p3;
   
   double w= Afactor*Bfactor*Cfactor;
+
+
+  // std::cout << "Old: " << epsilon1 << " " << epsilon2 << " " << epsilon3
+  // 	    << " " << p1 << " " << p2 << " " << p3 
+  // 	    << " Pt = " << pt1 << "  " << pt2 << "  " << pt3
+  // 	    << " Eta = " << eta1 << "  " << eta2 << "  " << eta3
+  // 	    << std::endl;
   
   return w;
 }
@@ -544,6 +652,170 @@ int determineLabel(int * pass2012ICHEP, int * WZcandidates){
   if ((pass2012ICHEP[index1]==false) && (pass2012ICHEP[index2]==true)  && (pass2012ICHEP[index3]==false)) return 6;
   if ((pass2012ICHEP[index1]==false) && (pass2012ICHEP[index2]==false) && (pass2012ICHEP[index3]==true))  return 7;
   if ((pass2012ICHEP[index1]==false) && (pass2012ICHEP[index2]==false) && (pass2012ICHEP[index3]==false)) return 8;
+}
+
+
+
+float promptError(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, 
+		    int * WZcandidates, int * pass2012ICHEP, 
+		  int channel, float* pt, float* eta, float weight,
+		  std::vector<MatrixTerm> * xterms_pf=0,
+		  std::vector<MatrixTerm> * xterms_eff=0) {
+
+  int index1=WZcandidates[0];
+  int index2=WZcandidates[1];
+  int index3=WZcandidates[2];
+  float pt1=pt[index1];
+  float pt2=pt[index2];
+  float pt3=pt[index3];
+  float eta1=eta[index1];
+  float eta2=eta[index2];
+  float eta3=eta[index3];
+
+  int   pfakeBin[3], effBin[3], zBinOffset(0), wBinOffset(0);
+  float pfake[3],   effprompt[3];
+  float dpfake[3], deffprompt[3];
+
+  TH2F * ZleptonFR(0), *WleptonFR(0), *ZleptonPR(0), *WleptonPR(0);
+  double zlepPtMax = -999.;
+  double wlepPtMax = -999.;
+  
+  if (channel == 0 || channel ==1) { // eee  or eemu
+    ZleptonFR = ElectronFR;
+    ZleptonPR = ElectronPR;
+  } else if (channel == 2 || channel == 3) { // eee  or eemu
+    ZleptonFR = MuonFR;
+    ZleptonPR = MuonPR;
+    zlepPtMax = 34.;
+    zBinOffset = 10000;
+  }
+  if (channel == 0 || channel == 2) { // eee  or eemu
+    WleptonFR = ElectronFR;
+    WleptonPR = ElectronPR;
+  } else if (channel == 1 || channel == 3) { // eee  or eemu
+    WleptonFR = MuonFR;
+    WleptonPR = MuonPR;
+    wlepPtMax = 34;
+    wBinOffset = 10000;
+  }
+
+  pfake[0]    = GetFactor(ZleptonFR, pt1, eta1, zlepPtMax);
+  dpfake[0]   = GetError(ZleptonFR,  pt1, eta1,  zlepPtMax);
+  pfakeBin[0] = GetBin(ZleptonFR,    pt1, eta1,  zlepPtMax) + zBinOffset;
+
+  pfake[1]    = GetFactor(ZleptonFR, pt2, eta2, zlepPtMax);
+  dpfake[1]   = GetError(ZleptonFR,  pt2, eta2, zlepPtMax);
+  pfakeBin[1] = GetBin(ZleptonFR,    pt2, eta2, zlepPtMax) + zBinOffset;
+
+  pfake[2]    = GetFactor(WleptonFR, pt3, eta3, wlepPtMax);
+  dpfake[2]   = GetError(WleptonFR,  pt3, eta3, wlepPtMax);
+  pfakeBin[2] = GetBin(WleptonFR,    pt3, eta3, wlepPtMax) + wBinOffset;
+    
+  effprompt[0] = GetFactor(ZleptonPR, pt1, eta1);
+  effprompt[1] = GetFactor(ZleptonPR, pt2, eta2);
+  effprompt[2] = GetFactor(WleptonPR, pt3, eta3);
+  deffprompt[0] = GetError(ZleptonPR, pt1, eta1);
+  deffprompt[1] = GetError(ZleptonPR, pt2, eta2);
+  deffprompt[2] = GetError(WleptonPR, pt3, eta3);
+  effBin[0]     = GetBin(ZleptonPR, pt1, eta1) + zBinOffset;
+  effBin[1]     = GetBin(ZleptonPR, pt2, eta2) + zBinOffset;
+  effBin[2]     = GetBin(WleptonPR, pt3, eta3) + wBinOffset;
+
+
+  MatrixTerm mTerm;
+  MatrixTerm mTerm_eff;
+
+
+  bool useThisLepton[3] = {true, true, true};
+
+  double error=0.;
+  for (int ilep=0; ilep<3; ilep++) {
+
+    bool thisBinOnlyOnce = true;
+    int otherLepton(-1);
+
+    if (false) {
+    for (int ilep2=ilep+1; ilep2<3; ilep2++) {
+      if ( pfakeBin[ilep] == pfakeBin[ilep2]) {
+	thisBinOnlyOnce = false;
+	useThisLepton[ilep2] = false;
+	otherLepton = ilep2;
+      }
+    }
+    }
+
+    int index = WZcandidates[ilep];
+    bool isTight      = false;
+    if ((pass2012ICHEP[index]==true) ) isTight = true;
+
+    double dwdp(0),dwde(0);
+    if (useThisLepton[ilep]) {
+      if (thisBinOnlyOnce) {
+	if (isTight) { 
+	  dwdp = weight * (1 - effprompt[ilep]) / ( (effprompt[ilep] - pfake[ilep]) 
+						    * ( 1 - pfake[ilep]));
+	} else {
+	  dwdp = weight * effprompt[ilep] / ( (effprompt[ilep] - pfake[ilep]) *  pfake[ilep]);
+	}
+	dwde = weight * (1/effprompt[ilep] - 1./(effprompt[ilep] - pfake[ilep]));
+      } else { 
+	// 
+	// Special case if 2 leptons share the same fake rate bin
+	// 
+	bool isTightOther = false;
+	int index2 = WZcandidates[otherLepton];
+	if ((pass2012ICHEP[index2]==true) ) isTightOther = true;
+
+	double w1 =  1/(effprompt[ilep] - pfake[ilep]) +  1/(effprompt[otherLepton] - pfake[ilep]);
+
+	if (isTight && isTightOther) {
+	  w1 += - 2 / ( 1- pfake[ilep]);
+	} else if (isTight || isTightOther) {
+	  w1 +=  1/pfake[ilep] - 1 / ( 1- pfake[ilep]);
+	} else {
+	  w1 += 2 / ( 1- pfake[ilep]);
+	}
+	dwdp = weight*w1;
+
+      }
+      
+      error += pow(dwdp*dpfake[ilep],2) + pow(dwde*deffprompt[ilep],2);
+    }
+
+    mTerm.histoBin[ilep]   = pfakeBin[ilep];
+    mTerm.derivative[ilep] = dwdp;
+    mTerm.effError[ilep]   = dpfake[ilep];
+
+    mTerm_eff.histoBin[ilep]   = effBin[ilep];
+    mTerm_eff.derivative[ilep] = dwde;
+    mTerm_eff.effError[ilep]   = deffprompt[ilep];
+
+
+  }
+
+  if (xterms_pf) {
+    xterms_pf->push_back(mTerm);
+  }
+  if (xterms_eff) {
+    xterms_eff->push_back(mTerm_eff);
+  }
+
+  // if (dpfake[2] > 0.1) {
+
+  //   std::cout << "Chan: " << channel
+  // 	      << " New: " << effprompt[0] << " " << effprompt[1] << " " << effprompt[2]
+  // 	      << " pf: " << pfake[0] << " " << pfake[1] << " " << pfake[2]  
+  // 	      << " dpf " << dpfake[0] << " " << dpfake[1] << " " << dpfake[2]  
+  // 	      << " Pt = " << pt1 << "  " << pt2 << "  " << pt3
+  // 	      << " Eta = " << eta1 << "  " << eta2 << "  " << eta3
+  // 	      << std::endl;
+  // }
+
+  //  error += weight*weight;
+  error = weight*weight;
+
+  return error;
+
 }
 
 float MMerror(TH2F* ElectronFR, TH2F* ElectronPR, TH2F* MuonFR, TH2F* MuonPR, int* WZcandidates, int type, float* pt, float* eta, int label, float weight){

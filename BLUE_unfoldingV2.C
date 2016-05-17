@@ -65,6 +65,8 @@ int main(int argc, char **argv)
   char * binningFileName(0);
   char * variableName(0);
   bool gotVarName  = false;
+  bool gotGlobalOutputName  = false;
+  char * globalOutputName(0);
   char c;
   ofstream outMain, outError1, outError2, outError3;
   outMain.open("outMain.txt");
@@ -72,7 +74,7 @@ int main(int argc, char **argv)
   outError2.open("outError2.txt");
   outError3.open("outError3.txt");
 
-  while ((c = getopt (argc, argv, "v:H:")) != -1)
+  while ((c = getopt (argc, argv, "v:H:g:")) != -1)
     switch (c)
       {
       case 'v':
@@ -84,6 +86,11 @@ int main(int argc, char **argv)
 	gotHistoBinning = true;
 	binningFileName = new char[strlen(optarg)+1];
 	strcpy(binningFileName,optarg);
+	break;
+      case 'g':
+	gotGlobalOutputName = true;
+	globalOutputName = new char[strlen(optarg)+1];
+	strcpy(globalOutputName,optarg);
 	break;
       default:
 	std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
@@ -139,6 +146,7 @@ int main(int argc, char **argv)
   sysSources.push_back("dataDrivenMusys");
   sysSources.push_back("bckgSys");
   sysSources.push_back("unfSyst");
+  sysSources.push_back("unfStat");
 
 
   if (variable == "LeadingJetPt" || variable =="Njets") {
@@ -284,11 +292,11 @@ int main(int argc, char **argv)
       unfoldingCovariance.insert(std::pair<int, TMatrixD *>
 				 //				 (unfCovKey_clone.str(),	
 				 ( hist,
-				  (TMatrixD *) m->Clone(unfCovKey_clone.str().c_str())));
+				   (TMatrixD *) m->Clone(unfCovKey_clone.str().c_str())));
     } else {
-	std::cout << "NONEXISTENT UNFOLDING COVAR. MATRIX: " << unfCovKey_input.str()
-		  << "\t exiting... "<< std::endl;
-	exit;
+      std::cout << "NONEXISTENT UNFOLDING COVAR. MATRIX: " << unfCovKey_input.str()
+		<< "\t exiting... "<< std::endl;
+      exit;
     }
     
   }
@@ -303,7 +311,7 @@ int main(int argc, char **argv)
     TH1D * hdsdx  = (TH1D*) inputHistos["crossSection_incl_diff"][ich]->Clone( dSigmaDxName.str().c_str());
     dxsections.insert(std::pair<int, TH1D*> (ich, hds));
     differential_xsections.insert(std::pair<int, TH1D*> (ich, hdsdx));
-    }
+  }
 
 
 
@@ -314,442 +322,484 @@ int main(int argc, char **argv)
 
 
   for (int bin=1; bin< nBins +1; bin++) {
-      double elements[16];
-      for (int el=0; el<16; el++) elements[el]=0;
-      double statisticError[nChannels];
-      double systematicError2[nChannels];
-      double systematicError[nChannels];
-      double lumiError[nChannels];
-      //statistic and systematic errors:
+    double elements[16];
+    for (int el=0; el<16; el++) elements[el]=0;
+    double statisticError[nChannels];
+    double systematicError2[nChannels];
+    double systematicError[nChannels];
+    double lumiError[nChannels];
 
-      for (int nCh=0; nCh<nChannels; nCh++) {
+    //statistic and systematic errors:
+    for (int nCh=0; nCh<nChannels; nCh++) {
 
-	//// DOUBLE CHECK THE NEXT COUPLE OF LINES
+      statisticError[nCh]=   inputHistos["crossSection_inclusive"][nCh]->GetBinError(bin);
+      double sys_err=0;
+      for (int isys=0; isys<sysSources.size(); isys++ ) {
 
-	//      statisticError[nCh]=h_crossSection[nCh]->GetBinError(bin);
-	statisticError[nCh]=   inputHistos["crossSection_inclusive"][nCh]->GetBinError(bin);
-	//h_crossSection_final[nCh]->GetBinError(bin);
-	double sys_err=0;
-	for (int isys=0; isys<sysSources.size(); isys++ ) {
+	sys_err += pow( (inputHistos[sysSources[isys]][nCh])->GetBinContent(bin),2);
 
-	  sys_err += pow( (inputHistos[sysSources[isys]][nCh])->GetBinContent(bin),2);
+      }
+      std::cout << "FIRST PRINTOUT \n";
+      systematicError2[nCh]=sys_err;
 
+      h_totalStat[nCh]->SetBinContent(bin, statisticError[nCh]);
+      systematicError[nCh]     = (sqrt(systematicError2[nCh]))
+	*((inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin));
+      lumiError[nCh]           = (inputHistos["lumi"][nCh])->GetBinContent(bin)
+	*( (inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin));
+
+      h_totalSyst[nCh]->SetBinContent(bin, (systematicError[nCh]));
+      std::cout<<bin<<" , "<<systematicError[nCh]<<" , "
+	       << (inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin)<<std::endl;
+    }
+    //common elements
+    double commonSys[4][4];
+    double lumiSys[4][4];
+
+    std::vector<string> commonSources;
+    commonSources.push_back("qcdScale");
+    commonSources.push_back("PDFsys");
+    commonSources.push_back("Etsys");
+    commonSources.push_back("pileupSys");
+    commonSources.push_back("ZZxs");
+    commonSources.push_back("Zgammaxs");
+    commonSources.push_back("bckgSys");
+    commonSources.push_back("unfSyst");
+    commonSources.push_back("lumi");
+    if (variable!="Zpt") {
+      commonSources.push_back("JESsys");
+    }
+
+
+    for (int cha=0; cha<4; cha++){
+      for (int chb=0; chb<4; chb++){
+	double common_sys=0;
+	for (int isys=0; isys<commonSources.size(); isys++) {
+	  common_sys += (inputHistos[commonSources[isys]][cha])->GetBinContent(bin)
+	    * (inputHistos[commonSources[isys]][chb])->GetBinContent(bin);
 	}
-	std::cout << "FIRST PRINTOUT \n";
-	systematicError2[nCh]=sys_err;
+	commonSys[cha][chb] = common_sys;
 
-	h_totalStat[nCh]->SetBinContent(bin, statisticError[nCh]);
-	systematicError[nCh]     = (sqrt(systematicError2[nCh]))
-	  *((inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin));
-	lumiError[nCh]           = (inputHistos["lumi"][nCh])->GetBinContent(bin)
-	  *( (inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin));
+	lumiSys[cha][chb]= 
+	  (inputHistos["lumi"][cha])->GetBinContent(bin) *
+	  (inputHistos["lumi"][chb])->GetBinContent(bin) *
+	  (inputHistos["crossSection_inclusive"][cha])->GetBinContent(bin) *
+	  (inputHistos["crossSection_inclusive"][chb])->GetBinContent(bin);
 
-	h_totalSyst[nCh]->SetBinContent(bin, (systematicError[nCh]));
-	std::cout<<bin<<" , "<<systematicError[nCh]<<" , "
-		 << (inputHistos["crossSection_inclusive"][nCh])->GetBinContent(bin)<<std::endl;
+	std::cout << "common sys [" << cha << " , " << chb << " ] = " << 
+	  commonSys[cha][chb] << std::endl;
+
       }
-      //common elements
-      double commonSys[4][4];
-      double lumiSys[4][4];
+      std::cout << "xsec [" << cha <<  " ] = " 
+		<< (inputHistos["crossSection_inclusive"][cha])->GetBinContent(bin)  << std::endl;
 
-      std::vector<string> commonSources;
-      commonSources.push_back("qcdScale");
-      commonSources.push_back("PDFsys");
-      commonSources.push_back("Etsys");
-      commonSources.push_back("pileupSys");
-      commonSources.push_back("ZZxs");
-      commonSources.push_back("Zgammaxs");
-      commonSources.push_back("bckgSys");
-      commonSources.push_back("unfSyst");
-      commonSources.push_back("lumi");
-      if (variable!="Zpt") {
-	commonSources.push_back("JESsys");
+    }
+    std::cout << "LUMI ERR. MATRIX: \n";
+    for (int cha=0; cha<4; cha++){
+      for (int chb=0; chb<4; chb++){
+	std::cout << "\t" <<  lumiSys[cha][chb];
       }
+      std::cout << std::endl;
+    }
 
 
-      for (int cha=0; cha<4; cha++){
-	for (int chb=0; chb<4; chb++){
-	  double common_sys=0;
-	  for (int isys=0; isys<commonSources.size(); isys++) {
-	    common_sys += (inputHistos[commonSources[isys]][cha])->GetBinContent(bin)
-	      * (inputHistos[commonSources[isys]][chb])->GetBinContent(bin);
+    //diagonal elements
+    double wo_lumi_1=pow(systematicError[0],2) + pow(statisticError[0],2);
+    double wo_lumi_2=pow(systematicError[1],2) + pow(statisticError[1],2);
+    double wo_lumi_3=pow(systematicError[2],2) + pow(statisticError[2],2);
+    double wo_lumi_4=pow(systematicError[3],2) + pow(statisticError[3],2);
+
+    elements[0]=pow(systematicError[0],2) + pow(statisticError[0],2) +pow(lumiError[0],2);
+    elements[5]=pow(systematicError[1],2) + pow(statisticError[1],2) +pow(lumiError[1],2);
+    elements[10]=pow(systematicError[2],2) + pow(statisticError[2],2) +pow(lumiError[2],2);
+    elements[15]=pow(systematicError[3],2) + pow(statisticError[3],2) +pow(lumiError[3],2);
+
+    inputHistos["crossSection_inclusive"][0]->SetBinError(bin, sqrt(wo_lumi_1));
+    inputHistos["crossSection_inclusive"][1]->SetBinError(bin, sqrt(wo_lumi_2));
+    inputHistos["crossSection_inclusive"][2]->SetBinError(bin, sqrt(wo_lumi_3));
+    inputHistos["crossSection_inclusive"][3]->SetBinError(bin, sqrt(wo_lumi_4));
+
+    double corr_matrix_dd[4][4]={
+      {1, 0, 1, 0},
+      {0, 1, 0, 1}, 
+      {1, 0, 1, 0},
+      {0, 1, 0, 1}
+    };
+    //matrix is symetric
+    //channels 0 and 1
+
+    vector<string> uncorrelatedSources;
+
+    uncorrelatedSources.push_back("elEnScale");
+    uncorrelatedSources.push_back("muMomScale");
+    uncorrelatedSources.push_back("ele_SF");
+    uncorrelatedSources.push_back("mu_SF");
+    uncorrelatedSources.push_back("dataDrivenElsys");
+    uncorrelatedSources.push_back("dataDrivenMusys");
+    uncorrelatedSources.push_back("unfStat");
+
+    TMatrixD  auxiliaryMatrix(4,4);
+
+    for (int irow=0; irow<4; irow++) {
+
+
+      for (int icol=irow; icol<4; icol++) {
+	if (irow==icol) continue;  // Diagonal elements treated specially earlier
+
+	double x = commonSys[irow][icol];
+
+	for (int isys=0; isys<uncorrelatedSources.size(); isys++) {
+	  std::string source=uncorrelatedSources[isys];
+	  x += (inputHistos[source][irow]->GetBinContent(bin))
+	    *(inputHistos[source][icol]->GetBinContent(bin));
+	  if (irow==0 && icol==2 && false) {
+	    std::cout << source << " = " << (inputHistos[source][irow]->GetBinContent(bin))
+		      << " " << (inputHistos[source][icol]->GetBinContent(bin)) << std::endl;
 	  }
-	  commonSys[cha][chb] = common_sys;
-
-	  lumiSys[cha][chb]= 
-	    (inputHistos["lumi"][cha])->GetBinContent(bin) *
-	    (inputHistos["lumi"][chb])->GetBinContent(bin) *
-	    (inputHistos["crossSection_inclusive"][cha])->GetBinContent(bin) *
-	    (inputHistos["crossSection_inclusive"][chb])->GetBinContent(bin);
-
-	  std::cout << "common sys [" << cha << " , " << chb << " ] = " << 
-	    commonSys[cha][chb] << std::endl;
-
-
 	}
+	x *= (inputHistos["crossSection_inclusive"][irow]->GetBinContent(bin))
+	  * (inputHistos["crossSection_inclusive"][icol]->GetBinContent(bin));
+
+	// Matrix is symmetric
+	auxiliaryMatrix(irow,icol) = x;
+	auxiliaryMatrix(icol,irow) = x;	
       }
+    }
+    //  Matrix ordering for 1D indices
+    //     0   4   8  12    
+    //     1   5   9  13
+    //     2   6  10  14
+    //     3   7  11  15
+    elements[4]  = elements[1] = auxiliaryMatrix[0][1];
+    elements[8]  = elements[2] = auxiliaryMatrix[0][2];
+    elements[12] = elements[3] = auxiliaryMatrix[0][3];
+    elements[9]  = elements[6] = auxiliaryMatrix[1][2];
+    elements[13] = elements[7] = auxiliaryMatrix[1][3];
+    elements[11] = elements[14]= auxiliaryMatrix[2][3];
     
-      //diagonal elements
-      double wo_lumi_1=pow(systematicError[0],2) + pow(statisticError[0],2);
-      double wo_lumi_2=pow(systematicError[1],2) + pow(statisticError[1],2);
-      double wo_lumi_3=pow(systematicError[2],2) + pow(statisticError[2],2);
-      double wo_lumi_4=pow(systematicError[3],2) + pow(statisticError[3],2);
-
-      elements[0]=pow(systematicError[0],2) + pow(statisticError[0],2) +pow(lumiError[0],2);
-      elements[5]=pow(systematicError[1],2) + pow(statisticError[1],2) +pow(lumiError[1],2);
-      elements[10]=pow(systematicError[2],2) + pow(statisticError[2],2) +pow(lumiError[2],2);
-      elements[15]=pow(systematicError[3],2) + pow(statisticError[3],2) +pow(lumiError[3],2);
-
-      inputHistos["crossSection_inclusive"][0]->SetBinError(bin, sqrt(wo_lumi_1));
-      inputHistos["crossSection_inclusive"][1]->SetBinError(bin, sqrt(wo_lumi_2));
-      inputHistos["crossSection_inclusive"][2]->SetBinError(bin, sqrt(wo_lumi_3));
-      inputHistos["crossSection_inclusive"][3]->SetBinError(bin, sqrt(wo_lumi_4));
-
-      double corr_matrix_dd[4][4]={
-	{1, 0, 1, 0},
-	{0, 1, 0, 1}, 
-	{1, 0, 1, 0},
-	{0, 1, 0, 1}
-      };
-      //matrix is symetric
-      //channels 0 and 1
-
-      vector<string> uncorrelatedSources;
-
-      uncorrelatedSources.push_back("elEnScale");
-      uncorrelatedSources.push_back("muMomScale");
-      uncorrelatedSources.push_back("ele_SF");
-      uncorrelatedSources.push_back("mu_SF");
-      uncorrelatedSources.push_back("dataDrivenElsys");
-      uncorrelatedSources.push_back("dataDrivenMusys");
-
-      TMatrixD  auxiliaryMatrix(4,4);
-
-      for (int irow=0; irow<4; irow++) {
-
-
-	for (int icol=irow; icol<4; icol++) {
-	  if (irow==icol) continue;  // Diagonal elements treated specially earlier
-
-	  double x = commonSys[irow][icol];
-
-	  for (int isys=0; isys<uncorrelatedSources.size(); isys++) {
-	    std::string source=uncorrelatedSources[isys];
-	    x += (inputHistos[source][irow]->GetBinContent(bin))
-	      *(inputHistos[source][icol]->GetBinContent(bin));
-	    if (irow==0 && icol==2 && false) {
-	      std::cout << source << " = " << (inputHistos[source][irow]->GetBinContent(bin))
-			<< " " << (inputHistos[source][icol]->GetBinContent(bin)) << std::endl;
-	    }
-	  }
-	  x *= (inputHistos["crossSection_inclusive"][irow]->GetBinContent(bin))
-	    * (inputHistos["crossSection_inclusive"][icol]->GetBinContent(bin));
-
-	  // Matrix is symmetric
-	  auxiliaryMatrix(irow,icol) = x;
-	  auxiliaryMatrix(icol,irow) = x;	
-	}
-      }
-      //  Matrix ordering for 1D indices
-      //     0   4   8  12    
-      //     1   5   9  13
-      //     2   6  10  14
-      //     3   7  11  15
-      elements[4]  = elements[1] = auxiliaryMatrix[0][1];
-      elements[8]  = elements[2] = auxiliaryMatrix[0][2];
-      elements[12] = elements[3] = auxiliaryMatrix[0][3];
-      elements[9]  = elements[6] = auxiliaryMatrix[1][2];
-      elements[13] = elements[7] = auxiliaryMatrix[1][3];
-      elements[11] = elements[14]= auxiliaryMatrix[2][3];
-    
-      if (printBLUEmatrix) {
-	std::cout<<"Error matrix finished!!"<<std::endl;
-	for (int emi=0;emi<4;emi++) {
-	  for (int emj=0;emj<4;emj++) {
-	    std:: cout << "       " << elements[emj*4+emi] << "       ";
-	  }
-	  std::cout << endl;
-	}
-	std::cout << endl; 
-      }
-      TMatrixD errMat(4,4,elements);
-      TMatrixD errMatInv(4,4);
-      TMatrixD errMatCopy(errMat);
-
-      errorMatrices.insert(std::pair<int,TMatrixD *> ( bin, new TMatrixD(errMat)));
-
-      std::ostringstream matrixName;
-      matrixName << "covMatrix_" << variable << "_bin" << bin;
-
-      covarianceMatrices.insert(std::pair<std::string,TMatrixD*>
-				(matrixName.str(), new TMatrixD(errMat)));
-
-
-      //invert !
-      // NOTE: after a=b.Invert()
-      // Inverted matrix is contained in both a and b !!!
-      // The original matrix is lost (but was copied in errMatCopy above)
-      errMatInv = errMat.Invert();
-      Double_t *mRefTest = errMat.GetMatrixArray();
-      if (printBLUEmatrix) {
-	std::cout << endl << " Matrix Inverse:" << endl;
-	for (int emi=0;emi<4;emi++) {
-	  for (int emj=0;emj<4;emj++) {
-	    std::cout << "       " << mRefTest[emj*4+emi] << "       ";
-	  }
-	  std::cout << endl;
+    if (printBLUEmatrix) {
+      std::cout<<"Error matrix finished!!"<<std::endl;
+      for (int emi=0;emi<4;emi++) {
+	for (int emj=0;emj<4;emj++) {
+	  std:: cout << "       " << elements[emj*4+emi] << "       ";
 	}
 	std::cout << endl;
       }
-      //get norm, and alpha factors for each channel
-      Double_t *mRef= errMat.GetMatrixArray();
-      Double_t norm=0.;
-      Double_t alphaCH[4]={0.,0.,0.,0.};
-    
-      for (int imatrix=0;imatrix<16;imatrix++) norm+=mRef[imatrix];
-    
-      for (size_t im=0;im<4;im++) {
-	for (size_t jm=0;jm<4;jm++) {
-	  alphaCH[im]+=mRef[im*4+jm];
+      std::cout << endl; 
+    }
+    TMatrixD errMat(4,4,elements);
+    TMatrixD errMatInv(4,4);
+    TMatrixD errMatCopy(errMat);
+
+    errorMatrices.insert(std::pair<int,TMatrixD *> ( bin, new TMatrixD(errMat)));
+
+    std::ostringstream matrixName;
+    matrixName << "covMatrix_" << variable << "_bin" << bin;
+
+    covarianceMatrices.insert(std::pair<std::string,TMatrixD*>
+			      (matrixName.str(), new TMatrixD(errMat)));
+
+
+    //invert !
+    // NOTE: after a=b.Invert()
+    // Inverted matrix is contained in both a and b !!!
+    // The original matrix is lost (but was copied in errMatCopy above)
+    errMatInv = errMat.Invert();
+    Double_t *mRefTest = errMat.GetMatrixArray();
+    if (printBLUEmatrix) {
+      std::cout << endl << " Matrix Inverse:" << endl;
+      for (int emi=0;emi<4;emi++) {
+	for (int emj=0;emj<4;emj++) {
+	  std::cout << "       " << mRefTest[emj*4+emi] << "       ";
 	}
-	alphaCH[im]/=norm;
-      }
-      if (printBLUEmatrix){
-	std::cout << "al0 " << alphaCH[0] << " al1 " << alphaCH[1] << " al2 " << alphaCH[2] << " al3 " << alphaCH[3] << endl;
-	std::cout << "consistency check:" << alphaCH[0]+alphaCH[1]+alphaCH[2]+alphaCH[3] <<endl;
 	std::cout << endl;
       }
-      double final_Xsec = 0;
-      for (int ich=0; ich<4; ich++) {
-	final_Xsec += alphaCH[ich]*(inputHistos["crossSection_inclusive"][ich]->GetBinContent(bin));
+      std::cout << endl;
+    }
+    //get norm, and alpha factors for each channel
+    Double_t *mRef= errMat.GetMatrixArray();
+    Double_t norm=0.;
+    Double_t alphaCH[4]={0.,0.,0.,0.};
+    
+    for (int imatrix=0;imatrix<16;imatrix++) norm+=mRef[imatrix];
+    
+    for (size_t im=0;im<4;im++) {
+      for (size_t jm=0;jm<4;jm++) {
+	alphaCH[im]+=mRef[im*4+jm];
       }
-      // double final_Xsec = alphaCH[0]*(h_crossSection_final[0]->GetBinContent(bin)) + alphaCH[1]*(h_crossSection_final[1]->GetBinContent(bin)) 
-      //   + alphaCH[2]*(h_crossSection_final[2]->GetBinContent(bin)) + alphaCH[3]*(h_crossSection_final[3]->GetBinContent(bin));
+      alphaCH[im]/=norm;
+    }
+    if (printBLUEmatrix){
+      std::cout << "al0 " << alphaCH[0] << " al1 " << alphaCH[1] << " al2 " << alphaCH[2] << " al3 " << alphaCH[3] << endl;
+      std::cout << "consistency check:" << alphaCH[0]+alphaCH[1]+alphaCH[2]+alphaCH[3] <<endl;
+      std::cout << endl;
+    }
+    double final_Xsec = 0;
+    for (int ich=0; ich<4; ich++) {
+      final_Xsec += alphaCH[ich]*(inputHistos["crossSection_inclusive"][ich]->GetBinContent(bin));
+    }
+    // double final_Xsec = alphaCH[0]*(h_crossSection_final[0]->GetBinContent(bin)) + alphaCH[1]*(h_crossSection_final[1]->GetBinContent(bin)) 
+    //   + alphaCH[2]*(h_crossSection_final[2]->GetBinContent(bin)) + alphaCH[3]*(h_crossSection_final[3]->GetBinContent(bin));
     
-      Double_t combined_error=0;
-      Double_t *copyRef = errMatCopy.GetMatrixArray();
-      for (int ier=0;ier<4;ier++)
-	for (int jer=0;jer<4;jer++) {
-	  combined_error+=alphaCH[ier]*alphaCH[jer]*copyRef[ier*4+jer];
-	}
-      //lumi error
-      double lumi_error2(0);
-      for (int ier=0; ier<4; ier++){
-	for (int jer=0; jer<4; jer++){
-	  lumi_error2+=alphaCH[ier]*alphaCH[jer]*lumiSys[ier][jer];
-	}
+    Double_t combined_error=0;
+    Double_t *copyRef = errMatCopy.GetMatrixArray();
+    for (int ier=0;ier<4;ier++)
+      for (int jer=0;jer<4;jer++) {
+	combined_error+=alphaCH[ier]*alphaCH[jer]*copyRef[ier*4+jer];
       }
-
-      Double_t stat_err_tot2 =  pow(alphaCH[0]*statisticError[0],2) 
-	+ pow(alphaCH[1]*statisticError[1],2)
-	+ pow(alphaCH[2]*statisticError[2],2) 
-	+ pow(alphaCH[3]*statisticError[3],2);
-    
-      Double_t stat_err_tot = sqrt(stat_err_tot2);
-      Double_t syst_err_tot = sqrt (combined_error - stat_err_tot2- lumi_error2);
-    
-      combined_error=sqrt(combined_error);
-    
-      if(printBLUEmatrix){
-	std::cout << "combined sigma(WZ) = " << final_Xsec << " +- " << stat_err_tot << "(stat.) +- " << syst_err_tot << "(syst) +- "
-		  << sqrt(lumi_error2) << " (lumi) pb " << endl;
-	std::cout << endl;
+    //lumi error
+    double lumi_error2(0);
+    for (int ier=0; ier<4; ier++){
+      for (int jer=0; jer<4; jer++){
+	lumi_error2+=alphaCH[ier]*alphaCH[jer]*lumiSys[ier][jer];
       }
-      //double total_error=sqrt(stat_err_tot*stat_err_tot + syst_err_tot*syst_err_tot + sqrt(lumi_error2));
-      double lumi_error=sqrt(lumi_error2);
-      /*
-	std::cout<<"COMBINED ERROR:"<<combined_error<<std::endl;
-	std::cout<<"STAT ERROR: "<<stat_err_tot<<std::endl;
-	std::cout<<"SYST ERROR: "<<syst_err_tot<<std::endl;
-	std::cout<<"TOTAL ERROR:"<<total_error<<std::endl;
-	std::cout<<"BIN:   "<<bin<<std::endl;
-      */
-      h_crossSection_combination->SetBinContent(bin, final_Xsec);
-      //    h_crossSection_combination->SetBinError(bin, total_error);
-      h_crossSection_combination->SetBinError(bin, combined_error);
-      h_combStat->SetBinContent(bin, stat_err_tot);
-      h_combSyst->SetBinContent(bin, syst_err_tot);
-      h_combLumi->SetBinContent(bin, lumi_error);
-    }   // End of loop over bins
+    }
+
+    Double_t stat_err_tot2 =  pow(alphaCH[0]*statisticError[0],2)
+      + pow(alphaCH[1]*statisticError[1],2)
+      + pow(alphaCH[2]*statisticError[2],2)
+      + pow(alphaCH[3]*statisticError[3],2);
+    
+    Double_t stat_err_tot = sqrt(stat_err_tot2);
+    Double_t syst_err_tot = sqrt (combined_error - stat_err_tot2- lumi_error2);
+    
+    combined_error=sqrt(combined_error);
+    
+    if(printBLUEmatrix){
+      std::cout << "combined sigma(WZ) = " << final_Xsec << " +- " << stat_err_tot << "(stat.) +- " << syst_err_tot << "(syst) +- "
+		<< sqrt(lumi_error2) << " (lumi) pb " << endl;
+      std::cout << endl;
+    }
+    //double total_error=sqrt(stat_err_tot*stat_err_tot + syst_err_tot*syst_err_tot + sqrt(lumi_error2));
+    double lumi_error=sqrt(lumi_error2);
+    /*
+      std::cout<<"COMBINED ERROR:"<<combined_error<<std::endl;
+      std::cout<<"STAT ERROR: "<<stat_err_tot<<std::endl;
+      std::cout<<"SYST ERROR: "<<syst_err_tot<<std::endl;
+      std::cout<<"TOTAL ERROR:"<<total_error<<std::endl;
+      std::cout<<"BIN:   "<<bin<<std::endl;
+    */
+    h_crossSection_combination->SetBinContent(bin, final_Xsec);
+    //    h_crossSection_combination->SetBinError(bin, total_error);
+    h_crossSection_combination->SetBinError(bin, combined_error);
+    h_combStat->SetBinContent(bin, stat_err_tot);
+    h_combSyst->SetBinContent(bin, syst_err_tot);
+    h_combLumi->SetBinContent(bin, lumi_error);
+  }   // End of loop over bins
 
 
-	//  std::map<int, TMatrixD *> errorMatrices;
-	//  std::map<int, TVectorD *> measuredValues;
+  //  std::map<int, TMatrixD *> errorMatrices;
+  //  std::map<int, TVectorD *> measuredValues;
 
-	for (int ich=0; ich<4; ich++) {
+  for (int ich=0; ich<4; ich++) {
 
-	  TVectorD * values = new TVectorD(nBins);
-	  for (int bin=1; bin<nBins+1; bin++) {
-	      (*values)[bin] = (inputHistos["crossSection_incl_diff"][ich])->GetBinContent(bin);
-	    }
-		 measuredValues.insert(std::pair<int, TVectorD *>(ich,values));
+    TVectorD * values = new TVectorD(nBins);
+    for (int bin=1; bin<nBins+1; bin++) {
+      (*values)[bin] = (inputHistos["crossSection_incl_diff"][ich])->GetBinContent(bin);
+    }
+    measuredValues.insert(std::pair<int, TVectorD *>(ich,values));
 
-	       }
+  }
 
 
 
-	// Fill Vecor of all measurements
-	allMeasurements = new TVectorD(nBins*nChannels);
-      TMatrixD fullCovarianceMatrix(nBins*nChannels,nBins*nChannels);
+  // Fill Vector of all measurements
+  allMeasurements = new TVectorD(nBins*nChannels);
+  TMatrixD fullCovarianceMatrix(nBins*nChannels,nBins*nChannels);
 
-	for (int i=1; i<=h_crossSection_combination->GetNbinsX(); i++) {
-	   double value = h_crossSection_combination->GetBinContent(i);
-	   double error = h_crossSection_combination->GetBinError(i);
-	   double errorStat = h_combStat->GetBinContent(i);
-	   double errorSyst = h_combSyst->GetBinContent(i);
-	   double errorLumi = h_combLumi->GetBinContent(i);
-	   double width = h_crossSection_combination->GetBinWidth(i);
-	   double dsdx = value/width;
-	   double dsdx_err = dsdx*error/value;
-	   double dsdx_errStat = dsdx*errorStat/value;
-	   double dsdx_errSyst = dsdx*errorSyst/value;
-	   double dsdx_errLumi = dsdx*errorLumi/value;  
-	   h_crossSection_comb_diff->SetBinContent(i,dsdx);
-	   h_crossSection_comb_diff->SetBinError(i,dsdx_err);
-	   h_combStat->SetBinContent(i,dsdx_errStat);
-	   h_combSyst->SetBinContent(i,dsdx_errSyst);
-	   h_combLumi->SetBinContent(i,dsdx_errLumi);
-	 }
+  for (int i=1; i<=h_crossSection_combination->GetNbinsX(); i++) {
+    double value = h_crossSection_combination->GetBinContent(i);
+    double error = h_crossSection_combination->GetBinError(i);
+    double errorStat = h_combStat->GetBinContent(i);
+    double errorSyst = h_combSyst->GetBinContent(i);
+    double errorLumi = h_combLumi->GetBinContent(i);
+    double width = h_crossSection_combination->GetBinWidth(i);
+    double dsdx = value/width;
+    double dsdx_err = dsdx*error/value;
+    double dsdx_errStat = dsdx*errorStat/value;
+    double dsdx_errSyst = dsdx*errorSyst/value;
+    double dsdx_errLumi = dsdx*errorLumi/value;  
+    h_crossSection_comb_diff->SetBinContent(i,dsdx);
+    h_crossSection_comb_diff->SetBinError(i,dsdx_err);
+    h_combStat->SetBinContent(i,dsdx_errStat);
+    h_combSyst->SetBinContent(i,dsdx_errSyst);
+    h_combLumi->SetBinContent(i,dsdx_errLumi);
+  }
 
-	 for (int channels=0; channels<4; channels++){
-	   for (int i=1; i<=(inputHistos["crossSection_inclusive"])[channels]->GetNbinsX(); i++) {
-	     double value2 =(inputHistos["crossSection_inclusive"][channels])->GetBinContent(i);
-	     double error2 = (inputHistos["crossSection_inclusive"][channels])->GetBinError(i);
-	     double errorStat2 = h_totalStat[channels]->GetBinContent(i);
-	     double errorSyst2 = h_totalSyst[channels]->GetBinContent(i);
-	     double width2 = (inputHistos["crossSection_inclusive"][channels])->GetBinWidth(i);
-	     double dsdx2 = value2/width2;
-	     double dsdx_err2 = dsdx2*error2/value2;
-	     double dsdx_errorStat= dsdx2*errorStat2/value2;
-	     double dsdx_errorSyst= dsdx2*errorSyst2/value2;
-	     (inputHistos["crossSection_incl_diff"][channels])->SetBinContent(i,dsdx2);
-	     (inputHistos["crossSection_incl_diff"][channels])->SetBinError(i,dsdx_err2);
-	     h_totalSyst_diff[channels]->SetBinContent(i, dsdx_errorSyst);
-	     h_totalStat_diff[channels]->SetBinContent(i, dsdx_errorStat);
-	   }
-	 }
+  for (int channels=0; channels<4; channels++){
+    for (int i=1; i<=(inputHistos["crossSection_inclusive"])[channels]->GetNbinsX(); i++) {
+      double value2 =(inputHistos["crossSection_inclusive"][channels])->GetBinContent(i);
+      double error2 = (inputHistos["crossSection_inclusive"][channels])->GetBinError(i);
+      double errorStat2 = h_totalStat[channels]->GetBinContent(i);
+      double errorSyst2 = h_totalSyst[channels]->GetBinContent(i);
+      double width2 = (inputHistos["crossSection_inclusive"][channels])->GetBinWidth(i);
+      double dsdx2 = value2/width2;
+      double dsdx_err2 = dsdx2*error2/value2;
+      double dsdx_errorStat= dsdx2*errorStat2/value2;
+      double dsdx_errorSyst= dsdx2*errorSyst2/value2;
+      (inputHistos["crossSection_incl_diff"][channels])->SetBinContent(i,dsdx2);
+      (inputHistos["crossSection_incl_diff"][channels])->SetBinError(i,dsdx_err2);
+      h_totalSyst_diff[channels]->SetBinContent(i, dsdx_errorSyst);
+      h_totalStat_diff[channels]->SetBinContent(i, dsdx_errorStat);
+    }
+  }
 	 
 
-	 //LATEX OUTPUT
-	 if (latexOutput){
-	   // TString ranges[9]={"","","","","","","","","",""};
-	   // TString rangesZpt[9]={"0-20 GeV", "20-40 GeV", "40-60 GeV", "60-80 GeV", "80-100 GeV", "100-120 GeV", "120-140 GeV", "140-200 GeV", "200-300 GeV"};
-	   // TString rangesLeadingJetPt[9]={"30-60 GeV", "60-100 GeV", "100-150 GeV", "150-250 GeV"};
-	   // TString rangesNjets[9]={"0 jets", "1 jet", "2 jets", "3 jets", "4 jets"};
+  //LATEX OUTPUT
+  if (latexOutput){
+    // TString ranges[9]={"","","","","","","","","",""};
+    // TString rangesZpt[9]={"0-20 GeV", "20-40 GeV", "40-60 GeV", "60-80 GeV", "80-100 GeV", "100-120 GeV", "120-140 GeV", "140-200 GeV", "200-300 GeV"};
+    // TString rangesLeadingJetPt[9]={"30-60 GeV", "60-100 GeV", "100-150 GeV", "150-250 GeV"};
+    // TString rangesNjets[9]={"0 jets", "1 jet", "2 jets", "3 jets", "4 jets"};
 
-	   std::vector<std::string>  variableRanges;
+    std::vector<std::string>  variableRanges;
 
 
-	   if (variable == "Njets") {
-	     variableRanges.push_back("0 jets");
-	     variableRanges.push_back("1 jet");
-	     variableRanges.push_back("2 jets");
-	     variableRanges.push_back("3 jets");
-	     variableRanges.push_back("4 jets");
-	   } else if (variable == "LeadingJetPt") {
-	     variableRanges.push_back("30-60 GeV");
-	     variableRanges.push_back("60-100 GeV");
-	     variableRanges.push_back("100-150 GeV");
-	     variableRanges.push_back("150-250 GeV");
-	   } else if ( variable =="Zpt"){
-	     variableRanges.push_back("0-20 GeV");
-	     variableRanges.push_back("20-40 GeV");
-	     variableRanges.push_back(	"40-60 GeV");
-	     variableRanges.push_back(	"60-80 GeV");
-	     variableRanges.push_back( "80-100 GeV");
-	     variableRanges.push_back( "100-120 GeV");
-	     variableRanges.push_back( "120-140 GeV");
-	     variableRanges.push_back( "140-200 GeV");
-	     variableRanges.push_back( "200-300 GeV");
-	   }
+    if (variable == "Njets") {
+      variableRanges.push_back("0 jets");
+      variableRanges.push_back("1 jet");
+      variableRanges.push_back("2 jets");
+      variableRanges.push_back("3 jets");
+      variableRanges.push_back("4 jets");
+    } else if (variable == "LeadingJetPt") {
+      variableRanges.push_back("30-60 GeV");
+      variableRanges.push_back("60-100 GeV");
+      variableRanges.push_back("100-150 GeV");
+      variableRanges.push_back("150-250 GeV");
+    } else if ( variable =="Zpt"){
+      variableRanges.push_back("0-20 GeV");
+      variableRanges.push_back("20-40 GeV");
+      variableRanges.push_back(	"40-60 GeV");
+      variableRanges.push_back(	"60-80 GeV");
+      variableRanges.push_back( "80-100 GeV");
+      variableRanges.push_back( "100-120 GeV");
+      variableRanges.push_back( "120-140 GeV");
+      variableRanges.push_back( "140-200 GeV");
+      variableRanges.push_back( "200-300 GeV");
+    }
 
-	   map<std::string,int> variablePrecision;
-	   variablePrecision["Zpt"]          = 4;
-	   variablePrecision["LeadingJetPt"] = 4;
-	   variablePrecision["Njets"]        = 3;
+    map<std::string,int> variablePrecision;
+    variablePrecision["Zpt"]          = 4;
+    variablePrecision["LeadingJetPt"] = 4;
+    variablePrecision["Njets"]        = 3;
 
-	   std::cout<<"--------------------------------------------------------"<<std::endl;
-	   std::cout<<"Latex output: "<<std::endl;
-	   std::cout<<"bin & 3e & 2e1mu & 1e2mu & 3mu & combination \\\\"<<std::endl;
-	   std::cout<<"\\hline"<<std::endl;
+    std::cout<<"--------------------------------------------------------"<<std::endl;
+    std::cout<<"Latex output: "<<std::endl;
+    std::cout<<"bin & 3e & 2e1mu & 1e2mu & 3mu & combination \\\\"<<std::endl;
+    std::cout<<"\\hline"<<std::endl;
 
-	   for (int output=1; output<=h_crossSection_combination->GetNbinsX(); output++) {
+    for (int output=1; output<=h_crossSection_combination->GetNbinsX(); output++) {
+      outMain<<output<<" "
+	     << (inputHistos["crossSection_incl_diff"][0])->GetBinContent(output) << " "
+	     << (inputHistos["crossSection_incl_diff"][1])->GetBinContent(output) << " "
+	     << (inputHistos["crossSection_incl_diff"][2])->GetBinContent(output) << " "
+	     << (inputHistos["crossSection_incl_diff"][3])->GetBinContent(output) << " "
+	     <<h_crossSection_comb_diff->GetBinContent(output)<<std::endl; 
 
-	     outMain<<output<<" "
-		    << (inputHistos["crossSection_incl_diff"][0])->GetBinContent(output) << " "
-		    << (inputHistos["crossSection_incl_diff"][1])->GetBinContent(output) << " "
-		    << (inputHistos["crossSection_incl_diff"][2])->GetBinContent(output) << " "
-		    << (inputHistos["crossSection_incl_diff"][3])->GetBinContent(output) << " "
-		    <<h_crossSection_comb_diff->GetBinContent(output)<<std::endl; 
+      outError1 << output<<" "
+		<< h_totalStat_diff[0]->GetBinContent(output)<<" "
+		<< h_totalStat_diff[1]->GetBinContent(output)<<" "
+		<< h_totalStat_diff[2]->GetBinContent(output)<<" "
+		<< h_totalStat_diff[3]->GetBinContent(output)<<" "
+		<< h_combStat->GetBinContent(output)<<std::endl;
 
-	     outError1 << output<<" "
-		       << h_totalStat_diff[0]->GetBinContent(output)<<" "
-		       << h_totalStat_diff[1]->GetBinContent(output)<<" "
-		       << h_totalStat_diff[2]->GetBinContent(output)<<" "
-		       << h_totalStat_diff[3]->GetBinContent(output)<<" "
-		       << h_combStat->GetBinContent(output)<<std::endl;
+      outError2 << output<<" "
+		<< h_totalSyst_diff[0]->GetBinContent(output)<<" "
+		<< h_totalSyst_diff[1]->GetBinContent(output)<<" "
+		<< h_totalSyst_diff[2]->GetBinContent(output)<<" "
+		<< h_totalSyst_diff[3]->GetBinContent(output)<<" "
+		<< h_combSyst->GetBinContent(output)<<std::endl; 
 
-	     outError2 << output<<" "
-		       << h_totalSyst_diff[0]->GetBinContent(output)<<" "
-		       << h_totalSyst_diff[1]->GetBinContent(output)<<" "
-		       << h_totalSyst_diff[2]->GetBinContent(output)<<" "
-		       << h_totalSyst_diff[3]->GetBinContent(output)<<" "
-		       << h_combSyst->GetBinContent(output)<<std::endl; 
+      outError3 << output<<" "
+		<< 0.026*(inputHistos["crossSection_incl_diff"][0])->GetBinContent(output) << " "
+		<< 0.026*(inputHistos["crossSection_incl_diff"][1])->GetBinContent(output) << " "
+		<< 0.026*(inputHistos["crossSection_incl_diff"][2])->GetBinContent(output) << " "
+		<< 0.026*(inputHistos["crossSection_incl_diff"][3])->GetBinContent(output) << " "
+		<< h_combLumi->GetBinContent(output)<<std::endl; 
 
-	     outError3 << output<<" "
-		       << 0.026*(inputHistos["crossSection_incl_diff"][0])->GetBinContent(output) << " "
-		       << 0.026*(inputHistos["crossSection_incl_diff"][1])->GetBinContent(output) << " "
-		       << 0.026*(inputHistos["crossSection_incl_diff"][2])->GetBinContent(output) << " "
-		       << 0.026*(inputHistos["crossSection_incl_diff"][3])->GetBinContent(output) << " "
-		       << h_combLumi->GetBinContent(output)<<std::endl; 
+      if (variable == "Zpt") {
+	std::cout<<scientific ; 
+      } else {
+	std::cout<<fixed;
+      }
+      std::cout << setprecision(variablePrecision[variable])
+		<< variableRanges[output-1] <<" & ";
+      for (unsigned int ich=0; ich<4; ich++) {
 
-	     if (variable == "Zpt") {
-	       std::cout<<scientific ; 
-	     } else {
-	       std::cout<<fixed;
-	     }
-	     std::cout << setprecision(variablePrecision[variable])
-		       << variableRanges[output-1] <<" & ";
-	     for (unsigned int ich=0; ich<4; ich++) {
+	std::cout << (inputHistos["crossSection_incl_diff"][ich])->GetBinContent(output) <<" $\\pm$ "
+		  << h_totalStat_diff[ich]->GetBinContent(output)<<" $\\pm$ "
+		  << h_totalSyst_diff[ich]->GetBinContent(output)<<" $\\pm$ "
+		  << 0.026*(inputHistos["crossSection_incl_diff"][ich])->GetBinContent(output) <<" & ";
 
-	       std::cout << (inputHistos["crossSection_incl_diff"][ich])->GetBinContent(output) <<" $\\pm$ "
-			 << h_totalStat_diff[ich]->GetBinContent(output)<<" $\\pm$ "
-			 << h_totalSyst_diff[ich]->GetBinContent(output)<<" $\\pm$ "
-			 << 0.026*(inputHistos["crossSection_incl_diff"][ich])->GetBinContent(output) <<" & ";
+      }
+      std::cout << h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "
+		<< h_combStat->GetBinContent(output)<<" $\\pm$ "
+		<< h_combSyst->GetBinContent(output)<<"$\\pm$ "
+		<< h_combLumi->GetBinContent(output)<<"\\\\"<<std::endl;
 
-	     }
-	     std::cout << h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "
-		       << h_combStat->GetBinContent(output)<<" $\\pm$ "
-		       << h_combSyst->GetBinContent(output)<<"$\\pm$ "
-		       << h_combLumi->GetBinContent(output)<<"\\\\"<<std::endl;
-
-	   }
+    }
   
-	   outMain.close();
+    outMain.close();
 
-	 }
-	 //END OF LATEX OUTPUT
-	 fout->cd();
-       for (unsigned int ich=0; ich<4; ich++) {
-	 (inputHistos["crossSection_inclusive"][ich])->Write();
-	 (inputHistos["crossSection_incl_diff"][ich])->Write();
+  }
+  //END OF LATEX OUTPUT
+  fout->cd();
+  for (unsigned int ich=0; ich<4; ich++) {
+    (inputHistos["crossSection_inclusive"][ich])->Write();
+    (inputHistos["crossSection_incl_diff"][ich])->Write();
 	 
-       }
+  }
 	 
 	 
-	 h_crossSection_combination->Write();
-       h_crossSection_comb_diff->Write();
-       h_combStat->Write();
-       h_combSyst->Write();
+  h_crossSection_combination->Write();
+  h_crossSection_comb_diff->Write();
+  h_combStat->Write();
+  h_combSyst->Write();
        
 
-       fout->Close();
+  fout->Close();
 
 
-       Combine_unfolded( dxsections
-			 , differential_xsections
-			 , unfoldingCovariance
-			 , errorMatrices);
+  // Combine_unfolded( dxsections
+  // 		    , differential_xsections
+  // 		    , unfoldingCovariance
+  // 		    , errorMatrices);
 
-       
-	}
+  std::string globalOutputFile;
+  if (gotGlobalOutputName) {
+    globalOutputFile = globalOutputName;
+  } else {
+    globalOutputFile = "BLUE_global_input.root";
+  }
+  TFile * fBlueInput = new TFile(globalOutputFile.c_str(),
+				 "RECREATE");
+
+  fBlueInput->cd();
+  
+  std::map<int, TH1D* >::iterator ithist;
+  for (ithist = dxsections.begin(); ithist != dxsections.end(); ithist++) {
+    ithist->second->Write();
+  }
+
+  for (ithist = differential_xsections.begin(); ithist != differential_xsections.end(); ithist++) {
+    ithist->second->Write();
+  }
+
+  std::map<int, TMatrixD *>::iterator itmat;
+
+  for (itmat= unfoldingCovariance.begin(); itmat != unfoldingCovariance.end(); itmat++) {
+    std::ostringstream name;
+    name << "unfoldingCov_" << itmat->first;
+
+    itmat->second->Write(name.str().c_str());
+  }
+
+  for ( itmat=errorMatrices.begin(); itmat!=errorMatrices.end(); itmat++) {
+    std::ostringstream name;
+    name << "errorCov_" << itmat->first;
+    itmat->second->Write(name.str().c_str());
+  }
+
+  fBlueInput->Close();
+
+}

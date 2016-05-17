@@ -65,7 +65,7 @@ int main()
   //***write output numbers
   bool writeOutputNumbers(false);
   //  bool writeOutputNumbers(true);
-  std::ostingstream outMain, outError1, outError2;
+  std::ostringstream outMain, outError1, outError2;
 
   if (writeOutputNumbers){
     fileNumMC.open("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis2/WZanalysis/numMC.h");
@@ -135,13 +135,13 @@ int main()
   files.push_back("top.files");
   files.push_back("Zjets.files");
 
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WZ.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/ZZ.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zgamma.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/WV.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/VVV.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/top.root");
-  name.push_back("/users/ltikvica/CMSSW_4_2_9_HLT1/src/latinosAnalysis/rezultati/rootFiles/Zjets.root");
+  name.push_back("rezultati/rootFiles/WZ.root");
+  name.push_back("rezultati/rootFiles/ZZ.root");
+  name.push_back("rezultati/rootFiles/Zgamma.root");
+  name.push_back("rezultati/rootFiles/WV.root");
+  name.push_back("rezultati/rootFiles/VVV.root");
+  name.push_back("rezultati/rootFiles/top.root");
+  name.push_back("rezultati/rootFiles/Zjets.root");
 
 
 

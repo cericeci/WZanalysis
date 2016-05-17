@@ -38,7 +38,7 @@ void plotFinal(TString variable, float adjustMin=-999)
 
 
   std::ostringstream fileName, outputName;
-  fileName<<"unfoldingFinalResults/combination_"<<variable<<".root";
+  fileName<<"unfoldingFinalResults/blue_combination_"<<variable<<".root";
   outputName<<"unfoldingFinalResults/all_unfolding_"<<variable<<".root";
   TString mg_fileName = "unfoldingFinalResults/mg_full.root";
 
@@ -55,10 +55,10 @@ void plotFinal(TString variable, float adjustMin=-999)
   TH1F * hcrossSection_2= (TH1F*) (f1->Get("h_crossSection_inclusive2") ->Clone("h_crossSection_inclusive2"));
   TH1F * hcrossSection_3= (TH1F*) (f1->Get("h_crossSection_inclusive3") ->Clone("h_crossSection_inclusive3"));
 
-  TH1F * hcrossSection_diff_0= (TH1F*) (f1->Get("h_crossSection_incl_diff0") ->Clone("h_crossSection_incl_diff0"));
-  TH1F * hcrossSection_diff_1= (TH1F*) (f1->Get("h_crossSection_incl_diff1") ->Clone("h_crossSection_incl_diff1"));
-  TH1F * hcrossSection_diff_2= (TH1F*) (f1->Get("h_crossSection_incl_diff2") ->Clone("h_crossSection_incl_diff2"));
-  TH1F * hcrossSection_diff_3= (TH1F*) (f1->Get("h_crossSection_incl_diff3") ->Clone("h_crossSection_incl_diff3"));
+  TH1F * hcrossSection_diff_0= (TH1F*) (f1->Get("h_crossSection_incl_diff_0") ->Clone("h_crossSection_incl_diff0"));
+  TH1F * hcrossSection_diff_1= (TH1F*) (f1->Get("h_crossSection_incl_diff_1") ->Clone("h_crossSection_incl_diff1"));
+  TH1F * hcrossSection_diff_2= (TH1F*) (f1->Get("h_crossSection_incl_diff_2") ->Clone("h_crossSection_incl_diff2"));
+  TH1F * hcrossSection_diff_3= (TH1F*) (f1->Get("h_crossSection_incl_diff_3") ->Clone("h_crossSection_incl_diff3"));
 
 
   // Madgraph plots
@@ -210,11 +210,11 @@ void plotFinal(TString variable, float adjustMin=-999)
   c2->SaveAs(saveNameDiffLog.str().c_str());
 
   //ovo se treba zakomentirati pa onda nece crtati gluposti tu prije
-  //  fout->cd();
-  //hComb_diff->Write();
-  //mg_histos[0]->Write();
-  //if (variable!="Njets")
-  //  mcfmPlots[0]->Write();
-  //fout->Close();
+  fout->cd();
+  hComb_diff->Write();
+  mg_histos[0]->Write();
+  if (variable!="Njets")
+    mcfmPlots[0]->Write();
+  fout->Close();
 }
 

@@ -64,22 +64,6 @@ protected:
 
   TTree * jetResolutionTree;
 
-  float _trpfMet;
-  float _trpfMetPhi;
-  float _pfMet;
-  float _pfMetPhi;
-  float _pfMetType1;
-  float _pfMetType1Phi;
-
-  TTree * metSystematicsTree;
-
-  int   _channel;
-  float _trigEff;
-
-  bool   doMetStudy;
-
-  TTree * eventSummaryTree;
-
 };
 
 #endif

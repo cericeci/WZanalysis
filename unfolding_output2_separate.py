@@ -29,9 +29,9 @@ def seeExponent(number):
                 return i-1
     return 10000
 
-#variable="Zpt"
+variable="Zpt"
 #variable="LeadingJetPt"
-variable="Njets"
+#variable="Njets"
 names=["","","","","","","","","","", "","","",""]
 
 namesZpt=["0-20 GeV", "20-40 GeV", "40-60 GeV", "60-80 GeV", "80-100 GeV", "100-120 GeV", "120-140 GeV", "140-200 GeV", "200-300 GeV"]

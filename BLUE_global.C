@@ -3,9 +3,15 @@
 #include "TChain.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TApplication.h"
+#include "TStyle.h"
+#include "TCanvas.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
+#include "TDecompLU.h"
 #include "TLorentzVector.h"
+
+#include "Math/SMatrix.h"
 
 #include <algorithm>
 #include <iostream>
@@ -15,7 +21,6 @@
 #include <vector>
 #include <set>
 
-#include "UnfoldingHistogramFactory.h"
 
 #define NR_BINS     10
 #define NR_CHANNELS 4
@@ -25,6 +30,8 @@
 // Gives index as a function of bin and channel
 // All indices assume to start from zero
 
+typedef  ROOT::Math::SMatrix< double, 16, 16, ROOT::Math::MatRepStd<double,16,16 > >  AlgebraicMatrix16x16;
+typedef  ROOT::Math::SMatrix< double, 16, 16, ROOT::Math::MatRepSym<double,16> >      AlgebraicSymMatrix16x16;
 
 
 int index_from_bin_and_channel(int ibin, int ichan) {
@@ -106,20 +113,149 @@ void DumpMatrixToFile(TMatrixD matrix,std::string name="matrix.dat") {
     outf << endl;
   }
   outf.close();
+
 }
 
-
-
-void Combine_unfolded(
-		      std::map<int, TH1D* >      & h_dsigma,
-		      std::map<int, TH1D* >      & h_dsigmadx,
-		      std::map<int, TMatrixD *>  & unfoldingCovariance,
-		      std::map<int, TMatrixD *>  & binCovariance
-		      )
+void CheckMatrixInvertible(TMatrixD a)
 {
 
+  TDecompLU lu(a);
+  TMatrixD b;
+  if (!lu.Decompose()) {
+    cout << "Decomposition failed, matrix singular ?" << endl;
+    cout << "condition number = " << lu.GetCondition() << endl;
+  } else {
+    lu.Invert(b);
+    cout << "Invertible \n";
+  }
 
+    for (int irow=1; irow < a.GetNrows(); irow++) {
+      int irowref = 4*(irow/4);
+      std::cout << "Row Ratio: " << irowref << "  /  " << irow << "   :   ";
+      for (int icol=0; icol<a.GetNcols(); icol++) {
+	std::cout << "\t" << a(irowref,icol)/a(irow,icol);
+      }
+      std::cout << endl;
+    }
+
+
+}
+
+int main(int argc, char **argv)
+{
+  //definirati file-ove iz kojih citam i u koje pisem
+  char * variableName(0);
+  char * inputFile(0);
+  bool gotVarName  = false;
   bool useFullCorrelations=false;
+  bool showPlots = false;
+  char c;
+
+  while ((c = getopt (argc, argv, "v:i:Fp")) != -1)
+    switch (c)
+	{
+	case 'v':
+	  gotVarName = true;
+	  variableName = new char[strlen(optarg)+1];
+	  strcpy(variableName,optarg);
+	  break;
+	case 'i':
+	  inputFile = new char[strlen(optarg)+1];
+	  strcpy(inputFile,optarg);
+	  break;
+	case 'F':
+	  useFullCorrelations=true;
+	  break;
+	case 'p':
+	  showPlots = true;
+	  break;
+	default:
+	  std::cout << "usage: -r responseFile [-d <dataFile>]   \n";
+	  abort ();
+	}
+  
+
+
+
+  std::ostringstream outfilename;
+  outfilename<<"unfoldingFinalResults/blue_combination_"<< variableName <<".root";
+  TFile * fout = new TFile(outfilename.str().c_str(),"RECREATE");
+
+
+  string variable = variableName;
+
+  //void Combine_unfolded(
+  std::map<int, TH1D* >       h_dsigma;
+  std::map<int, TH1D* >       h_dsigmadx;
+  std::map<int, TMatrixD *>   unfoldingCovariance;
+  std::map<int, TMatrixD *>   binCovariance;
+
+  TFile * fin= new TFile(inputFile,"READ");
+
+  //  fin->ls();
+
+
+  //   READ RESULTS AND ERROR MATRICES FROM INPUT
+  //
+  // 
+
+  int nr_of_bins = -1;
+
+  int ichan=0;
+
+  for (int ichan=0; ichan<4; ichan++) {
+    std::ostringstream name,nameCopy, nameDiff, nameDiffcopy;
+    name      << "h_Dsigma_" << ichan;
+    nameCopy  << "h_crossSection_inclusive" << ichan;
+    nameDiff  << "h_crossSection_incl_diff_" << ichan;
+    TH1D* h = (TH1D*) fin->Get(name.str().c_str());
+    if (h) { 
+      //      name << "_copy";
+      TH1D* hc    = (TH1D*) h->Clone(nameCopy.str().c_str());
+      TH1D* hdiff = (TH1D*) h->Clone(nameDiff.str().c_str());
+      hc->SetDirectory(0);
+      nr_of_bins = hc->GetNbinsX();
+      h_dsigma.insert(pair<int,TH1D*>(ichan,hc));
+      //      h_dsigmadx.insert(pair<int,TH1D*>(ichan,hdiff));
+    } else {
+      std::cout << "DID NOT FIND HISTO: " << name.str() << std::endl;
+      //      break;
+    }
+    // 
+    std::ostringstream unfMatrixName;
+    unfMatrixName << "unfoldingCov_" << ichan;
+    TMatrixD * matrix = (TMatrixD*) fin->Get(unfMatrixName.str().c_str());
+    if (matrix) {
+      TMatrixD * mc = new TMatrixD(*matrix);
+      //      mc->SetDirectory(0);
+      unfoldingCovariance.insert(pair<int, TMatrixD*>(ichan,mc));
+    } else {
+      std::cout << "DID NOT FIND UNF Matrix: " << unfMatrixName.str() << std::endl;
+    }
+  }
+
+
+  for (int ibin=0; ibin<nr_of_bins; ibin++) {
+    std::ostringstream covMatrixName;
+    covMatrixName << "errorCov_" << ibin+1;
+    TMatrixD * matrix = (TMatrixD*) fin->Get(covMatrixName.str().c_str());    
+    if (matrix) {
+      TMatrixD * mc = new TMatrixD(*matrix);
+      //      mc->SetDirectory(0);
+      binCovariance.insert(pair<int, TMatrixD*>(ibin+1,mc));
+    } else {
+      std::cout << "DID NOT FIND ERR. Matrix: " << covMatrixName.str() << std::endl;
+    }
+  }
+    
+
+  //  fin->Close();
+
+  //  return 1;
+
+
+
+
 
   int verbosityLevel=0;
 
@@ -140,19 +276,9 @@ void Combine_unfolded(
     TH1D * h = ithist->second;
     int nbins = h->GetNbinsX();
 
-    // ithist2=h_dsigmadx.find(ithist->first);
-    // TH1D * h2(0);
-    // if (ithist2 != h_dsigmadx.end()) {
-    //   int nbins2 = ithist2->second->GetNbinsX();
-    //   if (nbins2 != nbins) {
-    // 	std::cout << "MISMATCH IN # of bins!!! \n";
-    //   } else {
-    // 	h2 = ithist2->second;
-    //   }
-    // }
-       
     std::ostringstream diffXsName;
-    diffXsName << "h_diffXS_" << channel;
+    //    diffXsName << "h_diffXS_" << channel;
+    diffXsName << "h_crossSection_incl_diff_" << channel;
     TH1D * h_diffxs = (TH1D*) h->Clone(diffXsName.str().c_str());
 
     for (int ibin=0; ibin<=nbins+1; ibin++) {
@@ -168,13 +294,6 @@ void Combine_unfolded(
 		<< "  Val = " << val << "  Error = " << err 
 		<< "  Val/dX = " << val/wid
 		<< "  Rel. =  " << err/val ;
-      // if (h2) {
-      // 	double val2 = h2->GetBinContent(ibin);
-      // 	double err2 = h2->GetBinError(ibin);
-      // 	std::cout << "\t DSDX  Val = " << val2 << "  Error = " << err2 
-      // 		  << "  Rel. =  " << err2/val2 
-      // 		  << "\t R = " << (err/val) / (err2/val2);
-      // }
       std::cout << std::endl;
       }
 
@@ -224,15 +343,11 @@ void Combine_unfolded(
 	double sig_y = sqrt( (*it->second)(icol+1,icol+1));
 	double corr_xy = cov/(sig_x*sig_y);
 
-	//	std::cout << "row : " << irow << "  col : " << icol
-	//		  << " cov = " << cov << "\t sx = " << sig_x << "\t xy = " << sig_y << std::endl;
 	(*correlationMatrix)(irow,icol) = corr_xy;
 	(*correlationMatrix)(icol,irow) = corr_xy;
 	//  And now produce real unfolding covariance
 	// Correctly normalized to cross section
 
-	// double unf_error_x = differential_xsections[channel]->GetBinError(irow+1);
-	// double unf_error_y = differential_xsections[channel]->GetBinError(icol+1);
 	double unf_error_x = h_dsigma[channel]->GetBinError(irow+1);
 	double unf_error_y = h_dsigma[channel]->GetBinError(icol+1);
 
@@ -264,6 +379,12 @@ void Combine_unfolded(
   TMatrixD  fullCovariance(dimension,dimension);
   //  TMatrixD  lumiCovariance(dimension,dimension);
   TMatrixDSym  lumiCovariance(dimension);
+  //  TMatrixDSym  miniLumiCov(4);
+
+  //  ROOT::Math::SMatrix< double, 16, 16, ROOT::Math::MatRepStd<double,16,16 > > lumiCovarianceSM;
+  //  AlgebraicSymMatrix16x16 lumiCovarianceSM;
+
+  //  TMatrixD  lumiCovariance(dimension);
   TMatrixD  statCovariance(dimension,dimension);
 
   // Build full covariance matrix
@@ -283,6 +404,12 @@ void Combine_unfolded(
 	  double cov(0);
 	  double lumiCov(0);
 	  double statCov(0);
+
+	  // std::cout << "ibin1: " << ibin1
+	  // 	    << "\t ibin2: " << ibin2
+	  // 	    << "\t ichan1: " << ichan1
+	  // 	    << "\t ichan2: " << ichan2
+	  // 	    << "\t index: " << binIndex << std::endl;
 
 	  if (ibin1 == ibin2 && ichan1 == ichan2) {
 	    cov     = (*binCovariance[binIndex])(ichan1,ichan2);
@@ -308,20 +435,47 @@ void Combine_unfolded(
 	  fullCovariance(index1,index2) = cov;
 	  //if (index1<=index2) 
 	  lumiCovariance(index1,index2) = lumiCov;
+	  //	  lumiCovarianceSM(index1,index2) = lumiCov;
 	  statCovariance(index1,index2) = statCov;
+
+	  // 
+	  // if (index1<4 && index2<4) {
+	  //   miniLumiCov(index1,index2) = lumiCov;
+	  // }
+
 	}  
       }    
     }
   }
 
+  // std::cout << "MINI LUMI : Det = " << miniLumiCov.Determinant() << std::endl;
+  // double minidet;
+  // miniLumiCov.Print();
+  // miniLumiCov.Invert(&minidet);
+  // miniLumiCov.Print();
+  // //  CheckMatrixInvertible(miniLumiCov);
+  // std::cout << "END OF MINI : Det = " << minidet << std::endl;
+
+
   // std::cout << "FULL BLOW COVARIANCE : \n";
   // std::cout << "====================== \n \n";
   // fullCovariance.Print();
-  std::cout << "FULL BLOWN LUMI COVARIANCE : \n";
-  std::cout << "========================= \n \n";
-  lumiCovariance.Print();
-  std::cout << "Full Covariance Determinant = " << fullCovariance.Determinant() << std::endl;
+  //  CheckMatrixInvertible(lumiCovariance);
 
+  // std::cout << "FULL BLOWN LUMI COVARIANCE : Det -= " <<   lumiCovariance.Determinant() << std::endl;
+  // std::cout << "========================= \n \n";
+  // lumiCovariance.Print();
+  // std::cout << "Full Covariance Determinant = " << fullCovariance.Determinant() << std::endl;
+
+  //  std::cout << "S-matrix rep. : " << lumiCovarianceSM << std::endl;
+
+  // int ifail=0;
+  // AlgebraicSymMatrix16x16 lumiInverseSM = lumiCovarianceSM.Inverse(ifail);
+  // AlgebraicMatrix16x16 product  = lumiCovarianceSM * lumiInverseSM;
+
+
+  // std::cout << "Inverted S-matrix rep. : " << ifail << std::endl << lumiInverseSM 
+  // 	    << "\n Product : \n: " << product << std::endl;
   // Build full measurements vector
 
   //  int nall = nr_bins*nr_channels;
@@ -329,7 +483,8 @@ void Combine_unfolded(
   TVectorD  a(dimension);
   for (int ibin=0; ibin<nr_bins; ibin++) {
     for (int ichan=0; ichan<nr_channels; ichan++) {
-      double val = differential_xsections[ichan]->GetBinContent(ibin+1);
+      double val    = h_dsigma[ichan]->GetBinContent(ibin+1);
+      double valdx  = differential_xsections[ichan]->GetBinContent(ibin+1);
       int index = index_from_bin_and_channel(ibin,ichan);
       a(index) = val;
     }
@@ -365,18 +520,20 @@ void Combine_unfolded(
   // 
   // f = M*a
 
-  std::cout << "LUMI COVARIANCE (AGAIN) \n";
-  lumiCovariance.Print();
-  std::cout << "inverting lumi Covariance \n";
+  //  std::cout << "LUMI COVARIANCE (AGAIN) \n";
+  //  lumiCovariance.Print();
+  //  DumpMatrixToFile(lumiCovariance, "lumicov.txt");
   TMatrixDSym lumiCovCopy(lumiCovariance);
-  DumpMatrixToFile(lumiCovariance, "lumicov.txt");
-  TMatrixDSym Mlumi(lumiCovariance);
-  Mlumi.Invert();
-  Mlumi.Print();
+  TMatrixDSym  sima =  lumiCovariance.Invert();
+  std::cout << "inverting lumi Covariance \n";
+  TMatrixD * Mlumi = new TMatrixD(lumiCovariance);
+  //  lumiCovariance.Print();
+  //  Mlumi->Invert();
+  //  Mlumi->Print();
   // Sanity check: multiply with the inverse: do we get unity???
-  TMatrixD testUnity = Mlumi*lumiCovariance; // lumiCovCopy;
-  std::cout << "Should be unity: M*Minv = \n";
-  testUnity.Print();
+  //  TMatrixD testUnity = lumiCovCopy*lumiCovariance; // lumiCovCopy;
+  //  std::cout << "Should be unity: M*Minv = \n";
+  //  testUnity.Print();
 
   std::cout << "inverting full Covariance \n";
   TMatrixD M = fullCovariance.Invert();
@@ -391,7 +548,7 @@ void Combine_unfolded(
   // 
 
   TMatrixD * finalCov     = GetFinalCovariance(nr_bins,nr_channels,M);
-  TMatrixD * finalCovLumi = GetFinalCovariance(nr_bins,nr_channels,Mlumi);
+  TMatrixD * finalCovLumi = GetFinalCovariance(nr_bins,nr_channels,*Mlumi);
   TMatrixD * finalCovStat = GetFinalCovariance(nr_bins,nr_channels,Mstat);
 
   std::cout << "First inversion done \n";
@@ -452,23 +609,95 @@ void Combine_unfolded(
     std::cout << "DID NOT FIND HISTOGRAM TO GET WIDTHS... \n";
   }
 
+
+  TH1D* h_combined_ds    = (TH1D*) h_dsigma[0]->Clone("h_xs_comb");
+  TH1D* h_combined_dsdx  = (TH1D*) h_dsigma[0]->Clone("h_xs_comb_diff");
+  h_combined_ds->Reset();
+  h_combined_dsdx->Reset();
+  h_combined_dsdx->Print();
+  //  h_combined_dsdx->SetNameTitle("hComb_diff","Combined diff. xs");
+  //  h_combined_dsdx->SetName("hComb_diff");
+
+  ofstream outCombined;
+  std::ostringstream outCombName;
+  outCombName << "outCombination-" << variable << ".txt";
+  outCombined.open(outCombName.str().c_str());
   std::cout << "FINAL RESULTS: \n \n";
   for (int ibin=0; ibin<nr_bins ;ibin++) {
+    double val      = result(ibin);
     double err      = sqrt(finalCovariance(ibin,ibin));
+
+    h_combined_ds->SetBinContent(ibin+1,val);
+    h_combined_ds->SetBinError(ibin+1,err);
+
+
     double err_stat = sqrt( (*finalCovStat)(ibin,ibin));
-    double err_lumi = sqrt( (*finalCovLumi)(ibin,ibin));
+    //    double err_lumi = sqrt( (*finalCovLumi)(ibin,ibin));
+    double err_lumi = 0.026*val;
+    double err_syst  = sqrt(err*err - err_stat*err_stat - err_lumi*err_lumi);
     if (binWidths) {
+      val      *= (1./binWidths[ibin]);
       err      *= (1./binWidths[ibin]);
       err_stat *= (1./binWidths[ibin]);
       err_lumi *= (1./binWidths[ibin]);
+      err_syst *= (1./binWidths[ibin]);
     }
     std::cout << "Bin " << ibin 
-	      << "\t Value = " << result(ibin)
+	      << "\t Value = " << val
       //	      << " +/- " << sqrt(finalCovariance(ibin,ibin)) << std::endl;
 	      << " +/- " << err
-	      << "\t" << err_stat << "(stat)"
+	      << "\t: " << err_stat << "(stat)"
+	      << "\t" << err_syst << "(syst)"
 	      << "\t" << err_lumi << "(lumi)"
 	      << std::endl;
+    outCombined << ibin+1 << "\t" << val
+		<< "\t" << err_stat 
+		<< "\t" << err_syst 
+		<< "\t" << err_lumi 
+		<< std::endl;
+
+    h_combined_dsdx->SetBinContent(ibin+1,val);
+    h_combined_dsdx->SetBinError(ibin+1,err);
+
   }
+  outCombined.close();
+
+  h_combined_dsdx->Print();
+  fout->cd();
+  h_combined_ds->Write();
+  h_combined_dsdx->Write();
+
+  for (ithist=h_dsigma.begin(); ithist!=h_dsigma.end(); ithist++) {
+    ithist->second->Write();
+    //    h_dsigmadx[ithist->first]->Write();
+    differential_xsections[ithist->first]->Write();
+  }
+  fout->Close();
+
+  return 1;
+
+
+  TApplication *theApp = new TApplication("app", &argc, argv); //<======
+
+  // TStyle * m_gStyle;
+  // m_gStyle = new TStyle();
+  // m_gStyle->SetOptStat("0000");
+  TCanvas * can = new TCanvas();
+  can->Divide(2,2);
+  for (int ichan=0; ichan<4; ichan++) {
+    can->cd(ichan+1);
+    unfoldingCorrelation[ichan]->Draw("colztext");
+  }
+
+  std::ostringstream correlationNamePdf, correlationNameRoot;
+  correlationNamePdf  << "unfoldingCorrelation-" << variable << ".pdf";
+  correlationNameRoot << "unfoldingCorrelation-" << variable << ".root";
+
+  can->SaveAs(correlationNamePdf.str().c_str());
+  can->SaveAs(correlationNameRoot.str().c_str());
+  //  can->SaveAs("unfoldingCorrelation.root");
+
+  if (showPlots)   theApp->Run();
+
  
 }

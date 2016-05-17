@@ -64,10 +64,11 @@ int main(int argc, char **argv)
   bool gotOutput = false;
   bool gotHistoBinning = false;
   bool gotSystematicsConfig = false;
+  bool modifyResponseShapes = false;
   char * systConfigFile(0);
   char c;
 
-  while ((c = getopt (argc, argv, "i:o:l:H:S:")) != -1)
+  while ((c = getopt (argc, argv, "i:o:l:H:S:X")) != -1)
     switch (c)
       {
       case 'o':
@@ -95,6 +96,9 @@ int main(int argc, char **argv)
 	systConfigFile = new char[strlen(optarg)+1];
 	strcpy(systConfigFile,optarg);
 	break;
+      case 'X':
+	modifyResponseShapes = true;
+	break;
       default:
 	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
 	abort ();
@@ -110,9 +114,9 @@ int main(int argc, char **argv)
   }
 
 
-
+  SystematicsManager * sysManager(0);
   if (gotSystematicsConfig) {
-    SystematicsManager * sysManager = SystematicsManager::GetInstance();
+    sysManager = SystematicsManager::GetInstance();
     //    std::string sysFileName = systConfigFile;
     sysManager->Setup(systConfigFile);
   }
@@ -201,7 +205,16 @@ int main(int argc, char **argv)
   UnfoldingNjets unfoldNjets(cWZ);
   //  unfoldJetPt.Init();
   UnfoldingZPt unfoldZPt(cWZ);
-  
+
+  unfoldJetPt.UseModifiedShape(modifyResponseShapes);
+  unfoldNjets.UseModifiedShape(modifyResponseShapes);
+  unfoldZPt.UseModifiedShape(modifyResponseShapes);
+
+  int unfoldingStatistics = 1;
+  if (sysManager) {
+    unfoldingStatistics = sysManager->GetValue("UnfoldingStat");
+  }
+
   WZAnalysis   genAnalysis(cWZ);
   genAnalysis.Init();
 
@@ -328,7 +341,15 @@ int main(int argc, char **argv)
 
     genAnalysis.EventAnalysis();
 
-    if (true) {    
+    //     unfoldingStatistics: 1  - only odd numbers   k%2 = 1
+    //     unfoldingStatistics: -1 - only even numbers  k%2 = 0
+    bool useEventForUnfolding = true;
+    if ( (unfoldingStatistics == 1 && k%2 == 1) 
+	 || (unfoldingStatistics == -1 && k%2 == 0) ) {
+      useEventForUnfolding = false;
+    }
+
+    if (useEventForUnfolding) {
     //    if (k%2){
       unfoldJetPt.FillEvent();
       unfoldZPt.FillEvent();

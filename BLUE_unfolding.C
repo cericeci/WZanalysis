@@ -256,13 +256,14 @@ int main(int argc, char **argv)
 	systematicError2[nCh]+= pow (h_JESsys[nCh]->GetBinContent(bin),2)+
 	  pow (h_JERsys[nCh]->GetBinContent(bin),2);
       }
-
+      std::cout << "FIRST PRINTOUT \n";
       h_totalStat[nCh]->SetBinContent(bin, statisticError[nCh]);
       //      systematicError[nCh]= (sqrt(systematicError2[nCh]))*(h_crossSection[nCh]->GetBinContent(bin));
       systematicError[nCh]= (sqrt(systematicError2[nCh]))*(h_crossSection_final[nCh]->GetBinContent(bin));
       lumiError[nCh]=(h_lumi[nCh]->GetBinContent(bin))*(h_crossSection_final[nCh]->GetBinContent(bin));
       h_totalSyst[nCh]->SetBinContent(bin, (systematicError[nCh]));
-      std::cout<<bin<<" , "<<systematicError[nCh]<<" , "<<h_crossSection_final[nCh]->GetBinContent(bin)<<std::endl;
+      std::cout<<bin<<" , "<<systematicError[nCh]<<" , "
+	       <<h_crossSection_final[nCh]->GetBinContent(bin)<<std::endl;
     }
     //common elements
     double commonSys[4][4];
@@ -279,11 +280,14 @@ int main(int argc, char **argv)
 	  + (h_Zgammaxs[cha]->GetBinContent(bin))*(h_Zgammaxs[chb]->GetBinContent(bin))
 	  + (h_unfSyst[cha]->GetBinContent(bin))*(h_unfSyst[chb]->GetBinContent(bin))
 	  + (h_lumi[cha]->GetBinContent(bin))*(h_lumi[chb]->GetBinContent(bin));
-	lumiSys[cha][chb]=(h_lumi[cha]->GetBinContent(bin))*(h_lumi[chb]->GetBinContent(bin))*(h_crossSection_final[cha]->GetBinContent(bin))*
-	  (h_crossSection_final[chb]->GetBinContent(bin));
+	lumiSys[cha][chb]=(h_lumi[cha]->GetBinContent(bin))*(h_lumi[chb]->GetBinContent(bin))
+	  *(h_crossSection_final[cha]->GetBinContent(bin))
+	  *(h_crossSection_final[chb]->GetBinContent(bin));
 	if (variable!="Zpt"){
  	  commonSys[cha][chb]+=(h_JESsys[cha]->GetBinContent(bin))*(h_JESsys[chb]->GetBinContent(bin));
 	}
+	std::cout << "common sys [" << cha << " , " << chb << " ] = " << 
+	  commonSys[cha][chb] << std::endl;
       }
     }
     
@@ -324,18 +328,42 @@ int main(int argc, char **argv)
     elements[8]=elements[2]=(h_crossSection_final[0]->GetBinContent(bin))*(h_crossSection_final[2]->GetBinContent(bin))*
       (commonSys[0][2] + (h_elEnScale[0]->GetBinContent(bin))*(h_elEnScale[2]->GetBinContent(bin)) +
        (h_muMomScale[0]->GetBinContent(bin))*(h_muMomScale[2]->GetBinContent(bin))+
-       (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[2]->GetBinContent(2))+
-       (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[2]->GetBinContent(2))
+       // BUG?      (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[2]->GetBinContent(2))+
+       // BUG?       (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[2]->GetBinContent(2))
+       (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[2]->GetBinContent(bin))+
+       (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[2]->GetBinContent(bin))
        //+(h_dataDrivensys[0]->GetBinContent(bin))*(h_dataDrivensys[2]->GetBinContent(bin))*corr_matrix_dd[0][2]);
        +(h_dataDrivensys_el[0]->GetBinContent(bin))*(h_dataDrivensys_el[2]->GetBinContent(bin))
        +(h_dataDrivensys_mu[0]->GetBinContent(bin))*(h_dataDrivensys_mu[2]->GetBinContent(bin)));
+
+
+    //channels 0 and 2
+    if (0) {
+    std::cout << "Element 2: " << "xs = " << (h_crossSection_final[0]->GetBinContent(bin))
+	      << " " << (h_crossSection_final[2]->GetBinContent(bin)) << std::endl
+	      << " elEnScale = " <<  (h_elEnScale[0]->GetBinContent(bin))
+	      << " " << (h_elEnScale[2]->GetBinContent(bin)) << std::endl
+	      << "muMomScale = " << (h_muMomScale[0]->GetBinContent(bin))
+	      << " " <<  (h_muMomScale[2]->GetBinContent(bin)) << std::endl
+	      << "EleSF = " << (h_leptTrgEff_el[0]->GetBinContent(bin))
+	      << " " << (h_leptTrgEff_el[2]->GetBinContent(2)) << std::endl
+	      << "MuSF = " << (h_leptTrgEff_mu[0]->GetBinContent(bin))
+	      << " " << (h_leptTrgEff_mu[2]->GetBinContent(2)) << std::endl
+       //+(h_dataDrivensys[0]->GetBinContent(bin))*(h_dataDrivensys[2]->GetBinContent(bin))*corr_matrix_dd[0][2]);
+	      << "DDEl = " << (h_dataDrivensys_el[0]->GetBinContent(bin))
+	      << " " << (h_dataDrivensys_el[2]->GetBinContent(bin)) << std::endl
+	      << "DDMu = " << (h_dataDrivensys_mu[0]->GetBinContent(bin))  
+	      << " " << (h_dataDrivensys_mu[2]->GetBinContent(bin)) << std::endl;
+    }
     
     //channels 0 and 3
     elements[12]=elements[3]=(h_crossSection_final[0]->GetBinContent(bin))*(h_crossSection_final[3]->GetBinContent(bin))*
       (commonSys[0][3]+ (h_elEnScale[0]->GetBinContent(bin))*(h_elEnScale[3]->GetBinContent(bin))+
        (h_muMomScale[0]->GetBinContent(bin))*(h_muMomScale[3]->GetBinContent(bin))+
-       (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[3]->GetBinContent(2))+
-       (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[3]->GetBinContent(2))
+       // BUG:  (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[3]->GetBinContent(2))+
+       // BUG:  (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[3]->GetBinContent(2))
+       (h_leptTrgEff_el[0]->GetBinContent(bin))*(h_leptTrgEff_el[3]->GetBinContent(bin))+
+       (h_leptTrgEff_mu[0]->GetBinContent(bin))*(h_leptTrgEff_mu[3]->GetBinContent(bin))
        //+(h_dataDrivensys[0]->GetBinContent(bin))*(h_dataDrivensys[3]->GetBinContent(bin))*corr_matrix_dd[0][3]);
        +(h_dataDrivensys_el[0]->GetBinContent(bin))*(h_dataDrivensys_el[3]->GetBinContent(bin))
        +(h_dataDrivensys_mu[0]->GetBinContent(bin))*(h_dataDrivensys_mu[3]->GetBinContent(bin)));
@@ -524,7 +552,7 @@ int main(int argc, char **argv)
     outError3<<output<<" "<<0.026*h_crossSection_diff[0]->GetBinContent(output)<<" "<<0.026*h_crossSection_diff[1]->GetBinContent(output)<<" "<<0.026*h_crossSection_diff[2]->GetBinContent(output)<<" "<<0.026*h_crossSection_diff[3]->GetBinContent(output)<<" "<<h_combLumi->GetBinContent(output)<<std::endl; 
 
     if (variable=="Zpt"){
-      std::cout<<scientific<<setprecision(4)<<rangesZpt[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[0]->GetBinContent(output)<<" & "<<
+      std::cout<<scientific<<setprecision(4)<<rangesZpt[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[0]->GetBinContent(output)<<" & "<<
 	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[1]->GetBinContent(output) <<" & "<<
 	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[2]->GetBinContent(output) <<" & "<<
 	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[3]->GetBinContent(output)<<" & "<<
@@ -532,7 +560,7 @@ int main(int argc, char **argv)
     }
     if (variable=="LeadingJetPt"){
       std::cout<<fixed<<setprecision(4)<<rangesLeadingJetPt[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[0]->GetBinContent(output)<<" & "<<
-	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[2]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[1]->GetBinContent(output)<<" & "<<
 	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[2]->GetBinContent(output)<<" & "<<
 	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[3]->GetBinContent(output)<<" & "<<
       	h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "<<h_combStat->GetBinContent(output)<<" $\\pm$ "<<h_combSyst->GetBinContent(output)<<"$\\pm\
@@ -540,9 +568,9 @@ $ "<<h_combLumi->GetBinContent(output)<<"\\\\"<<std::endl;
     }
     if (variable=="Njets"){
       std::cout<<fixed<<setprecision(3)<<rangesNjets[output-1]<<" & "<<h_crossSection_diff[0]->GetBinContent(output)<<"$ \\pm$ "<<h_totalStat_diff[0]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[0]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[0]->GetBinContent(output)<<" & "<<
-	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[1]->GetBinContent(output)<<" & "<<
-	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" $\\pm$ "<<0.026*h_crossSection_diff[2]->GetBinContent(output)<<" & "<<
-	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[1]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[1]->GetBinContent(output)<<" $\\pm$ "<< 0.026*h_crossSection_diff[1]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[2]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[2]->GetBinContent(output)<<" $\\pm$ "<< 0.026*h_crossSection_diff[2]->GetBinContent(output)<<" & "<<
+	h_crossSection_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalStat_diff[3]->GetBinContent(output)<<" $\\pm$ "<<h_totalSyst_diff[3]->GetBinContent(output)<< " $\\pm$ " << 0.026*h_crossSection_diff[3]->GetBinContent(output)<<" & "<<
       	h_crossSection_comb_diff->GetBinContent(output)<<" $\\pm$ "<<h_combStat->GetBinContent(output)<<" $\\pm$ "<<h_combSyst->GetBinContent(output)<<"$\\pm\
 $ "<<h_combLumi->GetBinContent(output)<<"\\\\"<<std::endl;
     }

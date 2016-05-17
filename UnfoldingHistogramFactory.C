@@ -130,6 +130,25 @@ TH1D *  UnfoldingHistogramFactory::createZPtHistogram(std::string hname,
 }
 
 
+TH1D *  UnfoldingHistogramFactory::createHistogramForVar(std::string variable, 
+							 std::string name, std::string title) {
+
+  TH1D * h=0;
+
+  if (variable == "Zpt") {
+    h = createZPtHistogram(name, title);
+  } else if (variable == "LeadingJetPt") {
+    h = createLeadingJetHistogram(name, title);
+  } else if (variable == "Njets") {
+    h = createNjetsHistogram(name, title);
+  } else {
+    std::cout << "HistogramFactory::createHistogram: UNKNOWN VARIABLE = " << variable << std::endl;
+  }
+  return h;
+}
+
+
+
 void UnfoldingHistogramFactory::SetBinning(string file) {
 
 

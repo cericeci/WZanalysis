@@ -1,31 +1,34 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Jul  8 15:50:07 2014 by ROOT version 5.27/06b
+// Fri Apr 29 22:16:45 2016 by ROOT version 5.32/00
 // from TTree latino/probe_tree
-// found on file: /users/ltikvica/latinosTreesPu/latinowz_step3NoFilter-118.root
+// found on file: /STORE/wz8tev/latino_999_TZJets.root
 //////////////////////////////////////////////////////////
 
-#ifndef WZGenEvent_h
-#define WZGenEvent_h
+#ifndef TZJets_h
+#define TZJets_h
 
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
 
-class WZGenEvent {
+// Header file for the classes stored in the TTree if any.
+
+// Fixed size dimensions of array or collections stored in the TTree if any.
+
+class TZJets {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
 
    // Declaration of leaf types
-   Float_t         MZ;
-   Float_t         PtZ;
-   Float_t         WZchan;
    Float_t         baseW;
    Float_t         bdt1;
    Float_t         bdt2;
    Float_t         bdt3;
    Float_t         bdt4;
+   Float_t         bdt5;
+   Float_t         bdt6;
    Float_t         ch1;
    Float_t         ch2;
    Float_t         ch3;
@@ -56,9 +59,12 @@ public :
    Float_t         drll;
    Float_t         dymva0;
    Float_t         dymva1;
+   Float_t         dz1;
+   Float_t         dz2;
+   Float_t         dz3;
+   Float_t         dz4;
    Float_t         effAW;
    Float_t         effBW;
-   Float_t         effW;
    Float_t         eta1;
    Float_t         eta2;
    Float_t         eta3;
@@ -69,108 +75,27 @@ public :
    Float_t         fermiW;
    Float_t         fourW;
    Float_t         gammaMRStar;
-   Float_t         genVV_S1lepton1_eta;
-   Float_t         genVV_S1lepton1_imTau;
-   Float_t         genVV_S1lepton1_oVpid;
-   Float_t         genVV_S1lepton1_phi;
-   Float_t         genVV_S1lepton1_pid;
-   Float_t         genVV_S1lepton1_pt;
-   Float_t         genVV_S1lepton2_eta;
-   Float_t         genVV_S1lepton2_imTau;
-   Float_t         genVV_S1lepton2_oVpid;
-   Float_t         genVV_S1lepton2_phi;
-   Float_t         genVV_S1lepton2_pid;
-   Float_t         genVV_S1lepton2_pt;
-   Float_t         genVV_S1lepton3_eta;
-   Float_t         genVV_S1lepton3_imTau;
-   Float_t         genVV_S1lepton3_oVpid;
-   Float_t         genVV_S1lepton3_phi;
-   Float_t         genVV_S1lepton3_pid;
-   Float_t         genVV_S1lepton3_pt;
-   Float_t         genVV_jet1_eta;
-   Float_t         genVV_jet1_parton_eta;
-   Float_t         genVV_jet1_parton_phi;
-   Float_t         genVV_jet1_parton_pid;
-   Float_t         genVV_jet1_parton_pt;
-   Float_t         genVV_jet1_phi;
-   Float_t         genVV_jet1_pt;
-   Float_t         genVV_jet2_eta;
-   Float_t         genVV_jet2_parton_eta;
-   Float_t         genVV_jet2_parton_phi;
-   Float_t         genVV_jet2_parton_pid;
-   Float_t         genVV_jet2_parton_pt;
-   Float_t         genVV_jet2_phi;
-   Float_t         genVV_jet2_pt;
-   Float_t         genVV_jet3_eta;
-   Float_t         genVV_jet3_parton_eta;
-   Float_t         genVV_jet3_parton_phi;
-   Float_t         genVV_jet3_parton_pid;
-   Float_t         genVV_jet3_parton_pt;
-   Float_t         genVV_jet3_phi;
-   Float_t         genVV_jet3_pt;
-   Float_t         genVV_jet4_eta;
-   Float_t         genVV_jet4_parton_eta;
-   Float_t         genVV_jet4_parton_phi;
-   Float_t         genVV_jet4_parton_pid;
-   Float_t         genVV_jet4_parton_pt;
-   Float_t         genVV_jet4_phi;
-   Float_t         genVV_jet4_pt;
-   Float_t         genVV_jet5_eta;
-   Float_t         genVV_jet5_parton_eta;
-   Float_t         genVV_jet5_parton_phi;
-   Float_t         genVV_jet5_parton_pid;
-   Float_t         genVV_jet5_parton_pt;
-   Float_t         genVV_jet5_phi;
-   Float_t         genVV_jet5_pt;
-   Float_t         genVV_lepton1_eta;
-   Float_t         genVV_lepton1_imTau;
-   Float_t         genVV_lepton1_oVpid;
-   Float_t         genVV_lepton1_phi;
-   Float_t         genVV_lepton1_pid;
-   Float_t         genVV_lepton1_pt;
-   Float_t         genVV_lepton2_eta;
-   Float_t         genVV_lepton2_imTau;
-   Float_t         genVV_lepton2_oVpid;
-   Float_t         genVV_lepton2_phi;
-   Float_t         genVV_lepton2_pid;
-   Float_t         genVV_lepton2_pt;
-   Float_t         genVV_lepton3_eta;
-   Float_t         genVV_lepton3_imTau;
-   Float_t         genVV_lepton3_oVpid;
-   Float_t         genVV_lepton3_phi;
-   Float_t         genVV_lepton3_pid;
-   Float_t         genVV_lepton3_pt;
-   Float_t         genVV_neutrino1_eta;
-   Float_t         genVV_neutrino1_imTau;
-   Float_t         genVV_neutrino1_oVpid;
-   Float_t         genVV_neutrino1_phi;
-   Float_t         genVV_neutrino1_pid;
-   Float_t         genVV_neutrino1_pt;
-   Float_t         genVV_neutrino2_eta;
-   Float_t         genVV_neutrino2_imTau;
-   Float_t         genVV_neutrino2_oVpid;
-   Float_t         genVV_neutrino2_phi;
-   Float_t         genVV_neutrino2_pid;
-   Float_t         genVV_neutrino2_pt;
-   Float_t         genVV_neutrino3_eta;
-   Float_t         genVV_neutrino3_imTau;
-   Float_t         genVV_neutrino3_oVpid;
-   Float_t         genVV_neutrino3_phi;
-   Float_t         genVV_neutrino3_pid;
-   Float_t         genVV_neutrino3_pt;
    Float_t         hardbjpb;
    Float_t         hardtche;
    Float_t         higggsGenpt;
    Float_t         hypo;
    Float_t         imet;
+   Float_t         ip1;
+   Float_t         ip2;
+   Float_t         ip3;
+   Float_t         ip4;
    Float_t         isSTA1;
    Float_t         isSTA2;
    Float_t         isSTA3;
    Float_t         isSTA4;
+   Float_t         isSTA5;
+   Float_t         isSTA6;
    Float_t         iso1;
    Float_t         iso2;
    Float_t         iso3;
    Float_t         iso4;
+   Float_t         iso5;
+   Float_t         iso6;
    Float_t         isomva1;
    Float_t         isomva2;
    Float_t         isomva3;
@@ -182,20 +107,27 @@ public :
    Float_t         jetCHM5;
    Float_t         jetCHM6;
    Float_t         jetCHM7;
-   Float_t         jetNChgQC1;
-   Float_t         jetNChgQC2;
-   Float_t         jetNChgQC3;
-   Float_t         jetNChgQC4;
-   Float_t         jetNChgQC5;
-   Float_t         jetNChgQC6;
-   Float_t         jetNChgQC7;
-   Float_t         jetNChgptCut1;
-   Float_t         jetNChgptCut2;
-   Float_t         jetNChgptCut3;
-   Float_t         jetNChgptCut4;
-   Float_t         jetNChgptCut5;
-   Float_t         jetNChgptCut6;
-   Float_t         jetNChgptCut7;
+   Float_t         jetGenPartoneta1;
+   Float_t         jetGenPartoneta2;
+   Float_t         jetGenPartoneta3;
+   Float_t         jetGenPartonphi1;
+   Float_t         jetGenPartonphi2;
+   Float_t         jetGenPartonphi3;
+   Float_t         jetGenPartonpid1;
+   Float_t         jetGenPartonpid2;
+   Float_t         jetGenPartonpid3;
+   Float_t         jetGenPartonpt1;
+   Float_t         jetGenPartonpt2;
+   Float_t         jetGenPartonpt3;
+   Float_t         jetGeneta1;
+   Float_t         jetGeneta2;
+   Float_t         jetGeneta3;
+   Float_t         jetGenphi1;
+   Float_t         jetGenphi2;
+   Float_t         jetGenphi3;
+   Float_t         jetGenpt1;
+   Float_t         jetGenpt2;
+   Float_t         jetGenpt3;
    Float_t         jetNHM1;
    Float_t         jetNHM2;
    Float_t         jetNHM3;
@@ -203,13 +135,6 @@ public :
    Float_t         jetNHM5;
    Float_t         jetNHM6;
    Float_t         jetNHM7;
-   Float_t         jetNNeutralptCut1;
-   Float_t         jetNNeutralptCut2;
-   Float_t         jetNNeutralptCut3;
-   Float_t         jetNNeutralptCut4;
-   Float_t         jetNNeutralptCut5;
-   Float_t         jetNNeutralptCut6;
-   Float_t         jetNNeutralptCut7;
    Float_t         jetPhM1;
    Float_t         jetPhM2;
    Float_t         jetPhM3;
@@ -217,70 +142,7 @@ public :
    Float_t         jetPhM5;
    Float_t         jetPhM6;
    Float_t         jetPhM7;
-   Float_t         jetQCRMScand1;
-   Float_t         jetQCRMScand2;
-   Float_t         jetQCRMScand3;
-   Float_t         jetQCRMScand4;
-   Float_t         jetQCRMScand5;
-   Float_t         jetQCRMScand6;
-   Float_t         jetQCRMScand7;
-   Float_t         jetQCRmax1;
-   Float_t         jetQCRmax2;
-   Float_t         jetQCRmax3;
-   Float_t         jetQCRmax4;
-   Float_t         jetQCRmax5;
-   Float_t         jetQCRmax6;
-   Float_t         jetQCRmax7;
-   Float_t         jetQCaxis11;
-   Float_t         jetQCaxis12;
-   Float_t         jetQCaxis13;
-   Float_t         jetQCaxis14;
-   Float_t         jetQCaxis15;
-   Float_t         jetQCaxis16;
-   Float_t         jetQCaxis17;
-   Float_t         jetQCaxis21;
-   Float_t         jetQCaxis22;
-   Float_t         jetQCaxis23;
-   Float_t         jetQCaxis24;
-   Float_t         jetQCaxis25;
-   Float_t         jetQCaxis26;
-   Float_t         jetQCaxis27;
-   Float_t         jetQCptD1;
-   Float_t         jetQCptD2;
-   Float_t         jetQCptD3;
-   Float_t         jetQCptD4;
-   Float_t         jetQCptD5;
-   Float_t         jetQCptD6;
-   Float_t         jetQCptD7;
-   Float_t         jetRMScand1;
-   Float_t         jetRMScand2;
-   Float_t         jetRMScand3;
-   Float_t         jetRMScand4;
-   Float_t         jetRMScand5;
-   Float_t         jetRMScand6;
-   Float_t         jetRMScand7;
    Float_t         jetRho;
-   Float_t         jetRmax1;
-   Float_t         jetRmax2;
-   Float_t         jetRmax3;
-   Float_t         jetRmax4;
-   Float_t         jetRmax5;
-   Float_t         jetRmax6;
-   Float_t         jetRmax7;
-   Float_t         jetaxis11;
-   Float_t         jetaxis12;
-   Float_t         jetaxis13;
-   Float_t         jetaxis14;
-   Float_t         jetaxis15;
-   Float_t         jetaxis16;
-   Float_t         jetaxis17;
-   Float_t         jetaxis21;
-   Float_t         jetaxis22;
-   Float_t         jetaxis23;
-   Float_t         jetaxis24;
-   Float_t         jetaxis25;
-   Float_t         jetaxis26;
-   Float_t         jetaxis27;
    Float_t         jetbjpb1;
    Float_t         jetbjpb2;
    Float_t         jetbjpb3;
@@ -288,6 +150,13 @@ public :
    Float_t         jetbjpb5;
    Float_t         jetbjpb6;
    Float_t         jetbjpb7;
+   Float_t         jetcsv1;
+   Float_t         jetcsv2;
+   Float_t         jetcsv3;
+   Float_t         jetcsv4;
+   Float_t         jetcsv5;
+   Float_t         jetcsv6;
+   Float_t         jetcsv7;
    Float_t         jeteta1;
    Float_t         jeteta2;
    Float_t         jeteta3;
@@ -330,13 +199,6 @@ public :
    Float_t         jetpt5;
    Float_t         jetpt6;
    Float_t         jetpt7;
-   Float_t         jetptD1;
-   Float_t         jetptD2;
-   Float_t         jetptD3;
-   Float_t         jetptD4;
-   Float_t         jetptD5;
-   Float_t         jetptD6;
-   Float_t         jetptD7;
    Float_t         jetptd1;
    Float_t         jetptd2;
    Float_t         jetptd3;
@@ -359,6 +221,18 @@ public :
    Float_t         jettchp6;
    Float_t         jettchp7;
    Float_t         kfW;
+   Float_t         leptonGeneta1;
+   Float_t         leptonGeneta2;
+   Float_t         leptonGeneta3;
+   Float_t         leptonGenphi1;
+   Float_t         leptonGenphi2;
+   Float_t         leptonGenphi3;
+   Float_t         leptonGenpid1;
+   Float_t         leptonGenpid2;
+   Float_t         leptonGenpid3;
+   Float_t         leptonGenpt1;
+   Float_t         leptonGenpt2;
+   Float_t         leptonGenpt3;
    Float_t         lh1;
    Float_t         lh2;
    Float_t         lh3;
@@ -374,11 +248,26 @@ public :
    Float_t         mtw1;
    Float_t         mtw2;
    Float_t         nbjet;
+   Float_t         nbjetcsvloose;
+   Float_t         nbjetcsvmedium;
+   Float_t         nbjetcsvtight;
    Float_t         nbjettche;
    Float_t         nbrem1;
    Float_t         nbrem2;
    Float_t         nbrem3;
    Float_t         nbrem4;
+   Float_t         neutrinoGeneta1;
+   Float_t         neutrinoGeneta2;
+   Float_t         neutrinoGeneta3;
+   Float_t         neutrinoGenphi1;
+   Float_t         neutrinoGenphi2;
+   Float_t         neutrinoGenphi3;
+   Float_t         neutrinoGenpid1;
+   Float_t         neutrinoGenpid2;
+   Float_t         neutrinoGenpid3;
+   Float_t         neutrinoGenpt1;
+   Float_t         neutrinoGenpt2;
+   Float_t         neutrinoGenpt3;
    Float_t         nextra;
    Float_t         njet;
    Float_t         njetid;
@@ -391,10 +280,6 @@ public :
    Float_t         pdfx1PDF;
    Float_t         pdfx2;
    Float_t         pdfx2PDF;
-   Float_t         pdgid1;
-   Float_t         pdgid2;
-   Float_t         pdgid3;
-   Float_t         pdgid4;
    Float_t         peaking;
    Float_t         pfSumEt;
    Float_t         pfmet;
@@ -413,6 +298,8 @@ public :
    Float_t         pt2;
    Float_t         pt3;
    Float_t         pt4;
+   Float_t         pt5;
+   Float_t         pt6;
    Float_t         ptll;
    Float_t         redmet;
    Float_t         sceta1;
@@ -424,7 +311,6 @@ public :
    Float_t         tightmu;
    Float_t         triggAW;
    Float_t         triggBW;
-   Float_t         triggW;
    Float_t         trigger;
    Float_t         worstJetLepPt;
    Float_t         yll;
@@ -434,7 +320,6 @@ public :
    Float_t         ootpup1;
    Float_t         puAW;
    Float_t         puBW;
-   Float_t         puW;
    Float_t         trpu;
    Int_t           bveto;
    Int_t           bveto_ip;
@@ -452,24 +337,33 @@ public :
    Int_t           pass2012ICHEP2;
    Int_t           pass2012ICHEP3;
    Int_t           pass2012ICHEP4;
+   Int_t           pass2012ICHEP5;
+   Int_t           pass2012ICHEP6;
+   Int_t           pass2012ICHEPLOOSE1;
+   Int_t           pass2012ICHEPLOOSE2;
+   Int_t           pass2012ICHEPLOOSE3;
+   Int_t           pass2012ICHEPLOOSE4;
+   Int_t           pass2012ICHEPLOOSE5;
+   Int_t           pass2012ICHEPLOOSE6;
    Int_t           sameflav;
    Int_t           zveto;
    UInt_t          run;
    UInt_t          lumi;
    UInt_t          event;
-   Float_t         puW_new;
-   Float_t         puW_up;
-   Float_t         puW_down;
+   Float_t         triggW;
+   Float_t         effW;
+   Float_t         effWUp;
+   Float_t         effWDown;
+   Float_t         puW;
 
    // List of branches
-   TBranch        *b_MZ;   //!
-   TBranch        *b_PtZ;   //!
-   TBranch        *b_WZchan;   //!
    TBranch        *b_baseW;   //!
    TBranch        *b_bdt1;   //!
    TBranch        *b_bdt2;   //!
    TBranch        *b_bdt3;   //!
    TBranch        *b_bdt4;   //!
+   TBranch        *b_bdt5;   //!
+   TBranch        *b_bdt6;   //!
    TBranch        *b_ch1;   //!
    TBranch        *b_ch2;   //!
    TBranch        *b_ch3;   //!
@@ -500,9 +394,12 @@ public :
    TBranch        *b_drll;   //!
    TBranch        *b_dymva0;   //!
    TBranch        *b_dymva1;   //!
+   TBranch        *b_dz1;   //!
+   TBranch        *b_dz2;   //!
+   TBranch        *b_dz3;   //!
+   TBranch        *b_dz4;   //!
    TBranch        *b_effAW;   //!
    TBranch        *b_effBW;   //!
-   TBranch        *b_effW;   //!
    TBranch        *b_eta1;   //!
    TBranch        *b_eta2;   //!
    TBranch        *b_eta3;   //!
@@ -513,108 +410,27 @@ public :
    TBranch        *b_fermiW;   //!
    TBranch        *b_fourW;   //!
    TBranch        *b_gammaMRStar;   //!
-   TBranch        *b_genVV_S1lepton1_eta;   //!
-   TBranch        *b_genVV_S1lepton1_imTau;   //!
-   TBranch        *b_genVV_S1lepton1_oVpid;   //!
-   TBranch        *b_genVV_S1lepton1_phi;   //!
-   TBranch        *b_genVV_S1lepton1_pid;   //!
-   TBranch        *b_genVV_S1lepton1_pt;   //!
-   TBranch        *b_genVV_S1lepton2_eta;   //!
-   TBranch        *b_genVV_S1lepton2_imTau;   //!
-   TBranch        *b_genVV_S1lepton2_oVpid;   //!
-   TBranch        *b_genVV_S1lepton2_phi;   //!
-   TBranch        *b_genVV_S1lepton2_pid;   //!
-   TBranch        *b_genVV_S1lepton2_pt;   //!
-   TBranch        *b_genVV_S1lepton3_eta;   //!
-   TBranch        *b_genVV_S1lepton3_imTau;   //!
-   TBranch        *b_genVV_S1lepton3_oVpid;   //!
-   TBranch        *b_genVV_S1lepton3_phi;   //!
-   TBranch        *b_genVV_S1lepton3_pid;   //!
-   TBranch        *b_genVV_S1lepton3_pt;   //!
-   TBranch        *b_genVV_jet1_eta;   //!
-   TBranch        *b_genVV_jet1_parton_eta;   //!
-   TBranch        *b_genVV_jet1_parton_phi;   //!
-   TBranch        *b_genVV_jet1_parton_pid;   //!
-   TBranch        *b_genVV_jet1_parton_pt;   //!
-   TBranch        *b_genVV_jet1_phi;   //!
-   TBranch        *b_genVV_jet1_pt;   //!
-   TBranch        *b_genVV_jet2_eta;   //!
-   TBranch        *b_genVV_jet2_parton_eta;   //!
-   TBranch        *b_genVV_jet2_parton_phi;   //!
-   TBranch        *b_genVV_jet2_parton_pid;   //!
-   TBranch        *b_genVV_jet2_parton_pt;   //!
-   TBranch        *b_genVV_jet2_phi;   //!
-   TBranch        *b_genVV_jet2_pt;   //!
-   TBranch        *b_genVV_jet3_eta;   //!
-   TBranch        *b_genVV_jet3_parton_eta;   //!
-   TBranch        *b_genVV_jet3_parton_phi;   //!
-   TBranch        *b_genVV_jet3_parton_pid;   //!
-   TBranch        *b_genVV_jet3_parton_pt;   //!
-   TBranch        *b_genVV_jet3_phi;   //!
-   TBranch        *b_genVV_jet3_pt;   //!
-   TBranch        *b_genVV_jet4_eta;   //!
-   TBranch        *b_genVV_jet4_parton_eta;   //!
-   TBranch        *b_genVV_jet4_parton_phi;   //!
-   TBranch        *b_genVV_jet4_parton_pid;   //!
-   TBranch        *b_genVV_jet4_parton_pt;   //!
-   TBranch        *b_genVV_jet4_phi;   //!
-   TBranch        *b_genVV_jet4_pt;   //!
-   TBranch        *b_genVV_jet5_eta;   //!
-   TBranch        *b_genVV_jet5_parton_eta;   //!
-   TBranch        *b_genVV_jet5_parton_phi;   //!
-   TBranch        *b_genVV_jet5_parton_pid;   //!
-   TBranch        *b_genVV_jet5_parton_pt;   //!
-   TBranch        *b_genVV_jet5_phi;   //!
-   TBranch        *b_genVV_jet5_pt;   //!
-   TBranch        *b_genVV_lepton1_eta;   //!
-   TBranch        *b_genVV_lepton1_imTau;   //!
-   TBranch        *b_genVV_lepton1_oVpid;   //!
-   TBranch        *b_genVV_lepton1_phi;   //!
-   TBranch        *b_genVV_lepton1_pid;   //!
-   TBranch        *b_genVV_lepton1_pt;   //!
-   TBranch        *b_genVV_lepton2_eta;   //!
-   TBranch        *b_genVV_lepton2_imTau;   //!
-   TBranch        *b_genVV_lepton2_oVpid;   //!
-   TBranch        *b_genVV_lepton2_phi;   //!
-   TBranch        *b_genVV_lepton2_pid;   //!
-   TBranch        *b_genVV_lepton2_pt;   //!
-   TBranch        *b_genVV_lepton3_eta;   //!
-   TBranch        *b_genVV_lepton3_imTau;   //!
-   TBranch        *b_genVV_lepton3_oVpid;   //!
-   TBranch        *b_genVV_lepton3_phi;   //!
-   TBranch        *b_genVV_lepton3_pid;   //!
-   TBranch        *b_genVV_lepton3_pt;   //!
-   TBranch        *b_genVV_neutrino1_eta;   //!
-   TBranch        *b_genVV_neutrino1_imTau;   //!
-   TBranch        *b_genVV_neutrino1_oVpid;   //!
-   TBranch        *b_genVV_neutrino1_phi;   //!
-   TBranch        *b_genVV_neutrino1_pid;   //!
-   TBranch        *b_genVV_neutrino1_pt;   //!
-   TBranch        *b_genVV_neutrino2_eta;   //!
-   TBranch        *b_genVV_neutrino2_imTau;   //!
-   TBranch        *b_genVV_neutrino2_oVpid;   //!
-   TBranch        *b_genVV_neutrino2_phi;   //!
-   TBranch        *b_genVV_neutrino2_pid;   //!
-   TBranch        *b_genVV_neutrino2_pt;   //!
-   TBranch        *b_genVV_neutrino3_eta;   //!
-   TBranch        *b_genVV_neutrino3_imTau;   //!
-   TBranch        *b_genVV_neutrino3_oVpid;   //!
-   TBranch        *b_genVV_neutrino3_phi;   //!
-   TBranch        *b_genVV_neutrino3_pid;   //!
-   TBranch        *b_genVV_neutrino3_pt;   //!
    TBranch        *b_hardbjpb;   //!
    TBranch        *b_hardtche;   //!
    TBranch        *b_higggsGenpt;   //!
    TBranch        *b_hypo;   //!
    TBranch        *b_imet;   //!
+   TBranch        *b_ip1;   //!
+   TBranch        *b_ip2;   //!
+   TBranch        *b_ip3;   //!
+   TBranch        *b_ip4;   //!
    TBranch        *b_isSTA1;   //!
    TBranch        *b_isSTA2;   //!
    TBranch        *b_isSTA3;   //!
    TBranch        *b_isSTA4;   //!
+   TBranch        *b_isSTA5;   //!
+   TBranch        *b_isSTA6;   //!
    TBranch        *b_iso1;   //!
    TBranch        *b_iso2;   //!
    TBranch        *b_iso3;   //!
    TBranch        *b_iso4;   //!
+   TBranch        *b_iso5;   //!
+   TBranch        *b_iso6;   //!
    TBranch        *b_isomva1;   //!
    TBranch        *b_isomva2;   //!
    TBranch        *b_isomva3;   //!
@@ -626,20 +442,27 @@ public :
    TBranch        *b_jetCHM5;   //!
    TBranch        *b_jetCHM6;   //!
    TBranch        *b_jetCHM7;   //!
-   TBranch        *b_jetNChgQC1;   //!
-   TBranch        *b_jetNChgQC2;   //!
-   TBranch        *b_jetNChgQC3;   //!
-   TBranch        *b_jetNChgQC4;   //!
-   TBranch        *b_jetNChgQC5;   //!
-   TBranch        *b_jetNChgQC6;   //!
-   TBranch        *b_jetNChgQC7;   //!
-   TBranch        *b_jetNChgptCut1;   //!
-   TBranch        *b_jetNChgptCut2;   //!
-   TBranch        *b_jetNChgptCut3;   //!
-   TBranch        *b_jetNChgptCut4;   //!
-   TBranch        *b_jetNChgptCut5;   //!
-   TBranch        *b_jetNChgptCut6;   //!
-   TBranch        *b_jetNChgptCut7;   //!
+   TBranch        *b_jetGenPartoneta1;   //!
+   TBranch        *b_jetGenPartoneta2;   //!
+   TBranch        *b_jetGenPartoneta3;   //!
+   TBranch        *b_jetGenPartonphi1;   //!
+   TBranch        *b_jetGenPartonphi2;   //!
+   TBranch        *b_jetGenPartonphi3;   //!
+   TBranch        *b_jetGenPartonpid1;   //!
+   TBranch        *b_jetGenPartonpid2;   //!
+   TBranch        *b_jetGenPartonpid3;   //!
+   TBranch        *b_jetGenPartonpt1;   //!
+   TBranch        *b_jetGenPartonpt2;   //!
+   TBranch        *b_jetGenPartonpt3;   //!
+   TBranch        *b_jetGeneta1;   //!
+   TBranch        *b_jetGeneta2;   //!
+   TBranch        *b_jetGeneta3;   //!
+   TBranch        *b_jetGenphi1;   //!
+   TBranch        *b_jetGenphi2;   //!
+   TBranch        *b_jetGenphi3;   //!
+   TBranch        *b_jetGenpt1;   //!
+   TBranch        *b_jetGenpt2;   //!
+   TBranch        *b_jetGenpt3;   //!
    TBranch        *b_jetNHM1;   //!
    TBranch        *b_jetNHM2;   //!
    TBranch        *b_jetNHM3;   //!
@@ -647,13 +470,6 @@ public :
    TBranch        *b_jetNHM5;   //!
    TBranch        *b_jetNHM6;   //!
    TBranch        *b_jetNHM7;   //!
-   TBranch        *b_jetNNeutralptCut1;   //!
-   TBranch        *b_jetNNeutralptCut2;   //!
-   TBranch        *b_jetNNeutralptCut3;   //!
-   TBranch        *b_jetNNeutralptCut4;   //!
-   TBranch        *b_jetNNeutralptCut5;   //!
-   TBranch        *b_jetNNeutralptCut6;   //!
-   TBranch        *b_jetNNeutralptCut7;   //!
    TBranch        *b_jetPhM1;   //!
    TBranch        *b_jetPhM2;   //!
    TBranch        *b_jetPhM3;   //!
@@ -661,70 +477,7 @@ public :
    TBranch        *b_jetPhM5;   //!
    TBranch        *b_jetPhM6;   //!
    TBranch        *b_jetPhM7;   //!
-   TBranch        *b_jetQCRMScand1;   //!
-   TBranch        *b_jetQCRMScand2;   //!
-   TBranch        *b_jetQCRMScand3;   //!
-   TBranch        *b_jetQCRMScand4;   //!
-   TBranch        *b_jetQCRMScand5;   //!
-   TBranch        *b_jetQCRMScand6;   //!
-   TBranch        *b_jetQCRMScand7;   //!
-   TBranch        *b_jetQCRmax1;   //!
-   TBranch        *b_jetQCRmax2;   //!
-   TBranch        *b_jetQCRmax3;   //!
-   TBranch        *b_jetQCRmax4;   //!
-   TBranch        *b_jetQCRmax5;   //!
-   TBranch        *b_jetQCRmax6;   //!
-   TBranch        *b_jetQCRmax7;   //!
-   TBranch        *b_jetQCaxis11;   //!
-   TBranch        *b_jetQCaxis12;   //!
-   TBranch        *b_jetQCaxis13;   //!
-   TBranch        *b_jetQCaxis14;   //!
-   TBranch        *b_jetQCaxis15;   //!
-   TBranch        *b_jetQCaxis16;   //!
-   TBranch        *b_jetQCaxis17;   //!
-   TBranch        *b_jetQCaxis21;   //!
-   TBranch        *b_jetQCaxis22;   //!
-   TBranch        *b_jetQCaxis23;   //!
-   TBranch        *b_jetQCaxis24;   //!
-   TBranch        *b_jetQCaxis25;   //!
-   TBranch        *b_jetQCaxis26;   //!
-   TBranch        *b_jetQCaxis27;   //!
-   TBranch        *b_jetQCptD1;   //!
-   TBranch        *b_jetQCptD2;   //!
-   TBranch        *b_jetQCptD3;   //!
-   TBranch        *b_jetQCptD4;   //!
-   TBranch        *b_jetQCptD5;   //!
-   TBranch        *b_jetQCptD6;   //!
-   TBranch        *b_jetQCptD7;   //!
-   TBranch        *b_jetRMScand1;   //!
-   TBranch        *b_jetRMScand2;   //!
-   TBranch        *b_jetRMScand3;   //!
-   TBranch        *b_jetRMScand4;   //!
-   TBranch        *b_jetRMScand5;   //!
-   TBranch        *b_jetRMScand6;   //!
-   TBranch        *b_jetRMScand7;   //!
    TBranch        *b_jetRho;   //!
-   TBranch        *b_jetRmax1;   //!
-   TBranch        *b_jetRmax2;   //!
-   TBranch        *b_jetRmax3;   //!
-   TBranch        *b_jetRmax4;   //!
-   TBranch        *b_jetRmax5;   //!
-   TBranch        *b_jetRmax6;   //!
-   TBranch        *b_jetRmax7;   //!
-   TBranch        *b_jetaxis11;   //!
-   TBranch        *b_jetaxis12;   //!
-   TBranch        *b_jetaxis13;   //!
-   TBranch        *b_jetaxis14;   //!
-   TBranch        *b_jetaxis15;   //!
-   TBranch        *b_jetaxis16;   //!
-   TBranch        *b_jetaxis17;   //!
-   TBranch        *b_jetaxis21;   //!
-   TBranch        *b_jetaxis22;   //!
-   TBranch        *b_jetaxis23;   //!
-   TBranch        *b_jetaxis24;   //!
-   TBranch        *b_jetaxis25;   //!
-   TBranch        *b_jetaxis26;   //!
-   TBranch        *b_jetaxis27;   //!
    TBranch        *b_jetbjpb1;   //!
    TBranch        *b_jetbjpb2;   //!
    TBranch        *b_jetbjpb3;   //!
@@ -732,6 +485,13 @@ public :
    TBranch        *b_jetbjpb5;   //!
    TBranch        *b_jetbjpb6;   //!
    TBranch        *b_jetbjpb7;   //!
+   TBranch        *b_jetcsv1;   //!
+   TBranch        *b_jetcsv2;   //!
+   TBranch        *b_jetcsv3;   //!
+   TBranch        *b_jetcsv4;   //!
+   TBranch        *b_jetcsv5;   //!
+   TBranch        *b_jetcsv6;   //!
+   TBranch        *b_jetcsv7;   //!
    TBranch        *b_jeteta1;   //!
    TBranch        *b_jeteta2;   //!
    TBranch        *b_jeteta3;   //!
@@ -774,13 +534,6 @@ public :
    TBranch        *b_jetpt5;   //!
    TBranch        *b_jetpt6;   //!
    TBranch        *b_jetpt7;   //!
-   TBranch        *b_jetptD1;   //!
-   TBranch        *b_jetptD2;   //!
-   TBranch        *b_jetptD3;   //!
-   TBranch        *b_jetptD4;   //!
-   TBranch        *b_jetptD5;   //!
-   TBranch        *b_jetptD6;   //!
-   TBranch        *b_jetptD7;   //!
    TBranch        *b_jetptd1;   //!
    TBranch        *b_jetptd2;   //!
    TBranch        *b_jetptd3;   //!
@@ -803,6 +556,18 @@ public :
    TBranch        *b_jettchp6;   //!
    TBranch        *b_jettchp7;   //!
    TBranch        *b_kfW;   //!
+   TBranch        *b_leptonGeneta1;   //!
+   TBranch        *b_leptonGeneta2;   //!
+   TBranch        *b_leptonGeneta3;   //!
+   TBranch        *b_leptonGenphi1;   //!
+   TBranch        *b_leptonGenphi2;   //!
+   TBranch        *b_leptonGenphi3;   //!
+   TBranch        *b_leptonGenpid1;   //!
+   TBranch        *b_leptonGenpid2;   //!
+   TBranch        *b_leptonGenpid3;   //!
+   TBranch        *b_leptonGenpt1;   //!
+   TBranch        *b_leptonGenpt2;   //!
+   TBranch        *b_leptonGenpt3;   //!
    TBranch        *b_lh1;   //!
    TBranch        *b_lh2;   //!
    TBranch        *b_lh3;   //!
@@ -818,11 +583,26 @@ public :
    TBranch        *b_mtw1;   //!
    TBranch        *b_mtw2;   //!
    TBranch        *b_nbjet;   //!
+   TBranch        *b_nbjetcsvloose;   //!
+   TBranch        *b_nbjetcsvmedium;   //!
+   TBranch        *b_nbjetcsvtight;   //!
    TBranch        *b_nbjettche;   //!
    TBranch        *b_nbrem1;   //!
    TBranch        *b_nbrem2;   //!
    TBranch        *b_nbrem3;   //!
    TBranch        *b_nbrem4;   //!
+   TBranch        *b_neutrinoGeneta1;   //!
+   TBranch        *b_neutrinoGeneta2;   //!
+   TBranch        *b_neutrinoGeneta3;   //!
+   TBranch        *b_neutrinoGenphi1;   //!
+   TBranch        *b_neutrinoGenphi2;   //!
+   TBranch        *b_neutrinoGenphi3;   //!
+   TBranch        *b_neutrinoGenpid1;   //!
+   TBranch        *b_neutrinoGenpid2;   //!
+   TBranch        *b_neutrinoGenpid3;   //!
+   TBranch        *b_neutrinoGenpt1;   //!
+   TBranch        *b_neutrinoGenpt2;   //!
+   TBranch        *b_neutrinoGenpt3;   //!
    TBranch        *b_nextra;   //!
    TBranch        *b_njet;   //!
    TBranch        *b_njetid;   //!
@@ -835,10 +615,6 @@ public :
    TBranch        *b_pdfx1PDF;   //!
    TBranch        *b_pdfx2;   //!
    TBranch        *b_pdfx2PDF;   //!
-   TBranch        *b_pdgid1;   //!
-   TBranch        *b_pdgid2;   //!
-   TBranch        *b_pdgid3;   //!
-   TBranch        *b_pdgid4;   //!
    TBranch        *b_peaking;   //!
    TBranch        *b_pfSumEt;   //!
    TBranch        *b_pfmet;   //!
@@ -857,6 +633,8 @@ public :
    TBranch        *b_pt2;   //!
    TBranch        *b_pt3;   //!
    TBranch        *b_pt4;   //!
+   TBranch        *b_pt5;   //!
+   TBranch        *b_pt6;   //!
    TBranch        *b_ptll;   //!
    TBranch        *b_redmet;   //!
    TBranch        *b_sceta1;   //!
@@ -868,7 +646,6 @@ public :
    TBranch        *b_tightmu;   //!
    TBranch        *b_triggAW;   //!
    TBranch        *b_triggBW;   //!
-   TBranch        *b_triggW;   //!
    TBranch        *b_trigger;   //!
    TBranch        *b_worstJetLepPt;   //!
    TBranch        *b_yll;   //!
@@ -878,7 +655,6 @@ public :
    TBranch        *b_ootpup1;   //!
    TBranch        *b_puAW;   //!
    TBranch        *b_puBW;   //!
-   TBranch        *b_puW;   //!
    TBranch        *b_trpu;   //!
    TBranch        *b_bveto;   //!
    TBranch        *b_bveto_ip;   //!
@@ -896,17 +672,27 @@ public :
    TBranch        *b_pass2012ICHEP2;   //!
    TBranch        *b_pass2012ICHEP3;   //!
    TBranch        *b_pass2012ICHEP4;   //!
+   TBranch        *b_pass2012ICHEP5;   //!
+   TBranch        *b_pass2012ICHEP6;   //!
+   TBranch        *b_pass2012ICHEPLOOSE1;   //!
+   TBranch        *b_pass2012ICHEPLOOSE2;   //!
+   TBranch        *b_pass2012ICHEPLOOSE3;   //!
+   TBranch        *b_pass2012ICHEPLOOSE4;   //!
+   TBranch        *b_pass2012ICHEPLOOSE5;   //!
+   TBranch        *b_pass2012ICHEPLOOSE6;   //!
    TBranch        *b_sameflav;   //!
    TBranch        *b_zveto;   //!
    TBranch        *b_run;   //!
    TBranch        *b_lumi;   //!
    TBranch        *b_event;   //!
-   TBranch        *b_puW_new;   //!
-   TBranch        *b_puW_up;   //!
-   TBranch        *b_puW_down;   //!
+   TBranch        *b_triggW;   //!
+   TBranch        *b_effW;   //!
+   TBranch        *b_effWUp;   //!
+   TBranch        *b_effWDown;   //!
+   TBranch        *b_puW;   //!
 
-   WZGenEvent(TTree *tree=0);
-   virtual ~WZGenEvent();
+   TZJets(TTree *tree=0);
+   virtual ~TZJets();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
@@ -918,50 +704,48 @@ public :
 
 #endif
 
-#ifdef WZGenEvent_cxx
-WZGenEvent::WZGenEvent(TTree *tree)
+#ifdef TZJets_cxx
+TZJets::TZJets(TTree *tree) : fChain(0) 
 {
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/users/ltikvica/latinosTreesPu/latinowz_step3NoFilter-118.root");
-      if (!f) {
-         f = new TFile("/users/ltikvica/latinosTreesPu/latinowz_step3NoFilter-118.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/STORE/wz8tev/latino_999_TZJets.root");
+      if (!f || !f->IsOpen()) {
+         f = new TFile("/STORE/wz8tev/latino_999_TZJets.root");
       }
-      tree = (TTree*)gDirectory->Get("latino");
+      f->GetObject("latino",tree);
 
    }
    Init(tree);
 }
 
-WZGenEvent::~WZGenEvent()
+TZJets::~TZJets()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
-Int_t WZGenEvent::GetEntry(Long64_t entry)
+Int_t TZJets::GetEntry(Long64_t entry)
 {
 // Read contents of entry.
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
-Long64_t WZGenEvent::LoadTree(Long64_t entry)
+Long64_t TZJets::LoadTree(Long64_t entry)
 {
 // Set the environment to read one entry
    if (!fChain) return -5;
    Long64_t centry = fChain->LoadTree(entry);
    if (centry < 0) return centry;
-   if (!fChain->InheritsFrom(TChain::Class()))  return centry;
-   TChain *chain = (TChain*)fChain;
-   if (chain->GetTreeNumber() != fCurrent) {
-      fCurrent = chain->GetTreeNumber();
+   if (fChain->GetTreeNumber() != fCurrent) {
+      fCurrent = fChain->GetTreeNumber();
       Notify();
    }
    return centry;
 }
 
-void WZGenEvent::Init(TTree *tree)
+void TZJets::Init(TTree *tree)
 {
    // The Init() function is called when the selector needs to initialize
    // a new tree or chain. Typically here the branch addresses and branch
@@ -977,14 +761,13 @@ void WZGenEvent::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   fChain->SetBranchAddress("MZ", &MZ, &b_MZ);
-   fChain->SetBranchAddress("PtZ", &PtZ, &b_PtZ);
-   fChain->SetBranchAddress("WZchan", &WZchan, &b_WZchan);
    fChain->SetBranchAddress("baseW", &baseW, &b_baseW);
    fChain->SetBranchAddress("bdt1", &bdt1, &b_bdt1);
    fChain->SetBranchAddress("bdt2", &bdt2, &b_bdt2);
    fChain->SetBranchAddress("bdt3", &bdt3, &b_bdt3);
    fChain->SetBranchAddress("bdt4", &bdt4, &b_bdt4);
+   fChain->SetBranchAddress("bdt5", &bdt5, &b_bdt5);
+   fChain->SetBranchAddress("bdt6", &bdt6, &b_bdt6);
    fChain->SetBranchAddress("ch1", &ch1, &b_ch1);
    fChain->SetBranchAddress("ch2", &ch2, &b_ch2);
    fChain->SetBranchAddress("ch3", &ch3, &b_ch3);
@@ -1015,9 +798,12 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("drll", &drll, &b_drll);
    fChain->SetBranchAddress("dymva0", &dymva0, &b_dymva0);
    fChain->SetBranchAddress("dymva1", &dymva1, &b_dymva1);
+   fChain->SetBranchAddress("dz1", &dz1, &b_dz1);
+   fChain->SetBranchAddress("dz2", &dz2, &b_dz2);
+   fChain->SetBranchAddress("dz3", &dz3, &b_dz3);
+   fChain->SetBranchAddress("dz4", &dz4, &b_dz4);
    fChain->SetBranchAddress("effAW", &effAW, &b_effAW);
    fChain->SetBranchAddress("effBW", &effBW, &b_effBW);
-   fChain->SetBranchAddress("effW", &effW, &b_effW);
    fChain->SetBranchAddress("eta1", &eta1, &b_eta1);
    fChain->SetBranchAddress("eta2", &eta2, &b_eta2);
    fChain->SetBranchAddress("eta3", &eta3, &b_eta3);
@@ -1028,108 +814,27 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("fermiW", &fermiW, &b_fermiW);
    fChain->SetBranchAddress("fourW", &fourW, &b_fourW);
    fChain->SetBranchAddress("gammaMRStar", &gammaMRStar, &b_gammaMRStar);
-   fChain->SetBranchAddress("genVV_S1lepton1_eta", &genVV_S1lepton1_eta, &b_genVV_S1lepton1_eta);
-   fChain->SetBranchAddress("genVV_S1lepton1_imTau", &genVV_S1lepton1_imTau, &b_genVV_S1lepton1_imTau);
-   fChain->SetBranchAddress("genVV_S1lepton1_oVpid", &genVV_S1lepton1_oVpid, &b_genVV_S1lepton1_oVpid);
-   fChain->SetBranchAddress("genVV_S1lepton1_phi", &genVV_S1lepton1_phi, &b_genVV_S1lepton1_phi);
-   fChain->SetBranchAddress("genVV_S1lepton1_pid", &genVV_S1lepton1_pid, &b_genVV_S1lepton1_pid);
-   fChain->SetBranchAddress("genVV_S1lepton1_pt", &genVV_S1lepton1_pt, &b_genVV_S1lepton1_pt);
-   fChain->SetBranchAddress("genVV_S1lepton2_eta", &genVV_S1lepton2_eta, &b_genVV_S1lepton2_eta);
-   fChain->SetBranchAddress("genVV_S1lepton2_imTau", &genVV_S1lepton2_imTau, &b_genVV_S1lepton2_imTau);
-   fChain->SetBranchAddress("genVV_S1lepton2_oVpid", &genVV_S1lepton2_oVpid, &b_genVV_S1lepton2_oVpid);
-   fChain->SetBranchAddress("genVV_S1lepton2_phi", &genVV_S1lepton2_phi, &b_genVV_S1lepton2_phi);
-   fChain->SetBranchAddress("genVV_S1lepton2_pid", &genVV_S1lepton2_pid, &b_genVV_S1lepton2_pid);
-   fChain->SetBranchAddress("genVV_S1lepton2_pt", &genVV_S1lepton2_pt, &b_genVV_S1lepton2_pt);
-   fChain->SetBranchAddress("genVV_S1lepton3_eta", &genVV_S1lepton3_eta, &b_genVV_S1lepton3_eta);
-   fChain->SetBranchAddress("genVV_S1lepton3_imTau", &genVV_S1lepton3_imTau, &b_genVV_S1lepton3_imTau);
-   fChain->SetBranchAddress("genVV_S1lepton3_oVpid", &genVV_S1lepton3_oVpid, &b_genVV_S1lepton3_oVpid);
-   fChain->SetBranchAddress("genVV_S1lepton3_phi", &genVV_S1lepton3_phi, &b_genVV_S1lepton3_phi);
-   fChain->SetBranchAddress("genVV_S1lepton3_pid", &genVV_S1lepton3_pid, &b_genVV_S1lepton3_pid);
-   fChain->SetBranchAddress("genVV_S1lepton3_pt", &genVV_S1lepton3_pt, &b_genVV_S1lepton3_pt);
-   fChain->SetBranchAddress("genVV_jet1_eta", &genVV_jet1_eta, &b_genVV_jet1_eta);
-   fChain->SetBranchAddress("genVV_jet1_parton_eta", &genVV_jet1_parton_eta, &b_genVV_jet1_parton_eta);
-   fChain->SetBranchAddress("genVV_jet1_parton_phi", &genVV_jet1_parton_phi, &b_genVV_jet1_parton_phi);
-   fChain->SetBranchAddress("genVV_jet1_parton_pid", &genVV_jet1_parton_pid, &b_genVV_jet1_parton_pid);
-   fChain->SetBranchAddress("genVV_jet1_parton_pt", &genVV_jet1_parton_pt, &b_genVV_jet1_parton_pt);
-   fChain->SetBranchAddress("genVV_jet1_phi", &genVV_jet1_phi, &b_genVV_jet1_phi);
-   fChain->SetBranchAddress("genVV_jet1_pt", &genVV_jet1_pt, &b_genVV_jet1_pt);
-   fChain->SetBranchAddress("genVV_jet2_eta", &genVV_jet2_eta, &b_genVV_jet2_eta);
-   fChain->SetBranchAddress("genVV_jet2_parton_eta", &genVV_jet2_parton_eta, &b_genVV_jet2_parton_eta);
-   fChain->SetBranchAddress("genVV_jet2_parton_phi", &genVV_jet2_parton_phi, &b_genVV_jet2_parton_phi);
-   fChain->SetBranchAddress("genVV_jet2_parton_pid", &genVV_jet2_parton_pid, &b_genVV_jet2_parton_pid);
-   fChain->SetBranchAddress("genVV_jet2_parton_pt", &genVV_jet2_parton_pt, &b_genVV_jet2_parton_pt);
-   fChain->SetBranchAddress("genVV_jet2_phi", &genVV_jet2_phi, &b_genVV_jet2_phi);
-   fChain->SetBranchAddress("genVV_jet2_pt", &genVV_jet2_pt, &b_genVV_jet2_pt);
-   fChain->SetBranchAddress("genVV_jet3_eta", &genVV_jet3_eta, &b_genVV_jet3_eta);
-   fChain->SetBranchAddress("genVV_jet3_parton_eta", &genVV_jet3_parton_eta, &b_genVV_jet3_parton_eta);
-   fChain->SetBranchAddress("genVV_jet3_parton_phi", &genVV_jet3_parton_phi, &b_genVV_jet3_parton_phi);
-   fChain->SetBranchAddress("genVV_jet3_parton_pid", &genVV_jet3_parton_pid, &b_genVV_jet3_parton_pid);
-   fChain->SetBranchAddress("genVV_jet3_parton_pt", &genVV_jet3_parton_pt, &b_genVV_jet3_parton_pt);
-   fChain->SetBranchAddress("genVV_jet3_phi", &genVV_jet3_phi, &b_genVV_jet3_phi);
-   fChain->SetBranchAddress("genVV_jet3_pt", &genVV_jet3_pt, &b_genVV_jet3_pt);
-   fChain->SetBranchAddress("genVV_jet4_eta", &genVV_jet4_eta, &b_genVV_jet4_eta);
-   fChain->SetBranchAddress("genVV_jet4_parton_eta", &genVV_jet4_parton_eta, &b_genVV_jet4_parton_eta);
-   fChain->SetBranchAddress("genVV_jet4_parton_phi", &genVV_jet4_parton_phi, &b_genVV_jet4_parton_phi);
-   fChain->SetBranchAddress("genVV_jet4_parton_pid", &genVV_jet4_parton_pid, &b_genVV_jet4_parton_pid);
-   fChain->SetBranchAddress("genVV_jet4_parton_pt", &genVV_jet4_parton_pt, &b_genVV_jet4_parton_pt);
-   fChain->SetBranchAddress("genVV_jet4_phi", &genVV_jet4_phi, &b_genVV_jet4_phi);
-   fChain->SetBranchAddress("genVV_jet4_pt", &genVV_jet4_pt, &b_genVV_jet4_pt);
-   fChain->SetBranchAddress("genVV_jet5_eta", &genVV_jet5_eta, &b_genVV_jet5_eta);
-   fChain->SetBranchAddress("genVV_jet5_parton_eta", &genVV_jet5_parton_eta, &b_genVV_jet5_parton_eta);
-   fChain->SetBranchAddress("genVV_jet5_parton_phi", &genVV_jet5_parton_phi, &b_genVV_jet5_parton_phi);
-   fChain->SetBranchAddress("genVV_jet5_parton_pid", &genVV_jet5_parton_pid, &b_genVV_jet5_parton_pid);
-   fChain->SetBranchAddress("genVV_jet5_parton_pt", &genVV_jet5_parton_pt, &b_genVV_jet5_parton_pt);
-   fChain->SetBranchAddress("genVV_jet5_phi", &genVV_jet5_phi, &b_genVV_jet5_phi);
-   fChain->SetBranchAddress("genVV_jet5_pt", &genVV_jet5_pt, &b_genVV_jet5_pt);
-   fChain->SetBranchAddress("genVV_lepton1_eta", &genVV_lepton1_eta, &b_genVV_lepton1_eta);
-   fChain->SetBranchAddress("genVV_lepton1_imTau", &genVV_lepton1_imTau, &b_genVV_lepton1_imTau);
-   fChain->SetBranchAddress("genVV_lepton1_oVpid", &genVV_lepton1_oVpid, &b_genVV_lepton1_oVpid);
-   fChain->SetBranchAddress("genVV_lepton1_phi", &genVV_lepton1_phi, &b_genVV_lepton1_phi);
-   fChain->SetBranchAddress("genVV_lepton1_pid", &genVV_lepton1_pid, &b_genVV_lepton1_pid);
-   fChain->SetBranchAddress("genVV_lepton1_pt", &genVV_lepton1_pt, &b_genVV_lepton1_pt);
-   fChain->SetBranchAddress("genVV_lepton2_eta", &genVV_lepton2_eta, &b_genVV_lepton2_eta);
-   fChain->SetBranchAddress("genVV_lepton2_imTau", &genVV_lepton2_imTau, &b_genVV_lepton2_imTau);
-   fChain->SetBranchAddress("genVV_lepton2_oVpid", &genVV_lepton2_oVpid, &b_genVV_lepton2_oVpid);
-   fChain->SetBranchAddress("genVV_lepton2_phi", &genVV_lepton2_phi, &b_genVV_lepton2_phi);
-   fChain->SetBranchAddress("genVV_lepton2_pid", &genVV_lepton2_pid, &b_genVV_lepton2_pid);
-   fChain->SetBranchAddress("genVV_lepton2_pt", &genVV_lepton2_pt, &b_genVV_lepton2_pt);
-   fChain->SetBranchAddress("genVV_lepton3_eta", &genVV_lepton3_eta, &b_genVV_lepton3_eta);
-   fChain->SetBranchAddress("genVV_lepton3_imTau", &genVV_lepton3_imTau, &b_genVV_lepton3_imTau);
-   fChain->SetBranchAddress("genVV_lepton3_oVpid", &genVV_lepton3_oVpid, &b_genVV_lepton3_oVpid);
-   fChain->SetBranchAddress("genVV_lepton3_phi", &genVV_lepton3_phi, &b_genVV_lepton3_phi);
-   fChain->SetBranchAddress("genVV_lepton3_pid", &genVV_lepton3_pid, &b_genVV_lepton3_pid);
-   fChain->SetBranchAddress("genVV_lepton3_pt", &genVV_lepton3_pt, &b_genVV_lepton3_pt);
-   fChain->SetBranchAddress("genVV_neutrino1_eta", &genVV_neutrino1_eta, &b_genVV_neutrino1_eta);
-   fChain->SetBranchAddress("genVV_neutrino1_imTau", &genVV_neutrino1_imTau, &b_genVV_neutrino1_imTau);
-   fChain->SetBranchAddress("genVV_neutrino1_oVpid", &genVV_neutrino1_oVpid, &b_genVV_neutrino1_oVpid);
-   fChain->SetBranchAddress("genVV_neutrino1_phi", &genVV_neutrino1_phi, &b_genVV_neutrino1_phi);
-   fChain->SetBranchAddress("genVV_neutrino1_pid", &genVV_neutrino1_pid, &b_genVV_neutrino1_pid);
-   fChain->SetBranchAddress("genVV_neutrino1_pt", &genVV_neutrino1_pt, &b_genVV_neutrino1_pt);
-   fChain->SetBranchAddress("genVV_neutrino2_eta", &genVV_neutrino2_eta, &b_genVV_neutrino2_eta);
-   fChain->SetBranchAddress("genVV_neutrino2_imTau", &genVV_neutrino2_imTau, &b_genVV_neutrino2_imTau);
-   fChain->SetBranchAddress("genVV_neutrino2_oVpid", &genVV_neutrino2_oVpid, &b_genVV_neutrino2_oVpid);
-   fChain->SetBranchAddress("genVV_neutrino2_phi", &genVV_neutrino2_phi, &b_genVV_neutrino2_phi);
-   fChain->SetBranchAddress("genVV_neutrino2_pid", &genVV_neutrino2_pid, &b_genVV_neutrino2_pid);
-   fChain->SetBranchAddress("genVV_neutrino2_pt", &genVV_neutrino2_pt, &b_genVV_neutrino2_pt);
-   fChain->SetBranchAddress("genVV_neutrino3_eta", &genVV_neutrino3_eta, &b_genVV_neutrino3_eta);
-   fChain->SetBranchAddress("genVV_neutrino3_imTau", &genVV_neutrino3_imTau, &b_genVV_neutrino3_imTau);
-   fChain->SetBranchAddress("genVV_neutrino3_oVpid", &genVV_neutrino3_oVpid, &b_genVV_neutrino3_oVpid);
-   fChain->SetBranchAddress("genVV_neutrino3_phi", &genVV_neutrino3_phi, &b_genVV_neutrino3_phi);
-   fChain->SetBranchAddress("genVV_neutrino3_pid", &genVV_neutrino3_pid, &b_genVV_neutrino3_pid);
-   fChain->SetBranchAddress("genVV_neutrino3_pt", &genVV_neutrino3_pt, &b_genVV_neutrino3_pt);
    fChain->SetBranchAddress("hardbjpb", &hardbjpb, &b_hardbjpb);
    fChain->SetBranchAddress("hardtche", &hardtche, &b_hardtche);
    fChain->SetBranchAddress("higggsGenpt", &higggsGenpt, &b_higggsGenpt);
    fChain->SetBranchAddress("hypo", &hypo, &b_hypo);
    fChain->SetBranchAddress("imet", &imet, &b_imet);
+   fChain->SetBranchAddress("ip1", &ip1, &b_ip1);
+   fChain->SetBranchAddress("ip2", &ip2, &b_ip2);
+   fChain->SetBranchAddress("ip3", &ip3, &b_ip3);
+   fChain->SetBranchAddress("ip4", &ip4, &b_ip4);
    fChain->SetBranchAddress("isSTA1", &isSTA1, &b_isSTA1);
    fChain->SetBranchAddress("isSTA2", &isSTA2, &b_isSTA2);
    fChain->SetBranchAddress("isSTA3", &isSTA3, &b_isSTA3);
    fChain->SetBranchAddress("isSTA4", &isSTA4, &b_isSTA4);
+   fChain->SetBranchAddress("isSTA5", &isSTA5, &b_isSTA5);
+   fChain->SetBranchAddress("isSTA6", &isSTA6, &b_isSTA6);
    fChain->SetBranchAddress("iso1", &iso1, &b_iso1);
    fChain->SetBranchAddress("iso2", &iso2, &b_iso2);
    fChain->SetBranchAddress("iso3", &iso3, &b_iso3);
    fChain->SetBranchAddress("iso4", &iso4, &b_iso4);
+   fChain->SetBranchAddress("iso5", &iso5, &b_iso5);
+   fChain->SetBranchAddress("iso6", &iso6, &b_iso6);
    fChain->SetBranchAddress("isomva1", &isomva1, &b_isomva1);
    fChain->SetBranchAddress("isomva2", &isomva2, &b_isomva2);
    fChain->SetBranchAddress("isomva3", &isomva3, &b_isomva3);
@@ -1141,20 +846,27 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jetCHM5", &jetCHM5, &b_jetCHM5);
    fChain->SetBranchAddress("jetCHM6", &jetCHM6, &b_jetCHM6);
    fChain->SetBranchAddress("jetCHM7", &jetCHM7, &b_jetCHM7);
-   fChain->SetBranchAddress("jetNChgQC1", &jetNChgQC1, &b_jetNChgQC1);
-   fChain->SetBranchAddress("jetNChgQC2", &jetNChgQC2, &b_jetNChgQC2);
-   fChain->SetBranchAddress("jetNChgQC3", &jetNChgQC3, &b_jetNChgQC3);
-   fChain->SetBranchAddress("jetNChgQC4", &jetNChgQC4, &b_jetNChgQC4);
-   fChain->SetBranchAddress("jetNChgQC5", &jetNChgQC5, &b_jetNChgQC5);
-   fChain->SetBranchAddress("jetNChgQC6", &jetNChgQC6, &b_jetNChgQC6);
-   fChain->SetBranchAddress("jetNChgQC7", &jetNChgQC7, &b_jetNChgQC7);
-   fChain->SetBranchAddress("jetNChgptCut1", &jetNChgptCut1, &b_jetNChgptCut1);
-   fChain->SetBranchAddress("jetNChgptCut2", &jetNChgptCut2, &b_jetNChgptCut2);
-   fChain->SetBranchAddress("jetNChgptCut3", &jetNChgptCut3, &b_jetNChgptCut3);
-   fChain->SetBranchAddress("jetNChgptCut4", &jetNChgptCut4, &b_jetNChgptCut4);
-   fChain->SetBranchAddress("jetNChgptCut5", &jetNChgptCut5, &b_jetNChgptCut5);
-   fChain->SetBranchAddress("jetNChgptCut6", &jetNChgptCut6, &b_jetNChgptCut6);
-   fChain->SetBranchAddress("jetNChgptCut7", &jetNChgptCut7, &b_jetNChgptCut7);
+   fChain->SetBranchAddress("jetGenPartoneta1", &jetGenPartoneta1, &b_jetGenPartoneta1);
+   fChain->SetBranchAddress("jetGenPartoneta2", &jetGenPartoneta2, &b_jetGenPartoneta2);
+   fChain->SetBranchAddress("jetGenPartoneta3", &jetGenPartoneta3, &b_jetGenPartoneta3);
+   fChain->SetBranchAddress("jetGenPartonphi1", &jetGenPartonphi1, &b_jetGenPartonphi1);
+   fChain->SetBranchAddress("jetGenPartonphi2", &jetGenPartonphi2, &b_jetGenPartonphi2);
+   fChain->SetBranchAddress("jetGenPartonphi3", &jetGenPartonphi3, &b_jetGenPartonphi3);
+   fChain->SetBranchAddress("jetGenPartonpid1", &jetGenPartonpid1, &b_jetGenPartonpid1);
+   fChain->SetBranchAddress("jetGenPartonpid2", &jetGenPartonpid2, &b_jetGenPartonpid2);
+   fChain->SetBranchAddress("jetGenPartonpid3", &jetGenPartonpid3, &b_jetGenPartonpid3);
+   fChain->SetBranchAddress("jetGenPartonpt1", &jetGenPartonpt1, &b_jetGenPartonpt1);
+   fChain->SetBranchAddress("jetGenPartonpt2", &jetGenPartonpt2, &b_jetGenPartonpt2);
+   fChain->SetBranchAddress("jetGenPartonpt3", &jetGenPartonpt3, &b_jetGenPartonpt3);
+   fChain->SetBranchAddress("jetGeneta1", &jetGeneta1, &b_jetGeneta1);
+   fChain->SetBranchAddress("jetGeneta2", &jetGeneta2, &b_jetGeneta2);
+   fChain->SetBranchAddress("jetGeneta3", &jetGeneta3, &b_jetGeneta3);
+   fChain->SetBranchAddress("jetGenphi1", &jetGenphi1, &b_jetGenphi1);
+   fChain->SetBranchAddress("jetGenphi2", &jetGenphi2, &b_jetGenphi2);
+   fChain->SetBranchAddress("jetGenphi3", &jetGenphi3, &b_jetGenphi3);
+   fChain->SetBranchAddress("jetGenpt1", &jetGenpt1, &b_jetGenpt1);
+   fChain->SetBranchAddress("jetGenpt2", &jetGenpt2, &b_jetGenpt2);
+   fChain->SetBranchAddress("jetGenpt3", &jetGenpt3, &b_jetGenpt3);
    fChain->SetBranchAddress("jetNHM1", &jetNHM1, &b_jetNHM1);
    fChain->SetBranchAddress("jetNHM2", &jetNHM2, &b_jetNHM2);
    fChain->SetBranchAddress("jetNHM3", &jetNHM3, &b_jetNHM3);
@@ -1162,13 +874,6 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jetNHM5", &jetNHM5, &b_jetNHM5);
    fChain->SetBranchAddress("jetNHM6", &jetNHM6, &b_jetNHM6);
    fChain->SetBranchAddress("jetNHM7", &jetNHM7, &b_jetNHM7);
-   fChain->SetBranchAddress("jetNNeutralptCut1", &jetNNeutralptCut1, &b_jetNNeutralptCut1);
-   fChain->SetBranchAddress("jetNNeutralptCut2", &jetNNeutralptCut2, &b_jetNNeutralptCut2);
-   fChain->SetBranchAddress("jetNNeutralptCut3", &jetNNeutralptCut3, &b_jetNNeutralptCut3);
-   fChain->SetBranchAddress("jetNNeutralptCut4", &jetNNeutralptCut4, &b_jetNNeutralptCut4);
-   fChain->SetBranchAddress("jetNNeutralptCut5", &jetNNeutralptCut5, &b_jetNNeutralptCut5);
-   fChain->SetBranchAddress("jetNNeutralptCut6", &jetNNeutralptCut6, &b_jetNNeutralptCut6);
-   fChain->SetBranchAddress("jetNNeutralptCut7", &jetNNeutralptCut7, &b_jetNNeutralptCut7);
    fChain->SetBranchAddress("jetPhM1", &jetPhM1, &b_jetPhM1);
    fChain->SetBranchAddress("jetPhM2", &jetPhM2, &b_jetPhM2);
    fChain->SetBranchAddress("jetPhM3", &jetPhM3, &b_jetPhM3);
@@ -1176,70 +881,7 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jetPhM5", &jetPhM5, &b_jetPhM5);
    fChain->SetBranchAddress("jetPhM6", &jetPhM6, &b_jetPhM6);
    fChain->SetBranchAddress("jetPhM7", &jetPhM7, &b_jetPhM7);
-   fChain->SetBranchAddress("jetQCRMScand1", &jetQCRMScand1, &b_jetQCRMScand1);
-   fChain->SetBranchAddress("jetQCRMScand2", &jetQCRMScand2, &b_jetQCRMScand2);
-   fChain->SetBranchAddress("jetQCRMScand3", &jetQCRMScand3, &b_jetQCRMScand3);
-   fChain->SetBranchAddress("jetQCRMScand4", &jetQCRMScand4, &b_jetQCRMScand4);
-   fChain->SetBranchAddress("jetQCRMScand5", &jetQCRMScand5, &b_jetQCRMScand5);
-   fChain->SetBranchAddress("jetQCRMScand6", &jetQCRMScand6, &b_jetQCRMScand6);
-   fChain->SetBranchAddress("jetQCRMScand7", &jetQCRMScand7, &b_jetQCRMScand7);
-   fChain->SetBranchAddress("jetQCRmax1", &jetQCRmax1, &b_jetQCRmax1);
-   fChain->SetBranchAddress("jetQCRmax2", &jetQCRmax2, &b_jetQCRmax2);
-   fChain->SetBranchAddress("jetQCRmax3", &jetQCRmax3, &b_jetQCRmax3);
-   fChain->SetBranchAddress("jetQCRmax4", &jetQCRmax4, &b_jetQCRmax4);
-   fChain->SetBranchAddress("jetQCRmax5", &jetQCRmax5, &b_jetQCRmax5);
-   fChain->SetBranchAddress("jetQCRmax6", &jetQCRmax6, &b_jetQCRmax6);
-   fChain->SetBranchAddress("jetQCRmax7", &jetQCRmax7, &b_jetQCRmax7);
-   fChain->SetBranchAddress("jetQCaxis11", &jetQCaxis11, &b_jetQCaxis11);
-   fChain->SetBranchAddress("jetQCaxis12", &jetQCaxis12, &b_jetQCaxis12);
-   fChain->SetBranchAddress("jetQCaxis13", &jetQCaxis13, &b_jetQCaxis13);
-   fChain->SetBranchAddress("jetQCaxis14", &jetQCaxis14, &b_jetQCaxis14);
-   fChain->SetBranchAddress("jetQCaxis15", &jetQCaxis15, &b_jetQCaxis15);
-   fChain->SetBranchAddress("jetQCaxis16", &jetQCaxis16, &b_jetQCaxis16);
-   fChain->SetBranchAddress("jetQCaxis17", &jetQCaxis17, &b_jetQCaxis17);
-   fChain->SetBranchAddress("jetQCaxis21", &jetQCaxis21, &b_jetQCaxis21);
-   fChain->SetBranchAddress("jetQCaxis22", &jetQCaxis22, &b_jetQCaxis22);
-   fChain->SetBranchAddress("jetQCaxis23", &jetQCaxis23, &b_jetQCaxis23);
-   fChain->SetBranchAddress("jetQCaxis24", &jetQCaxis24, &b_jetQCaxis24);
-   fChain->SetBranchAddress("jetQCaxis25", &jetQCaxis25, &b_jetQCaxis25);
-   fChain->SetBranchAddress("jetQCaxis26", &jetQCaxis26, &b_jetQCaxis26);
-   fChain->SetBranchAddress("jetQCaxis27", &jetQCaxis27, &b_jetQCaxis27);
-   fChain->SetBranchAddress("jetQCptD1", &jetQCptD1, &b_jetQCptD1);
-   fChain->SetBranchAddress("jetQCptD2", &jetQCptD2, &b_jetQCptD2);
-   fChain->SetBranchAddress("jetQCptD3", &jetQCptD3, &b_jetQCptD3);
-   fChain->SetBranchAddress("jetQCptD4", &jetQCptD4, &b_jetQCptD4);
-   fChain->SetBranchAddress("jetQCptD5", &jetQCptD5, &b_jetQCptD5);
-   fChain->SetBranchAddress("jetQCptD6", &jetQCptD6, &b_jetQCptD6);
-   fChain->SetBranchAddress("jetQCptD7", &jetQCptD7, &b_jetQCptD7);
-   fChain->SetBranchAddress("jetRMScand1", &jetRMScand1, &b_jetRMScand1);
-   fChain->SetBranchAddress("jetRMScand2", &jetRMScand2, &b_jetRMScand2);
-   fChain->SetBranchAddress("jetRMScand3", &jetRMScand3, &b_jetRMScand3);
-   fChain->SetBranchAddress("jetRMScand4", &jetRMScand4, &b_jetRMScand4);
-   fChain->SetBranchAddress("jetRMScand5", &jetRMScand5, &b_jetRMScand5);
-   fChain->SetBranchAddress("jetRMScand6", &jetRMScand6, &b_jetRMScand6);
-   fChain->SetBranchAddress("jetRMScand7", &jetRMScand7, &b_jetRMScand7);
    fChain->SetBranchAddress("jetRho", &jetRho, &b_jetRho);
-   fChain->SetBranchAddress("jetRmax1", &jetRmax1, &b_jetRmax1);
-   fChain->SetBranchAddress("jetRmax2", &jetRmax2, &b_jetRmax2);
-   fChain->SetBranchAddress("jetRmax3", &jetRmax3, &b_jetRmax3);
-   fChain->SetBranchAddress("jetRmax4", &jetRmax4, &b_jetRmax4);
-   fChain->SetBranchAddress("jetRmax5", &jetRmax5, &b_jetRmax5);
-   fChain->SetBranchAddress("jetRmax6", &jetRmax6, &b_jetRmax6);
-   fChain->SetBranchAddress("jetRmax7", &jetRmax7, &b_jetRmax7);
-   fChain->SetBranchAddress("jetaxis11", &jetaxis11, &b_jetaxis11);
-   fChain->SetBranchAddress("jetaxis12", &jetaxis12, &b_jetaxis12);
-   fChain->SetBranchAddress("jetaxis13", &jetaxis13, &b_jetaxis13);
-   fChain->SetBranchAddress("jetaxis14", &jetaxis14, &b_jetaxis14);
-   fChain->SetBranchAddress("jetaxis15", &jetaxis15, &b_jetaxis15);
-   fChain->SetBranchAddress("jetaxis16", &jetaxis16, &b_jetaxis16);
-   fChain->SetBranchAddress("jetaxis17", &jetaxis17, &b_jetaxis17);
-   fChain->SetBranchAddress("jetaxis21", &jetaxis21, &b_jetaxis21);
-   fChain->SetBranchAddress("jetaxis22", &jetaxis22, &b_jetaxis22);
-   fChain->SetBranchAddress("jetaxis23", &jetaxis23, &b_jetaxis23);
-   fChain->SetBranchAddress("jetaxis24", &jetaxis24, &b_jetaxis24);
-   fChain->SetBranchAddress("jetaxis25", &jetaxis25, &b_jetaxis25);
-   fChain->SetBranchAddress("jetaxis26", &jetaxis26, &b_jetaxis26);
-   fChain->SetBranchAddress("jetaxis27", &jetaxis27, &b_jetaxis27);
    fChain->SetBranchAddress("jetbjpb1", &jetbjpb1, &b_jetbjpb1);
    fChain->SetBranchAddress("jetbjpb2", &jetbjpb2, &b_jetbjpb2);
    fChain->SetBranchAddress("jetbjpb3", &jetbjpb3, &b_jetbjpb3);
@@ -1247,6 +889,13 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jetbjpb5", &jetbjpb5, &b_jetbjpb5);
    fChain->SetBranchAddress("jetbjpb6", &jetbjpb6, &b_jetbjpb6);
    fChain->SetBranchAddress("jetbjpb7", &jetbjpb7, &b_jetbjpb7);
+   fChain->SetBranchAddress("jetcsv1", &jetcsv1, &b_jetcsv1);
+   fChain->SetBranchAddress("jetcsv2", &jetcsv2, &b_jetcsv2);
+   fChain->SetBranchAddress("jetcsv3", &jetcsv3, &b_jetcsv3);
+   fChain->SetBranchAddress("jetcsv4", &jetcsv4, &b_jetcsv4);
+   fChain->SetBranchAddress("jetcsv5", &jetcsv5, &b_jetcsv5);
+   fChain->SetBranchAddress("jetcsv6", &jetcsv6, &b_jetcsv6);
+   fChain->SetBranchAddress("jetcsv7", &jetcsv7, &b_jetcsv7);
    fChain->SetBranchAddress("jeteta1", &jeteta1, &b_jeteta1);
    fChain->SetBranchAddress("jeteta2", &jeteta2, &b_jeteta2);
    fChain->SetBranchAddress("jeteta3", &jeteta3, &b_jeteta3);
@@ -1289,13 +938,6 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jetpt5", &jetpt5, &b_jetpt5);
    fChain->SetBranchAddress("jetpt6", &jetpt6, &b_jetpt6);
    fChain->SetBranchAddress("jetpt7", &jetpt7, &b_jetpt7);
-   fChain->SetBranchAddress("jetptD1", &jetptD1, &b_jetptD1);
-   fChain->SetBranchAddress("jetptD2", &jetptD2, &b_jetptD2);
-   fChain->SetBranchAddress("jetptD3", &jetptD3, &b_jetptD3);
-   fChain->SetBranchAddress("jetptD4", &jetptD4, &b_jetptD4);
-   fChain->SetBranchAddress("jetptD5", &jetptD5, &b_jetptD5);
-   fChain->SetBranchAddress("jetptD6", &jetptD6, &b_jetptD6);
-   fChain->SetBranchAddress("jetptD7", &jetptD7, &b_jetptD7);
    fChain->SetBranchAddress("jetptd1", &jetptd1, &b_jetptd1);
    fChain->SetBranchAddress("jetptd2", &jetptd2, &b_jetptd2);
    fChain->SetBranchAddress("jetptd3", &jetptd3, &b_jetptd3);
@@ -1318,6 +960,18 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("jettchp6", &jettchp6, &b_jettchp6);
    fChain->SetBranchAddress("jettchp7", &jettchp7, &b_jettchp7);
    fChain->SetBranchAddress("kfW", &kfW, &b_kfW);
+   fChain->SetBranchAddress("leptonGeneta1", &leptonGeneta1, &b_leptonGeneta1);
+   fChain->SetBranchAddress("leptonGeneta2", &leptonGeneta2, &b_leptonGeneta2);
+   fChain->SetBranchAddress("leptonGeneta3", &leptonGeneta3, &b_leptonGeneta3);
+   fChain->SetBranchAddress("leptonGenphi1", &leptonGenphi1, &b_leptonGenphi1);
+   fChain->SetBranchAddress("leptonGenphi2", &leptonGenphi2, &b_leptonGenphi2);
+   fChain->SetBranchAddress("leptonGenphi3", &leptonGenphi3, &b_leptonGenphi3);
+   fChain->SetBranchAddress("leptonGenpid1", &leptonGenpid1, &b_leptonGenpid1);
+   fChain->SetBranchAddress("leptonGenpid2", &leptonGenpid2, &b_leptonGenpid2);
+   fChain->SetBranchAddress("leptonGenpid3", &leptonGenpid3, &b_leptonGenpid3);
+   fChain->SetBranchAddress("leptonGenpt1", &leptonGenpt1, &b_leptonGenpt1);
+   fChain->SetBranchAddress("leptonGenpt2", &leptonGenpt2, &b_leptonGenpt2);
+   fChain->SetBranchAddress("leptonGenpt3", &leptonGenpt3, &b_leptonGenpt3);
    fChain->SetBranchAddress("lh1", &lh1, &b_lh1);
    fChain->SetBranchAddress("lh2", &lh2, &b_lh2);
    fChain->SetBranchAddress("lh3", &lh3, &b_lh3);
@@ -1333,11 +987,26 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("mtw1", &mtw1, &b_mtw1);
    fChain->SetBranchAddress("mtw2", &mtw2, &b_mtw2);
    fChain->SetBranchAddress("nbjet", &nbjet, &b_nbjet);
+   fChain->SetBranchAddress("nbjetcsvloose", &nbjetcsvloose, &b_nbjetcsvloose);
+   fChain->SetBranchAddress("nbjetcsvmedium", &nbjetcsvmedium, &b_nbjetcsvmedium);
+   fChain->SetBranchAddress("nbjetcsvtight", &nbjetcsvtight, &b_nbjetcsvtight);
    fChain->SetBranchAddress("nbjettche", &nbjettche, &b_nbjettche);
    fChain->SetBranchAddress("nbrem1", &nbrem1, &b_nbrem1);
    fChain->SetBranchAddress("nbrem2", &nbrem2, &b_nbrem2);
    fChain->SetBranchAddress("nbrem3", &nbrem3, &b_nbrem3);
    fChain->SetBranchAddress("nbrem4", &nbrem4, &b_nbrem4);
+   fChain->SetBranchAddress("neutrinoGeneta1", &neutrinoGeneta1, &b_neutrinoGeneta1);
+   fChain->SetBranchAddress("neutrinoGeneta2", &neutrinoGeneta2, &b_neutrinoGeneta2);
+   fChain->SetBranchAddress("neutrinoGeneta3", &neutrinoGeneta3, &b_neutrinoGeneta3);
+   fChain->SetBranchAddress("neutrinoGenphi1", &neutrinoGenphi1, &b_neutrinoGenphi1);
+   fChain->SetBranchAddress("neutrinoGenphi2", &neutrinoGenphi2, &b_neutrinoGenphi2);
+   fChain->SetBranchAddress("neutrinoGenphi3", &neutrinoGenphi3, &b_neutrinoGenphi3);
+   fChain->SetBranchAddress("neutrinoGenpid1", &neutrinoGenpid1, &b_neutrinoGenpid1);
+   fChain->SetBranchAddress("neutrinoGenpid2", &neutrinoGenpid2, &b_neutrinoGenpid2);
+   fChain->SetBranchAddress("neutrinoGenpid3", &neutrinoGenpid3, &b_neutrinoGenpid3);
+   fChain->SetBranchAddress("neutrinoGenpt1", &neutrinoGenpt1, &b_neutrinoGenpt1);
+   fChain->SetBranchAddress("neutrinoGenpt2", &neutrinoGenpt2, &b_neutrinoGenpt2);
+   fChain->SetBranchAddress("neutrinoGenpt3", &neutrinoGenpt3, &b_neutrinoGenpt3);
    fChain->SetBranchAddress("nextra", &nextra, &b_nextra);
    fChain->SetBranchAddress("njet", &njet, &b_njet);
    fChain->SetBranchAddress("njetid", &njetid, &b_njetid);
@@ -1350,10 +1019,6 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("pdfx1PDF", &pdfx1PDF, &b_pdfx1PDF);
    fChain->SetBranchAddress("pdfx2", &pdfx2, &b_pdfx2);
    fChain->SetBranchAddress("pdfx2PDF", &pdfx2PDF, &b_pdfx2PDF);
-   fChain->SetBranchAddress("pdgid1", &pdgid1, &b_pdgid1);
-   fChain->SetBranchAddress("pdgid2", &pdgid2, &b_pdgid2);
-   fChain->SetBranchAddress("pdgid3", &pdgid3, &b_pdgid3);
-   fChain->SetBranchAddress("pdgid4", &pdgid4, &b_pdgid4);
    fChain->SetBranchAddress("peaking", &peaking, &b_peaking);
    fChain->SetBranchAddress("pfSumEt", &pfSumEt, &b_pfSumEt);
    fChain->SetBranchAddress("pfmet", &pfmet, &b_pfmet);
@@ -1372,6 +1037,8 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("pt2", &pt2, &b_pt2);
    fChain->SetBranchAddress("pt3", &pt3, &b_pt3);
    fChain->SetBranchAddress("pt4", &pt4, &b_pt4);
+   fChain->SetBranchAddress("pt5", &pt5, &b_pt5);
+   fChain->SetBranchAddress("pt6", &pt6, &b_pt6);
    fChain->SetBranchAddress("ptll", &ptll, &b_ptll);
    fChain->SetBranchAddress("redmet", &redmet, &b_redmet);
    fChain->SetBranchAddress("sceta1", &sceta1, &b_sceta1);
@@ -1383,7 +1050,6 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("tightmu", &tightmu, &b_tightmu);
    fChain->SetBranchAddress("triggAW", &triggAW, &b_triggAW);
    fChain->SetBranchAddress("triggBW", &triggBW, &b_triggBW);
-   fChain->SetBranchAddress("triggW", &triggW, &b_triggW);
    fChain->SetBranchAddress("trigger", &trigger, &b_trigger);
    fChain->SetBranchAddress("worstJetLepPt", &worstJetLepPt, &b_worstJetLepPt);
    fChain->SetBranchAddress("yll", &yll, &b_yll);
@@ -1393,7 +1059,6 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("ootpup1", &ootpup1, &b_ootpup1);
    fChain->SetBranchAddress("puAW", &puAW, &b_puAW);
    fChain->SetBranchAddress("puBW", &puBW, &b_puBW);
-   fChain->SetBranchAddress("puW", &puW, &b_puW);
    fChain->SetBranchAddress("trpu", &trpu, &b_trpu);
    fChain->SetBranchAddress("bveto", &bveto, &b_bveto);
    fChain->SetBranchAddress("bveto_ip", &bveto_ip, &b_bveto_ip);
@@ -1411,18 +1076,28 @@ void WZGenEvent::Init(TTree *tree)
    fChain->SetBranchAddress("pass2012ICHEP2", &pass2012ICHEP2, &b_pass2012ICHEP2);
    fChain->SetBranchAddress("pass2012ICHEP3", &pass2012ICHEP3, &b_pass2012ICHEP3);
    fChain->SetBranchAddress("pass2012ICHEP4", &pass2012ICHEP4, &b_pass2012ICHEP4);
+   fChain->SetBranchAddress("pass2012ICHEP5", &pass2012ICHEP5, &b_pass2012ICHEP5);
+   fChain->SetBranchAddress("pass2012ICHEP6", &pass2012ICHEP6, &b_pass2012ICHEP6);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE1", &pass2012ICHEPLOOSE1, &b_pass2012ICHEPLOOSE1);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE2", &pass2012ICHEPLOOSE2, &b_pass2012ICHEPLOOSE2);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE3", &pass2012ICHEPLOOSE3, &b_pass2012ICHEPLOOSE3);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE4", &pass2012ICHEPLOOSE4, &b_pass2012ICHEPLOOSE4);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE5", &pass2012ICHEPLOOSE5, &b_pass2012ICHEPLOOSE5);
+   fChain->SetBranchAddress("pass2012ICHEPLOOSE6", &pass2012ICHEPLOOSE6, &b_pass2012ICHEPLOOSE6);
    fChain->SetBranchAddress("sameflav", &sameflav, &b_sameflav);
    fChain->SetBranchAddress("zveto", &zveto, &b_zveto);
    fChain->SetBranchAddress("run", &run, &b_run);
    fChain->SetBranchAddress("lumi", &lumi, &b_lumi);
    fChain->SetBranchAddress("event", &event, &b_event);
-   fChain->SetBranchAddress("puW_new", &puW_new, &b_puW_new);
-   fChain->SetBranchAddress("puW_up", &puW_up, &b_puW_up);
-   fChain->SetBranchAddress("puW_down", &puW_down, &b_puW_down);
+   fChain->SetBranchAddress("triggW", &triggW, &b_triggW);
+   fChain->SetBranchAddress("effW", &effW, &b_effW);
+   fChain->SetBranchAddress("effWUp", &effWUp, &b_effWUp);
+   fChain->SetBranchAddress("effWDown", &effWDown, &b_effWDown);
+   fChain->SetBranchAddress("puW", &puW, &b_puW);
    Notify();
 }
 
-Bool_t WZGenEvent::Notify()
+Bool_t TZJets::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -1433,18 +1108,18 @@ Bool_t WZGenEvent::Notify()
    return kTRUE;
 }
 
-void WZGenEvent::Show(Long64_t entry)
+void TZJets::Show(Long64_t entry)
 {
 // Print contents of entry.
 // If entry is not specified, print current entry
    if (!fChain) return;
    fChain->Show(entry);
 }
-Int_t WZGenEvent::Cut(Long64_t entry)
+Int_t TZJets::Cut(Long64_t entry)
 {
 // This function may be called from Loop.
 // returns  1 if entry is accepted.
 // returns -1 otherwise.
    return 1;
 }
-#endif // #ifdef WZGenEvent_cxx
+#endif // #ifdef TZJets_cxx

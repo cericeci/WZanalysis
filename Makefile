@@ -7,6 +7,7 @@ CPPFLAGS=`root-config --cflags` -IRooUnfold-1.1.1/src/   -g
 
 #if running in CMSSW53...
 LDFLAGS =$(shell root-config --libs) RooUnfold-1.1.1/libRooUnfold.so
+# 
 
 
 # FOR DATA
@@ -23,6 +24,10 @@ LDFLAGS =$(shell root-config --libs) RooUnfold-1.1.1/libRooUnfold.so
 wzAnalysisData: wzAnalysisData.C wzToolsNew.C WZ2012Data.C WZEventMCOld.C HistogramFactory.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+
+wzDataAnalysisMatrixMethod: wzDataAnalysisMatrixMethod.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
+	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
 wzAnalysisDataWithMM: wzAnalysisDataWithMM.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
@@ -32,10 +37,15 @@ wzMatrixMethod: wzMatrixMethod.C wzToolsNew.C WZ2012Data.C UnfoldingHistogramFac
 wzAnalysisMCAll: wzAnalysisMCAll.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+
+wzAnalyzeMCVB: wzAnalyzeMCVB.C wzToolsNew.C TZJets.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
+	g++ -D TZMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+
 wzBackground: wzBackground.C wzToolsNew.C WZ.C UnfoldingHistogramFactory.C HistogramFactory.C WZEventMCOld.C
 	g++ -D OLDMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C HistogramFactory.C
+wzAnalysisMC: wzAnalysisMC.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C HistogramFactory.C SystematicsManager.C MetSystematicsTool.C metsys.C JetEnergyTool.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 wzWZ: wzWZ.C wzToolsNew.C WZGenEvent.C WZEvent.C UnfoldingHistogramFactory.C
@@ -64,12 +74,16 @@ wzDataUnfoldRegStudy: wzDataUnfoldRegStudy.C SystematicsManager.C
 BLUE_unfolding: BLUE_unfolding.C UnfoldingHistogramFactory.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
-BLUE_unfoldingV2: BLUE_unfoldingV2.C UnfoldingHistogramFactory.C 
+BLUE_unfoldingV2: BLUE_unfoldingV2.C UnfoldingHistogramFactory.C Combine_unfolded.C
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+BLUE_global: BLUE_global.C 
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 
 combine_unfolded: combine_unfolded.C
 	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
 
 
 Systematics: Systematics.C UnfoldingHistogramFactory.C 
@@ -82,6 +96,12 @@ mcfmPlots: mcfmPlots.C mcfmTree.C UnfoldingHistogramFactory.C
 MatrixPlay: MatrixPlay.C
 	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
+
+checkMatrix: checkMatrix.C
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+
+xsection_8tev: xsection_8tev.C
+	g++ -D NEWMC $(CPPFLAGS) $(LDFLAGS) -o $@ $^
 
 
 #test: test.C wzTools2.C WZ2012Data.C
