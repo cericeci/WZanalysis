@@ -1,0 +1,936 @@
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TH1F.h"
+#include "TLatex.h"
+#include "TSystem.h"
+
+
+void drawFigure5(){
+
+
+  //  gInterpreter->ExecuteMacro("WZPaperStyle.C");
+  gROOT->ProcessLine(".L CMSStyle.C");
+  //  gROOT->ProcessLine(".L /dat/rivendell/senka/plot_style/CMSstyle_YuriStyle.C");
+  gROOT->ProcessLine("CMSstyle()");
+
+  TString lumiText = "19.6 fb^{-1} (8 TeV)";
+
+
+  bool set_negative_yield_to0p01=true;
+  bool splitBins=true;
+
+  //  double bins[6]={100.,200.,300.,400.,600.,800.};
+  //  double bins[11]={100.,200.,300.,400.,500.,600.,700.,800.,900.,1000.,1100.};
+  //  double bins[7]={0.,66.,132.,198.,264.,330.,396.};
+  double bins[9]={0.,50.,100.,150.,200.,250.,300.,350.,400.};
+
+
+  ////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  //
+  //   3e
+  //
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      SM
+  //
+
+
+  TFile * file_signal_3e=new TFile("WZ_2012_8TeV_merged_00lam_3e_9by9.root","read");
+  file_signal_3e->cd();
+
+  TH1F * histo_SM_3e=new TH1F("histo_SM_3e","histo_SM_3e",8,bins);
+  histo_SM_3e->Sumw2();
+  wz->Draw("PtZ>>histo_SM_3e","weight*(dg_grid==0.&&dk_grid==0.)");
+  int N_bins=histo_SM_3e->GetNbinsX();
+  double yield_3e=histo_SM_3e->GetBinContent(N_bins)+histo_SM_3e->GetBinContent(N_bins+1);
+  double err_3e=sqrt(histo_SM_3e->GetBinError(N_bins)*histo_SM_3e->GetBinError(N_bins)+histo_SM_3e->GetBinError(N_bins+1)*histo_SM_3e->GetBinError(N_bins+1));
+  histo_SM_3e->SetBinContent(N_bins,yield_3e);
+  histo_SM_3e->SetBinError(N_bins,err_3e);
+
+  TH1F * histo_aTGC_dg_3e=new TH1F("histo_aTGC_dg_3e","histo_aTGC_dg_3e",8,bins);
+  histo_aTGC_dg_3e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dg_3e","weight*(abs(dg_grid+0.06)<0.001&&dk_grid==0.)");
+  int N_bins=histo_aTGC_dg_3e->GetNbinsX();
+  double yield_3e=histo_aTGC_dg_3e->GetBinContent(N_bins)+histo_aTGC_dg_3e->GetBinContent(N_bins+1);
+  double err_3e=sqrt(histo_aTGC_dg_3e->GetBinError(N_bins)*histo_aTGC_dg_3e->GetBinError(N_bins)+histo_aTGC_dg_3e->GetBinError(N_bins+1)*histo_aTGC_dg_3e->GetBinError(N_bins+1));
+  histo_aTGC_dg_3e->SetBinContent(N_bins,yield_3e);
+  histo_aTGC_dg_3e->SetBinError(N_bins,err_3e);
+
+
+
+  TH1F * histo_aTGC_dk_3e=new TH1F("histo_aTGC_dk_3e","histo_aTGC_dk_3e",8,bins);
+  histo_aTGC_dk_3e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dk_3e","weight*(dg_grid==0.&&abs(dk_grid-0.6)<0.001)");
+  int N_bins=histo_aTGC_dk_3e->GetNbinsX();
+  double yield_3e=histo_aTGC_dk_3e->GetBinContent(N_bins)+histo_aTGC_dk_3e->GetBinContent(N_bins+1);
+  double err_3e=sqrt(histo_aTGC_dk_3e->GetBinError(N_bins)*histo_aTGC_dk_3e->GetBinError(N_bins)+histo_aTGC_dk_3e->GetBinError(N_bins+1)*histo_aTGC_dk_3e->GetBinError(N_bins+1));
+  histo_aTGC_dk_3e->SetBinContent(N_bins,yield_3e);
+  histo_aTGC_dk_3e->SetBinError(N_bins,err_3e);
+
+
+  TFile * file_signal_3e_lam=new TFile("WZ_2012_8TeV_merged_00dk_3e_11by11.root","read");
+  file_signal_3e_lam->cd();
+  TH1F * histo_aTGC_lam_3e=new TH1F("histo_aTGC_lam_3e","histo_aTGC_lam_3e",8,bins);
+  histo_aTGC_lam_3e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_lam_3e","weight*(abs(lam_grid-0.04)<0.005&&dg_grid==0.)");
+  int N_bins=histo_aTGC_lam_3e->GetNbinsX();
+  double yield_3e=histo_aTGC_lam_3e->GetBinContent(N_bins)+histo_aTGC_lam_3e->GetBinContent(N_bins+1);
+  double err_3e=sqrt(histo_aTGC_lam_3e->GetBinError(N_bins)*histo_aTGC_lam_3e->GetBinError(N_bins)+histo_aTGC_lam_3e->GetBinError(N_bins+1)*histo_aTGC_lam_3e->GetBinError(N_bins+1));
+  histo_aTGC_lam_3e->SetBinContent(N_bins,yield_3e);
+  histo_aTGC_lam_3e->SetBinError(N_bins,err_3e);
+
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      data
+  //
+
+
+  //  TFile * file_data=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/data_aTGC_8TeV_3e.root","read");
+  TFile * file_data_3e=new TFile("data_aTGC_8TeV_3e_1.root","read");
+  file_data_3e ->cd();
+  TH1F * histo_data_3e=new TH1F("histo_data_3e","histo_data_3e",8,bins);
+  tgcTree->Draw("PtZ>>histo_data_3e","");
+  yield_3e=histo_data_3e->GetBinContent(N_bins)+histo_data_3e->GetBinContent(N_bins+1);
+  histo_data_3e->SetBinContent(N_bins,yield_3e);
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg DD
+  //
+
+  //  TFile * file_bkg_DD=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/bkg/sumedBkg_0e_8bins_0to400.root","read");
+  TFile * file_bkg_DD_3e=new TFile("data_driven_0.root","read");
+  file_bkg_DD_3e->cd();
+  TH1D * histo_bkg_DD_3e=new TH1D("histo_bkg_DD_3e","histo_bkg_DD_3e",8,bins);
+  histo_bkg_DD_3e=fake_0;
+
+  TH1D * histo_bkg_DD_3e_statUp=new TH1D("histo_bkg_DD_3e_statUp","histo_bkg_DD_3e_statUp",8,bins);
+  histo_bkg_DD_3e_statUp=(TH1D*)histo_bkg_DD_3e->Clone("name1");
+  calcStatErrorAndAdd(histo_bkg_DD_3e_statUp, 0.028, 1.);
+
+  TH1D * histo_bkg_DD_3e_statDown=new TH1D("histo_bkg_DD_3e_statDown","histo_bkg_DD_3e_statDown",8,bins);
+  histo_bkg_DD_3e_statDown=(TH1D*)histo_bkg_DD_3e->Clone("name2");
+  calcStatErrorAndAdd(histo_bkg_DD_3e_statDown, 0.028, -1.);
+
+  // add overflow bin:
+  yield_3e=histo_bkg_DD_3e->GetBinContent(N_bins)+histo_bkg_DD_3e->GetBinContent(N_bins+1);
+  histo_bkg_DD_3e->SetBinContent(N_bins,yield_3e);
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg MC
+  //
+
+  TFile * file_bkg_MC_3e=new TFile("bkg_0.root","read");
+  file_bkg_MC_3e->cd();
+
+  TH1D * histo_bkg_MC_ZZ_3e=new TH1D("histo_bkg_MC_ZZ_3e","histo_bkg_MC_ZZ_3e",8,bins);
+  histo_bkg_MC_ZZ_3e=total_bkg_rebined_ZZ_0;
+  yield_3e=histo_bkg_MC_ZZ_3e->GetBinContent(N_bins)+histo_bkg_MC_ZZ_3e->GetBinContent(N_bins+1);
+  histo_bkg_MC_ZZ_3e->SetBinContent(N_bins,yield_3e);
+
+  TH1D * histo_bkg_MC_Zgamma_3e=new TH1D("histo_bkg_MC_Zgamma_3e","histo_bkg_MC_Zgamma_3e",8,bins);
+  histo_bkg_MC_Zgamma_3e=total_bkg_rebined_Zgamma_0;
+  yield_3e=histo_bkg_MC_Zgamma_3e->GetBinContent(N_bins)+histo_bkg_MC_Zgamma_3e->GetBinContent(N_bins+1);
+  histo_bkg_MC_Zgamma_3e->SetBinContent(N_bins,yield_3e);
+
+  TH1D * histo_bkg_MC_WV_3e=new TH1D("histo_bkg_MC_WV_3e","histo_bkg_MC_WV_3e",8,bins);
+  histo_bkg_MC_WV_3e=total_bkg_rebined_WV_0;
+  yield_3e=histo_bkg_MC_WV_3e->GetBinContent(N_bins)+histo_bkg_MC_WV_3e->GetBinContent(N_bins+1);
+  histo_bkg_MC_WV_3e->SetBinContent(N_bins,yield_3e);
+
+  TH1D * histo_bkg_MC_VVV_3e=new TH1D("histo_bkg_MC_VVV_3e","histo_bkg_MC_VVV_3e",8,bins);
+  histo_bkg_MC_VVV_3e=total_bkg_rebined_VVV_0;
+  yield_3e=histo_bkg_MC_VVV_3e->GetBinContent(N_bins)+histo_bkg_MC_VVV_3e->GetBinContent(N_bins+1);
+  histo_bkg_MC_VVV_3e->SetBinContent(N_bins,yield_3e);
+
+  // bkg MC cross-section syst:
+  
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      output
+  //
+
+    TFile * file_out_3e=new TFile("WZ_ptZ_mmm.root","recreate");
+    file_out_3e->cd();
+    cout << "SM= "<<histo_SM_3e->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_3e->Integral()<< " + "<< histo_bkg_DD_3e_statUp->Integral()-histo_bkg_DD_3e->Integral()<< " - "<< histo_bkg_DD_3e->Integral()-histo_bkg_DD_3e_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_3e->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_3e->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_3e->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_3e->Integral()
+	 <<" \t data= "<<histo_data_3e->Integral() << endl;
+
+    /*
+    histo_SM_3e->Write("diboson");
+    histo_data_3e->Write("data_obs");
+    
+    histo_bkg_DD_3e->Write("background_DD");
+    histo_bkg_MC_ZZ_3e->Write("background_MC_ZZ");
+    histo_bkg_MC_Zgamma_3e->Write("background_MC_Zgamma");
+    histo_bkg_MC_WV_3e->Write("background_MC_WV");
+    histo_bkg_MC_VVV_3e->Write("background_MC_VVV");
+
+    */
+
+    
+
+    //    VVV+WV+Zgamma+ZZ+DD+WZ
+    histo_bkg_MC_WV_3e->Add(histo_bkg_MC_VVV_3e);
+    histo_bkg_MC_Zgamma_3e->Add(histo_bkg_MC_WV_3e);
+    histo_bkg_MC_ZZ_3e->Add(histo_bkg_MC_Zgamma_3e);
+    histo_bkg_DD_3e->Add(histo_bkg_MC_ZZ_3e);
+    histo_SM_3e->Add(histo_bkg_DD_3e);
+    histo_aTGC_dk_3e->Add(histo_bkg_DD_3e);
+    histo_aTGC_dg_3e->Add(histo_bkg_DD_3e);
+    histo_aTGC_lam_3e->Add(histo_bkg_DD_3e);
+
+    cout <<"adding histos..." <<endl;
+    cout << "SM= "<<histo_SM_3e->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_3e->Integral()<< " + "<< histo_bkg_DD_3e_statUp->Integral()-histo_bkg_DD_3e->Integral()<< " - "<< histo_bkg_DD_3e->Integral()-histo_bkg_DD_3e_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_3e->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_3e->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_3e->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_3e->Integral()
+	 <<" \t data= "<<histo_data_3e->Integral() << endl;
+
+  ////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  //
+  //   3mu
+  //
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      SM
+  //
+
+
+  TFile * file_signal_3mu=new TFile("WZ_2012_8TeV_merged_00lam_3mu_9by9.root","read");
+  file_signal_3mu->cd();
+
+  TH1F * histo_SM_3mu=new TH1F("histo_SM_3mu","histo_SM_3mu",8,bins);
+  histo_SM_3mu->Sumw2();
+  wz->Draw("PtZ>>histo_SM_3mu","weight*(dg_grid==0.&&dk_grid==0.)");
+  int N_bins=histo_SM_3mu->GetNbinsX();
+  double yield_3mu=histo_SM_3mu->GetBinContent(N_bins)+histo_SM_3mu->GetBinContent(N_bins+1);
+  double err_3mu=sqrt(histo_SM_3mu->GetBinError(N_bins)*histo_SM_3mu->GetBinError(N_bins)+histo_SM_3mu->GetBinError(N_bins+1)*histo_SM_3mu->GetBinError(N_bins+1));
+  histo_SM_3mu->SetBinContent(N_bins,yield_3mu);
+  histo_SM_3mu->SetBinError(N_bins,err_3mu);
+
+  TH1F * histo_aTGC_dg_3mu=new TH1F("histo_aTGC_dg_3mu","histo_aTGC_dg_3mu",8,bins);
+  histo_aTGC_dg_3mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dg_3mu","weight*(abs(dg_grid+0.06)<0.001&&dk_grid==0.)");
+  int N_bins=histo_aTGC_dg_3mu->GetNbinsX();
+  double yield_3mu=histo_aTGC_dg_3mu->GetBinContent(N_bins)+histo_aTGC_dg_3mu->GetBinContent(N_bins+1);
+  double err_3mu=sqrt(histo_aTGC_dg_3mu->GetBinError(N_bins)*histo_aTGC_dg_3mu->GetBinError(N_bins)+histo_aTGC_dg_3mu->GetBinError(N_bins+1)*histo_aTGC_dg_3mu->GetBinError(N_bins+1));
+  histo_aTGC_dg_3mu->SetBinContent(N_bins,yield_3mu);
+  histo_aTGC_dg_3mu->SetBinError(N_bins,err_3mu);
+
+
+
+  TH1F * histo_aTGC_dk_3mu=new TH1F("histo_aTGC_dk_3mu","histo_aTGC_dk_3mu",8,bins);
+  histo_aTGC_dk_3mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dk_3mu","weight*(dg_grid==0.&&abs(dk_grid-0.6)<0.001)");
+  int N_bins=histo_aTGC_dk_3mu->GetNbinsX();
+  double yield_3mu=histo_aTGC_dk_3mu->GetBinContent(N_bins)+histo_aTGC_dk_3mu->GetBinContent(N_bins+1);
+  double err_3mu=sqrt(histo_aTGC_dk_3mu->GetBinError(N_bins)*histo_aTGC_dk_3mu->GetBinError(N_bins)+histo_aTGC_dk_3mu->GetBinError(N_bins+1)*histo_aTGC_dk_3mu->GetBinError(N_bins+1));
+  histo_aTGC_dk_3mu->SetBinContent(N_bins,yield_3mu);
+  histo_aTGC_dk_3mu->SetBinError(N_bins,err_3mu);
+
+
+  TFile * file_signal_3mu_lam=new TFile("WZ_2012_8TeV_merged_00dk_3mu_11by11.root","read");
+  file_signal_3mu_lam->cd();
+  TH1F * histo_aTGC_lam_3mu=new TH1F("histo_aTGC_lam_3mu","histo_aTGC_lam_3mu",8,bins);
+  histo_aTGC_lam_3mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_lam_3mu","weight*(abs(lam_grid-0.04)<0.005&&dg_grid==0.)");
+  int N_bins=histo_aTGC_lam_3mu->GetNbinsX();
+  double yield_3mu=histo_aTGC_lam_3mu->GetBinContent(N_bins)+histo_aTGC_lam_3mu->GetBinContent(N_bins+1);
+  double err_3mu=sqrt(histo_aTGC_lam_3mu->GetBinError(N_bins)*histo_aTGC_lam_3mu->GetBinError(N_bins)+histo_aTGC_lam_3mu->GetBinError(N_bins+1)*histo_aTGC_lam_3mu->GetBinError(N_bins+1));
+  histo_aTGC_lam_3mu->SetBinContent(N_bins,yield_3mu);
+  histo_aTGC_lam_3mu->SetBinError(N_bins,err_3mu);
+
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      data
+  //
+
+
+  //  TFile * file_data=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/data_aTGC_8TeV_3mu.root","read");
+  TFile * file_data_3mu=new TFile("data_aTGC_8TeV_3mu_1.root","read");
+  file_data_3mu ->cd();
+  TH1F * histo_data_3mu=new TH1F("histo_data_3mu","histo_data_3mu",8,bins);
+  tgcTree->Draw("PtZ>>histo_data_3mu","");
+  yield_3mu=histo_data_3mu->GetBinContent(N_bins)+histo_data_3mu->GetBinContent(N_bins+1);
+  histo_data_3mu->SetBinContent(N_bins,yield_3mu);
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg DD
+  //
+
+  //  TFile * file_bkg_DD=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/bkg/sumedBkg_0e_8bins_0to400.root","read");
+  TFile * file_bkg_DD_3mu=new TFile("data_driven_3.root","read");
+  file_bkg_DD_3mu->cd();
+  TH1D * histo_bkg_DD_3mu=new TH1D("histo_bkg_DD_3mu","histo_bkg_DD_3mu",8,bins);
+  histo_bkg_DD_3mu=fake_3;
+
+  TH1D * histo_bkg_DD_3mu_statUp=new TH1D("histo_bkg_DD_3mu_statUp","histo_bkg_DD_3mu_statUp",8,bins);
+  histo_bkg_DD_3mu_statUp=(TH1D*)histo_bkg_DD_3mu->Clone("name1");
+  calcStatErrorAndAdd(histo_bkg_DD_3mu_statUp, 0.028, 1.);
+
+  TH1D * histo_bkg_DD_3mu_statDown=new TH1D("histo_bkg_DD_3mu_statDown","histo_bkg_DD_3mu_statDown",8,bins);
+  histo_bkg_DD_3mu_statDown=(TH1D*)histo_bkg_DD_3mu->Clone("name2");
+  calcStatErrorAndAdd(histo_bkg_DD_3mu_statDown, 0.028, -1.);
+
+  // add overflow bin:
+  yield_3mu=histo_bkg_DD_3mu->GetBinContent(N_bins)+histo_bkg_DD_3mu->GetBinContent(N_bins+1);
+  histo_bkg_DD_3mu->SetBinContent(N_bins,yield_3mu);
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg MC
+  //
+
+  TFile * file_bkg_MC_3mu=new TFile("bkg_3.root","read");
+  file_bkg_MC_3mu->cd();
+
+  TH1D * histo_bkg_MC_ZZ_3mu=new TH1D("histo_bkg_MC_ZZ_3mu","histo_bkg_MC_ZZ_3mu",8,bins);
+  histo_bkg_MC_ZZ_3mu=total_bkg_rebined_ZZ_3;
+  yield_3mu=histo_bkg_MC_ZZ_3mu->GetBinContent(N_bins)+histo_bkg_MC_ZZ_3mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_ZZ_3mu->SetBinContent(N_bins,yield_3mu);
+
+  TH1D * histo_bkg_MC_Zgamma_3mu=new TH1D("histo_bkg_MC_Zgamma_3mu","histo_bkg_MC_Zgamma_3mu",8,bins);
+  histo_bkg_MC_Zgamma_3mu=total_bkg_rebined_Zgamma_3;
+  yield_3mu=histo_bkg_MC_Zgamma_3mu->GetBinContent(N_bins)+histo_bkg_MC_Zgamma_3mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_Zgamma_3mu->SetBinContent(N_bins,yield_3mu);
+
+  TH1D * histo_bkg_MC_WV_3mu=new TH1D("histo_bkg_MC_WV_3mu","histo_bkg_MC_WV_3mu",8,bins);
+  histo_bkg_MC_WV_3mu=total_bkg_rebined_WV_3;
+  yield_3mu=histo_bkg_MC_WV_3mu->GetBinContent(N_bins)+histo_bkg_MC_WV_3mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_WV_3mu->SetBinContent(N_bins,yield_3mu);
+
+  TH1D * histo_bkg_MC_VVV_3mu=new TH1D("histo_bkg_MC_VVV_3mu","histo_bkg_MC_VVV_3mu",8,bins);
+  histo_bkg_MC_VVV_3mu=total_bkg_rebined_VVV_3;
+  yield_3mu=histo_bkg_MC_VVV_3mu->GetBinContent(N_bins)+histo_bkg_MC_VVV_3mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_VVV_3mu->SetBinContent(N_bins,yield_3mu);
+
+  // bkg MC cross-section syst:
+  
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      output
+  //
+
+    TFile * file_out_3mu=new TFile("WZ_ptZ_mmm.root","recreate");
+    file_out_3mu->cd();
+    cout << "SM= "<<histo_SM_3mu->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_3mu->Integral()<< " + "<< histo_bkg_DD_3mu_statUp->Integral()-histo_bkg_DD_3mu->Integral()<< " - "<< histo_bkg_DD_3mu->Integral()-histo_bkg_DD_3mu_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_3mu->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_3mu->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_3mu->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_3mu->Integral()
+	 <<" \t data= "<<histo_data_3mu->Integral() << endl;
+
+    /*
+    histo_SM_3mu->Write("diboson");
+    histo_data_3mu->Write("data_obs");
+    
+    histo_bkg_DD_3mu->Write("background_DD");
+    histo_bkg_MC_ZZ_3mu->Write("background_MC_ZZ");
+    histo_bkg_MC_Zgamma_3mu->Write("background_MC_Zgamma");
+    histo_bkg_MC_WV_3mu->Write("background_MC_WV");
+    histo_bkg_MC_VVV_3mu->Write("background_MC_VVV");
+
+    */
+
+    
+
+    //    VVV+WV+Zgamma+ZZ+DD+WZ
+    histo_bkg_MC_WV_3mu->Add(histo_bkg_MC_VVV_3mu);
+    histo_bkg_MC_Zgamma_3mu->Add(histo_bkg_MC_WV_3mu);
+    histo_bkg_MC_ZZ_3mu->Add(histo_bkg_MC_Zgamma_3mu);
+    histo_bkg_DD_3mu->Add(histo_bkg_MC_ZZ_3mu);
+    histo_SM_3mu->Add(histo_bkg_DD_3mu);
+    histo_aTGC_dk_3mu->Add(histo_bkg_DD_3mu);
+    histo_aTGC_dg_3mu->Add(histo_bkg_DD_3mu);
+    histo_aTGC_lam_3mu->Add(histo_bkg_DD_3mu);
+
+    cout <<"adding histos..." <<endl;
+    cout << "SM= "<<histo_SM_3mu->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_3mu->Integral()<< " + "<< histo_bkg_DD_3mu_statUp->Integral()-histo_bkg_DD_3mu->Integral()<< " - "<< histo_bkg_DD_3mu->Integral()-histo_bkg_DD_3mu_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_3mu->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_3mu->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_3mu->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_3mu->Integral()
+	 <<" \t data= "<<histo_data_3mu->Integral() << endl;
+
+  ////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  //
+  //   2mu
+  //
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      SM
+  //
+
+
+  TFile * file_signal_2mu=new TFile("WZ_2012_8TeV_merged_00lam_2mu_9by9.root","read");
+  file_signal_2mu->cd();
+
+  TH1F * histo_SM_2mu=new TH1F("histo_SM_2mu","histo_SM_2mu",8,bins);
+  histo_SM_2mu->Sumw2();
+  wz->Draw("PtZ>>histo_SM_2mu","weight*(dg_grid==0.&&dk_grid==0.)");
+  int N_bins=histo_SM_2mu->GetNbinsX();
+  double yield_2mu=histo_SM_2mu->GetBinContent(N_bins)+histo_SM_2mu->GetBinContent(N_bins+1);
+  double err_2mu=sqrt(histo_SM_2mu->GetBinError(N_bins)*histo_SM_2mu->GetBinError(N_bins)+histo_SM_2mu->GetBinError(N_bins+1)*histo_SM_2mu->GetBinError(N_bins+1));
+  histo_SM_2mu->SetBinContent(N_bins,yield_2mu);
+  histo_SM_2mu->SetBinError(N_bins,err_2mu);
+
+  TH1F * histo_aTGC_dg_2mu=new TH1F("histo_aTGC_dg_2mu","histo_aTGC_dg_2mu",8,bins);
+  histo_aTGC_dg_2mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dg_2mu","weight*(abs(dg_grid+0.06)<0.001&&dk_grid==0.)");
+  int N_bins=histo_aTGC_dg_2mu->GetNbinsX();
+  double yield_2mu=histo_aTGC_dg_2mu->GetBinContent(N_bins)+histo_aTGC_dg_2mu->GetBinContent(N_bins+1);
+  double err_2mu=sqrt(histo_aTGC_dg_2mu->GetBinError(N_bins)*histo_aTGC_dg_2mu->GetBinError(N_bins)+histo_aTGC_dg_2mu->GetBinError(N_bins+1)*histo_aTGC_dg_2mu->GetBinError(N_bins+1));
+  histo_aTGC_dg_2mu->SetBinContent(N_bins,yield_2mu);
+  histo_aTGC_dg_2mu->SetBinError(N_bins,err_2mu);
+
+
+
+  TH1F * histo_aTGC_dk_2mu=new TH1F("histo_aTGC_dk_2mu","histo_aTGC_dk_2mu",8,bins);
+  histo_aTGC_dk_2mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dk_2mu","weight*(dg_grid==0.&&abs(dk_grid-0.6)<0.001)");
+  int N_bins=histo_aTGC_dk_2mu->GetNbinsX();
+  double yield_2mu=histo_aTGC_dk_2mu->GetBinContent(N_bins)+histo_aTGC_dk_2mu->GetBinContent(N_bins+1);
+  double err_2mu=sqrt(histo_aTGC_dk_2mu->GetBinError(N_bins)*histo_aTGC_dk_2mu->GetBinError(N_bins)+histo_aTGC_dk_2mu->GetBinError(N_bins+1)*histo_aTGC_dk_2mu->GetBinError(N_bins+1));
+  histo_aTGC_dk_2mu->SetBinContent(N_bins,yield_2mu);
+  histo_aTGC_dk_2mu->SetBinError(N_bins,err_2mu);
+
+
+  TFile * file_signal_2mu_lam=new TFile("WZ_2012_8TeV_merged_00dk_2mu_11by11.root","read");
+  file_signal_2mu_lam->cd();
+  TH1F * histo_aTGC_lam_2mu=new TH1F("histo_aTGC_lam_2mu","histo_aTGC_lam_2mu",8,bins);
+  histo_aTGC_lam_2mu->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_lam_2mu","weight*(abs(lam_grid-0.04)<0.005&&dg_grid==0.)");
+  int N_bins=histo_aTGC_lam_2mu->GetNbinsX();
+  double yield_2mu=histo_aTGC_lam_2mu->GetBinContent(N_bins)+histo_aTGC_lam_2mu->GetBinContent(N_bins+1);
+  double err_2mu=sqrt(histo_aTGC_lam_2mu->GetBinError(N_bins)*histo_aTGC_lam_2mu->GetBinError(N_bins)+histo_aTGC_lam_2mu->GetBinError(N_bins+1)*histo_aTGC_lam_2mu->GetBinError(N_bins+1));
+  histo_aTGC_lam_2mu->SetBinContent(N_bins,yield_2mu);
+  histo_aTGC_lam_2mu->SetBinError(N_bins,err_2mu);
+
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      data
+  //
+
+
+  //  TFile * file_data=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/data_aTGC_8TeV_2mu.root","read");
+  TFile * file_data_2mu=new TFile("data_aTGC_8TeV_2mu_1.root","read");
+  file_data_2mu ->cd();
+  TH1F * histo_data_2mu=new TH1F("histo_data_2mu","histo_data_2mu",8,bins);
+  tgcTree->Draw("PtZ>>histo_data_2mu","");
+  yield_2mu=histo_data_2mu->GetBinContent(N_bins)+histo_data_2mu->GetBinContent(N_bins+1);
+  histo_data_2mu->SetBinContent(N_bins,yield_2mu);
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg DD
+  //
+
+  //  TFile * file_bkg_DD=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/bkg/sumedBkg_0e_8bins_0to400.root","read");
+  TFile * file_bkg_DD_2mu=new TFile("data_driven_2.root","read");
+  file_bkg_DD_2mu->cd();
+  TH1D * histo_bkg_DD_2mu=new TH1D("histo_bkg_DD_2mu","histo_bkg_DD_2mu",8,bins);
+  histo_bkg_DD_2mu=fake_2;
+
+  TH1D * histo_bkg_DD_2mu_statUp=new TH1D("histo_bkg_DD_2mu_statUp","histo_bkg_DD_2mu_statUp",8,bins);
+  histo_bkg_DD_2mu_statUp=(TH1D*)histo_bkg_DD_2mu->Clone("name1");
+  calcStatErrorAndAdd(histo_bkg_DD_2mu_statUp, 0.028, 1.);
+
+  TH1D * histo_bkg_DD_2mu_statDown=new TH1D("histo_bkg_DD_2mu_statDown","histo_bkg_DD_2mu_statDown",8,bins);
+  histo_bkg_DD_2mu_statDown=(TH1D*)histo_bkg_DD_2mu->Clone("name2");
+  calcStatErrorAndAdd(histo_bkg_DD_2mu_statDown, 0.028, -1.);
+
+  // add overflow bin:
+  yield_2mu=histo_bkg_DD_2mu->GetBinContent(N_bins)+histo_bkg_DD_2mu->GetBinContent(N_bins+1);
+  histo_bkg_DD_2mu->SetBinContent(N_bins,yield_2mu);
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg MC
+  //
+
+  TFile * file_bkg_MC_2mu=new TFile("bkg_2.root","read");
+  file_bkg_MC_2mu->cd();
+
+  TH1D * histo_bkg_MC_ZZ_2mu=new TH1D("histo_bkg_MC_ZZ_2mu","histo_bkg_MC_ZZ_2mu",8,bins);
+  histo_bkg_MC_ZZ_2mu=total_bkg_rebined_ZZ_2;
+  yield_2mu=histo_bkg_MC_ZZ_2mu->GetBinContent(N_bins)+histo_bkg_MC_ZZ_2mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_ZZ_2mu->SetBinContent(N_bins,yield_2mu);
+
+  TH1D * histo_bkg_MC_Zgamma_2mu=new TH1D("histo_bkg_MC_Zgamma_2mu","histo_bkg_MC_Zgamma_2mu",8,bins);
+  histo_bkg_MC_Zgamma_2mu=total_bkg_rebined_Zgamma_2;
+  yield_2mu=histo_bkg_MC_Zgamma_2mu->GetBinContent(N_bins)+histo_bkg_MC_Zgamma_2mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_Zgamma_2mu->SetBinContent(N_bins,yield_2mu);
+
+  TH1D * histo_bkg_MC_WV_2mu=new TH1D("histo_bkg_MC_WV_2mu","histo_bkg_MC_WV_2mu",8,bins);
+  histo_bkg_MC_WV_2mu=total_bkg_rebined_WV_2;
+  yield_2mu=histo_bkg_MC_WV_2mu->GetBinContent(N_bins)+histo_bkg_MC_WV_2mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_WV_2mu->SetBinContent(N_bins,yield_2mu);
+
+  TH1D * histo_bkg_MC_VVV_2mu=new TH1D("histo_bkg_MC_VVV_2mu","histo_bkg_MC_VVV_2mu",8,bins);
+  histo_bkg_MC_VVV_2mu=total_bkg_rebined_VVV_2;
+  yield_2mu=histo_bkg_MC_VVV_2mu->GetBinContent(N_bins)+histo_bkg_MC_VVV_2mu->GetBinContent(N_bins+1);
+  histo_bkg_MC_VVV_2mu->SetBinContent(N_bins,yield_2mu);
+
+  // bkg MC cross-section syst:
+  
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      output
+  //
+
+    TFile * file_out_2mu=new TFile("WZ_ptZ_mmm.root","recreate");
+    file_out_2mu->cd();
+    cout << "SM= "<<histo_SM_2mu->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_2mu->Integral()<< " + "<< histo_bkg_DD_2mu_statUp->Integral()-histo_bkg_DD_2mu->Integral()<< " - "<< histo_bkg_DD_2mu->Integral()-histo_bkg_DD_2mu_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_2mu->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_2mu->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_2mu->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_2mu->Integral()
+	 <<" \t data= "<<histo_data_2mu->Integral() << endl;
+
+    /*
+    histo_SM_2mu->Write("diboson");
+    histo_data_2mu->Write("data_obs");
+    
+    histo_bkg_DD_2mu->Write("background_DD");
+    histo_bkg_MC_ZZ_2mu->Write("background_MC_ZZ");
+    histo_bkg_MC_Zgamma_2mu->Write("background_MC_Zgamma");
+    histo_bkg_MC_WV_2mu->Write("background_MC_WV");
+    histo_bkg_MC_VVV_2mu->Write("background_MC_VVV");
+
+    */
+
+    
+
+    //    VVV+WV+Zgamma+ZZ+DD+WZ
+    histo_bkg_MC_WV_2mu->Add(histo_bkg_MC_VVV_2mu);
+    histo_bkg_MC_Zgamma_2mu->Add(histo_bkg_MC_WV_2mu);
+    histo_bkg_MC_ZZ_2mu->Add(histo_bkg_MC_Zgamma_2mu);
+    histo_bkg_DD_2mu->Add(histo_bkg_MC_ZZ_2mu);
+    histo_SM_2mu->Add(histo_bkg_DD_2mu);
+    histo_aTGC_dk_2mu->Add(histo_bkg_DD_2mu);
+    histo_aTGC_dg_2mu->Add(histo_bkg_DD_2mu);
+    histo_aTGC_lam_2mu->Add(histo_bkg_DD_2mu);
+
+    cout <<"adding histos..." <<endl;
+    cout << "SM= "<<histo_SM_2mu->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_2mu->Integral()<< " + "<< histo_bkg_DD_2mu_statUp->Integral()-histo_bkg_DD_2mu->Integral()<< " - "<< histo_bkg_DD_2mu->Integral()-histo_bkg_DD_2mu_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_2mu->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_2mu->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_2mu->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_2mu->Integral()
+	 <<" \t data= "<<histo_data_2mu->Integral() << endl;
+
+  ////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  //
+  //   2e
+  //
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      SM
+  //
+
+
+  TFile * file_signal_2e=new TFile("WZ_2012_8TeV_merged_00lam_2e_9by9.root","read");
+  file_signal_2e->cd();
+
+  TH1F * histo_SM_2e=new TH1F("histo_SM_2e","histo_SM_2e",8,bins);
+  histo_SM_2e->Sumw2();
+  wz->Draw("PtZ>>histo_SM_2e","weight*(dg_grid==0.&&dk_grid==0.)");
+  int N_bins=histo_SM_2e->GetNbinsX();
+  double yield_2e=histo_SM_2e->GetBinContent(N_bins)+histo_SM_2e->GetBinContent(N_bins+1);
+  double err_2e=sqrt(histo_SM_2e->GetBinError(N_bins)*histo_SM_2e->GetBinError(N_bins)+histo_SM_2e->GetBinError(N_bins+1)*histo_SM_2e->GetBinError(N_bins+1));
+  histo_SM_2e->SetBinContent(N_bins,yield_2e);
+  histo_SM_2e->SetBinError(N_bins,err_2e);
+
+  TH1F * histo_aTGC_dg_2e=new TH1F("histo_aTGC_dg_2e","histo_aTGC_dg_2e",8,bins);
+  histo_aTGC_dg_2e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dg_2e","weight*(abs(dg_grid+0.06)<0.001&&dk_grid==0.)");
+  int N_bins=histo_aTGC_dg_2e->GetNbinsX();
+  double yield_2e=histo_aTGC_dg_2e->GetBinContent(N_bins)+histo_aTGC_dg_2e->GetBinContent(N_bins+1);
+  double err_2e=sqrt(histo_aTGC_dg_2e->GetBinError(N_bins)*histo_aTGC_dg_2e->GetBinError(N_bins)+histo_aTGC_dg_2e->GetBinError(N_bins+1)*histo_aTGC_dg_2e->GetBinError(N_bins+1));
+  histo_aTGC_dg_2e->SetBinContent(N_bins,yield_2e);
+  histo_aTGC_dg_2e->SetBinError(N_bins,err_2e);
+
+
+
+  TH1F * histo_aTGC_dk_2e=new TH1F("histo_aTGC_dk_2e","histo_aTGC_dk_2e",8,bins);
+  histo_aTGC_dk_2e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_dk_2e","weight*(dg_grid==0.&&abs(dk_grid-0.6)<0.001)");
+  int N_bins=histo_aTGC_dk_2e->GetNbinsX();
+  double yield_2e=histo_aTGC_dk_2e->GetBinContent(N_bins)+histo_aTGC_dk_2e->GetBinContent(N_bins+1);
+  double err_2e=sqrt(histo_aTGC_dk_2e->GetBinError(N_bins)*histo_aTGC_dk_2e->GetBinError(N_bins)+histo_aTGC_dk_2e->GetBinError(N_bins+1)*histo_aTGC_dk_2e->GetBinError(N_bins+1));
+  histo_aTGC_dk_2e->SetBinContent(N_bins,yield_2e);
+  histo_aTGC_dk_2e->SetBinError(N_bins,err_2e);
+
+
+  TFile * file_signal_2e_lam=new TFile("WZ_2012_8TeV_merged_00dk_2e_11by11.root","read");
+  file_signal_2e_lam->cd();
+  TH1F * histo_aTGC_lam_2e=new TH1F("histo_aTGC_lam_2e","histo_aTGC_lam_2e",8,bins);
+  histo_aTGC_lam_2e->Sumw2();
+  wz->Draw("PtZ>>histo_aTGC_lam_2e","weight*(abs(lam_grid-0.04)<0.005&&dg_grid==0.)");
+  int N_bins=histo_aTGC_lam_2e->GetNbinsX();
+  double yield_2e=histo_aTGC_lam_2e->GetBinContent(N_bins)+histo_aTGC_lam_2e->GetBinContent(N_bins+1);
+  double err_2e=sqrt(histo_aTGC_lam_2e->GetBinError(N_bins)*histo_aTGC_lam_2e->GetBinError(N_bins)+histo_aTGC_lam_2e->GetBinError(N_bins+1)*histo_aTGC_lam_2e->GetBinError(N_bins+1));
+  histo_aTGC_lam_2e->SetBinContent(N_bins,yield_2e);
+  histo_aTGC_lam_2e->SetBinError(N_bins,err_2e);
+
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      data
+  //
+
+
+  //  TFile * file_data=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/data_aTGC_8TeV_2e.root","read");
+  TFile * file_data_2e=new TFile("data_aTGC_8TeV_2e_1.root","read");
+  file_data_2e ->cd();
+  TH1F * histo_data_2e=new TH1F("histo_data_2e","histo_data_2e",8,bins);
+  tgcTree->Draw("PtZ>>histo_data_2e","");
+  yield_2e=histo_data_2e->GetBinContent(N_bins)+histo_data_2e->GetBinContent(N_bins+1);
+  histo_data_2e->SetBinContent(N_bins,yield_2e);
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg DD
+  //
+
+  //  TFile * file_bkg_DD=new TFile("/dat/rivendell/senka/aTGC_WZ_2012/root_files_2012data/bkg/sumedBkg_0e_8bins_0to400.root","read");
+  TFile * file_bkg_DD_2e=new TFile("data_driven_1.root","read");
+  file_bkg_DD_2e->cd();
+  TH1D * histo_bkg_DD_2e=new TH1D("histo_bkg_DD_2e","histo_bkg_DD_2e",8,bins);
+  histo_bkg_DD_2e=fake_1;
+
+  TH1D * histo_bkg_DD_2e_statUp=new TH1D("histo_bkg_DD_2e_statUp","histo_bkg_DD_2e_statUp",8,bins);
+  histo_bkg_DD_2e_statUp=(TH1D*)histo_bkg_DD_2e->Clone("name1");
+  calcStatErrorAndAdd(histo_bkg_DD_2e_statUp, 0.028, 1.);
+
+  TH1D * histo_bkg_DD_2e_statDown=new TH1D("histo_bkg_DD_2e_statDown","histo_bkg_DD_2e_statDown",8,bins);
+  histo_bkg_DD_2e_statDown=(TH1D*)histo_bkg_DD_2e->Clone("name2");
+  calcStatErrorAndAdd(histo_bkg_DD_2e_statDown, 0.028, -1.);
+
+  // add overflow bin:
+  yield_2e=histo_bkg_DD_2e->GetBinContent(N_bins)+histo_bkg_DD_2e->GetBinContent(N_bins+1);
+  histo_bkg_DD_2e->SetBinContent(N_bins,yield_2e);
+
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      bkg MC
+  //
+
+  TFile * file_bkg_MC_2e=new TFile("bkg_1.root","read");
+  file_bkg_MC_2e->cd();
+
+  TH1D * histo_bkg_MC_ZZ_2e=new TH1D("histo_bkg_MC_ZZ_2e","histo_bkg_MC_ZZ_2e",8,bins);
+  histo_bkg_MC_ZZ_2e=total_bkg_rebined_ZZ_1;
+  yield_2e=histo_bkg_MC_ZZ_2e->GetBinContent(N_bins)+histo_bkg_MC_ZZ_2e->GetBinContent(N_bins+1);
+  histo_bkg_MC_ZZ_2e->SetBinContent(N_bins,yield_2e);
+
+  TH1D * histo_bkg_MC_Zgamma_2e=new TH1D("histo_bkg_MC_Zgamma_2e","histo_bkg_MC_Zgamma_2e",8,bins);
+  histo_bkg_MC_Zgamma_2e=total_bkg_rebined_Zgamma_1;
+  yield_2e=histo_bkg_MC_Zgamma_2e->GetBinContent(N_bins)+histo_bkg_MC_Zgamma_2e->GetBinContent(N_bins+1);
+  histo_bkg_MC_Zgamma_2e->SetBinContent(N_bins,yield_2e);
+
+  TH1D * histo_bkg_MC_WV_2e=new TH1D("histo_bkg_MC_WV_2e","histo_bkg_MC_WV_2e",8,bins);
+  histo_bkg_MC_WV_2e=total_bkg_rebined_WV_1;
+  yield_2e=histo_bkg_MC_WV_2e->GetBinContent(N_bins)+histo_bkg_MC_WV_2e->GetBinContent(N_bins+1);
+  histo_bkg_MC_WV_2e->SetBinContent(N_bins,yield_2e);
+
+  TH1D * histo_bkg_MC_VVV_2e=new TH1D("histo_bkg_MC_VVV_2e","histo_bkg_MC_VVV_2e",8,bins);
+  histo_bkg_MC_VVV_2e=total_bkg_rebined_VVV_1;
+  yield_2e=histo_bkg_MC_VVV_2e->GetBinContent(N_bins)+histo_bkg_MC_VVV_2e->GetBinContent(N_bins+1);
+  histo_bkg_MC_VVV_2e->SetBinContent(N_bins,yield_2e);
+
+  // bkg MC cross-section syst:
+  
+
+  ///////////////////////////////////////////////////////////////
+  //
+  //                      output
+  //
+
+    TFile * file_out_2e=new TFile("WZ_ptZ_mmm.root","recreate");
+    file_out_2e->cd();
+    cout << "SM= "<<histo_SM_2e->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_2e->Integral()<< " + "<< histo_bkg_DD_2e_statUp->Integral()-histo_bkg_DD_2e->Integral()<< " - "<< histo_bkg_DD_2e->Integral()-histo_bkg_DD_2e_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_2e->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_2e->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_2e->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_2e->Integral()
+	 <<" \t data= "<<histo_data_2e->Integral() << endl;
+
+    /*
+    histo_SM_2e->Write("diboson");
+    histo_data_2e->Write("data_obs");
+    
+    histo_bkg_DD_2e->Write("background_DD");
+    histo_bkg_MC_ZZ_2e->Write("background_MC_ZZ");
+    histo_bkg_MC_Zgamma_2e->Write("background_MC_Zgamma");
+    histo_bkg_MC_WV_2e->Write("background_MC_WV");
+    histo_bkg_MC_VVV_2e->Write("background_MC_VVV");
+
+    */
+
+    
+
+    //    VVV+WV+Zgamma+ZZ+DD+WZ
+    histo_bkg_MC_WV_2e->Add(histo_bkg_MC_VVV_2e);
+    histo_bkg_MC_Zgamma_2e->Add(histo_bkg_MC_WV_2e);
+    histo_bkg_MC_ZZ_2e->Add(histo_bkg_MC_Zgamma_2e);
+    histo_bkg_DD_2e->Add(histo_bkg_MC_ZZ_2e);
+    histo_SM_2e->Add(histo_bkg_DD_2e);
+    histo_aTGC_dk_2e->Add(histo_bkg_DD_2e);
+    histo_aTGC_dg_2e->Add(histo_bkg_DD_2e);
+    histo_aTGC_lam_2e->Add(histo_bkg_DD_2e);
+
+    cout <<"adding histos..." <<endl;
+    cout << "SM= "<<histo_SM_2e->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_2e->Integral()<< " + "<< histo_bkg_DD_2e_statUp->Integral()-histo_bkg_DD_2e->Integral()<< " - "<< histo_bkg_DD_2e->Integral()-histo_bkg_DD_2e_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_2e->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_2e->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_2e->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_2e->Integral()
+	 <<" \t data= "<<histo_data_2e->Integral() << endl;
+
+
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    //////////////////////////// 
+    //   plots 
+
+
+    
+    histo_aTGC_dk_3e->Add(histo_aTGC_dk_3mu);
+    histo_aTGC_dg_3e->Add(histo_aTGC_dg_3mu);
+    histo_aTGC_lam_3e->Add(histo_aTGC_lam_3mu);
+    histo_data_3e->Add(histo_data_3mu);
+    histo_SM_3e->Add(histo_SM_3mu);
+    histo_bkg_DD_3e->Add(histo_bkg_DD_3mu);
+    histo_bkg_MC_ZZ_3e->Add(histo_bkg_MC_ZZ_3mu);
+    histo_bkg_MC_Zgamma_3e->Add(histo_bkg_MC_Zgamma_3mu);
+    histo_bkg_MC_WV_3e->Add(histo_bkg_MC_WV_3mu);
+    histo_bkg_MC_VVV_3e->Add(histo_bkg_MC_VVV_3mu);
+    
+    histo_aTGC_dk_3e->Add(histo_aTGC_dk_2mu);
+    histo_aTGC_dg_3e->Add(histo_aTGC_dg_2mu);
+    histo_aTGC_lam_3e->Add(histo_aTGC_lam_2mu);
+    histo_data_3e->Add(histo_data_2mu);
+    histo_SM_3e->Add(histo_SM_2mu);
+    histo_bkg_DD_3e->Add(histo_bkg_DD_2mu);
+    histo_bkg_MC_ZZ_3e->Add(histo_bkg_MC_ZZ_2mu);
+    histo_bkg_MC_Zgamma_3e->Add(histo_bkg_MC_Zgamma_2mu);
+    histo_bkg_MC_WV_3e->Add(histo_bkg_MC_WV_2mu);
+    histo_bkg_MC_VVV_3e->Add(histo_bkg_MC_VVV_2mu);
+    
+    histo_aTGC_dk_3e->Add(histo_aTGC_dk_2e);
+    histo_aTGC_dg_3e->Add(histo_aTGC_dg_2e);
+    histo_aTGC_lam_3e->Add(histo_aTGC_lam_2e);
+    histo_data_3e->Add(histo_data_2e);
+    histo_SM_3e->Add(histo_SM_2e);
+    histo_bkg_DD_3e->Add(histo_bkg_DD_2e);
+    histo_bkg_MC_ZZ_3e->Add(histo_bkg_MC_ZZ_2e);
+    histo_bkg_MC_Zgamma_3e->Add(histo_bkg_MC_Zgamma_2e);
+    histo_bkg_MC_WV_3e->Add(histo_bkg_MC_WV_2e);
+    histo_bkg_MC_VVV_3e->Add(histo_bkg_MC_VVV_2e);
+
+    cout << "4ch summ:"<< endl;
+    cout << "SM= "<<histo_SM_3e->Integral()
+	 <<"\t bkg_DD= "<< histo_bkg_DD_3e->Integral()<< " + "<< histo_bkg_DD_3e_statUp->Integral()-histo_bkg_DD_3e->Integral()<< " - "<< histo_bkg_DD_3e->Integral()-histo_bkg_DD_3e_statDown->Integral()
+	 <<"\t bkg_MC_ZZ= "<< histo_bkg_MC_ZZ_3e->Integral()
+	 <<"\t bkg_MC_Zgamma= "<< histo_bkg_MC_Zgamma_3e->Integral()
+	 <<"\t bkg_MC_WV= "<< histo_bkg_MC_WV_3e->Integral()
+	 <<"\t bkg_MC_VVV= "<< histo_bkg_MC_VVV_3e->Integral()
+	 <<" \t data= "<<histo_data_3e->Integral() << endl;
+
+
+    TCanvas * c1_allCh=new TCanvas("c1_allCh","c1_allCh",600,600);
+    c1_allCh->cd();
+    histo_aTGC_dk_3e->GetXaxis()->SetTitle("Z_{pt}(GeV)"); 
+    histo_aTGC_dk_3e->GetYaxis()->SetTitleOffset(1.2);
+    histo_aTGC_dk_3e->GetYaxis()->SetTitle("Number of events / 50 GeV");
+    histo_aTGC_dk_3e->Draw("histo");
+    
+    histo_data_3e->GetXaxis()->SetTitle("Z_{pt}(GeV)"); 
+    histo_data_3e->GetYaxis()->SetTitleOffset(1.2);
+    histo_data_3e->GetYaxis()->SetTitle("Number of events / 50 GeV");
+    
+    histo_data_3e->Draw("E1");
+
+
+    histo_SM_3e->SetLineColor(kOrange);
+    histo_SM_3e->SetFillColor(kOrange);
+    histo_SM_3e->Draw("samehisto");
+    histo_bkg_DD_3e->SetLineColor(16);
+    histo_bkg_DD_3e->SetFillColor(16);
+    histo_bkg_DD_3e->Draw("samehisto");
+    //    histo_bkg_MC_ZZ_3e->SetLineColor(2);
+    //    histo_bkg_MC_ZZ_3e->SetFillColor(2);
+    histo_bkg_MC_ZZ_3e->SetLineColor(kRed+1);
+    histo_bkg_MC_ZZ_3e->SetFillColor(kRed+1);
+    histo_bkg_MC_ZZ_3e->Draw("samehisto");
+
+/*
+    histo_bkg_MC_Zgamma_3e->SetLineColor(46);
+    histo_bkg_MC_Zgamma_3e->SetFillColor(46);
+    histo_bkg_MC_Zgamma_3e->Draw("samehisto");
+    histo_bkg_MC_WV_3e->SetLineColor(4);
+    histo_bkg_MC_WV_3e->SetFillColor(4);
+    histo_bkg_MC_WV_3e->Draw("samehisto");
+    histo_bkg_MC_VVV_3e->SetLineColor(1);
+    histo_bkg_MC_VVV_3e->SetFillColor(1);
+    //    histo_bkg_MC_VVV_3e->SetFillStyle(3001);
+    histo_bkg_MC_VVV_3e->Draw("samehisto");
+*/
+
+    histo_aTGC_dk_3e->SetLineColor(2);
+    histo_aTGC_dk_3e->SetLineWidth(2);
+    histo_aTGC_dk_3e->SetLineStyle(2);
+    histo_aTGC_dk_3e->Draw("samehisto");
+
+    histo_aTGC_dg_3e->SetLineColor(4);
+    histo_aTGC_dg_3e->SetLineWidth(2);
+    histo_aTGC_dg_3e->SetLineStyle(2);
+    histo_aTGC_dg_3e->Draw("samehisto");
+    histo_aTGC_lam_3e->SetLineColor(8);
+    histo_aTGC_lam_3e->SetLineWidth(2);
+    histo_aTGC_lam_3e->SetLineStyle(2);
+    histo_aTGC_lam_3e->Draw("samehisto");
+    histo_data_3e->Draw("E1same");
+    gPad->RedrawAxis(); // in the end of your macro
+
+    TLegend *leg = new TLegend(0.55, 0.6, 0.95, 0.92);
+    leg->SetFillColor(0);
+    leg->SetFillStyle(0);
+    leg->SetShadowColor(0);
+    leg->SetBorderSize(0);
+    leg->SetTextFont(132);
+    leg->SetTextSize(0.03);
+    leg->AddEntry(histo_data_3e, "Data","lp");
+    leg->AddEntry(histo_SM_3e, "WZ SM","f");
+    leg->AddEntry(histo_aTGC_dk_3e, "WZ aTGC (#Delta#kappa^{Z}=0.6)","l");
+    leg->AddEntry(histo_aTGC_dg_3e, "WZ aTGC  (#Delta g_{1}^{Z}=-0.06)","l");
+    leg->AddEntry(histo_aTGC_lam_3e, "WZ aTGC  (#lambda=0.04)","l");
+    leg->AddEntry(histo_bkg_DD_3e, "fake lepton","f");
+    leg->AddEntry(histo_bkg_MC_ZZ_3e, "MC bg","f");
+/*
+    leg->AddEntry(histo_bkg_MC_Zgamma_3e, "Z#gamma","f");
+    leg->AddEntry(histo_bkg_MC_WV_3e, "WV","f");
+    leg->AddEntry(histo_bkg_MC_VVV_3e, "VVV","f");
+*/
+    leg->Draw();
+
+
+    DrawTLatex(_cmsTextFont,   0.215, 0.891, 0.055, 13, "CMS");
+    DrawTLatex(_extraTextFont, 0.215, 0.837, 0.030, 13, "Preliminary");
+    DrawTLatex(_lumiTextFont,  0.940, 0.940, 0.040, 31, lumiText);
+
+    c1_allCh->SaveAs("WZ_PtZ_plot_allCh_largeATGC_test.pdf");
+    c1_allCh->SaveAs("WZ_PtZ_plot_allCh_largeATGC_test.root");
+    
+  gPad->SetLogy();
+    c1_allCh->SaveAs("WZ_PtZ_plot_allCh_largeATGC_log_test.pdf");
+    c1_allCh->SaveAs("WZ_PtZ_plot_allCh_largeATGC_log_test.root");
+
+    /*  
+    TCanvas * c2=new TCanvas("c2","c2",600,600);
+    c2->cd();
+    histo_aTGC_dk_3e->Draw();
+    histo_aTGC_dg_3e->Draw("same");
+    */
+
+}
+
+
+void calcStatErrorAndAdd(TH1D * histo, double relative_syst_err, double UpDown){
+
+  double overflow_yield_3e=0.;
+  double overflow_stat_err=0.;
+
+  for (int i=1;i<=histo->GetNbinsX()+1;i++){
+    
+    // calculate stat_err; in input i have sqrt(stat_err^2+syst_err^2)
+
+    double stat_err=0.;
+    double syst_err=0.;
+    double total_err=0.;
+    double yield_3e=0.;
+    yield_3e=histo->GetBinContent(i);
+    total_err=histo->GetBinError(i);
+    syst_err=relative_syst_err*yield_3e;
+    stat_err=sqrt(total_err*total_err-syst_err*syst_err);
+
+    // add err
+    histo->SetBinContent(i,yield_3e+UpDown*stat_err);
+
+    cout << "bin "<< i<< " yield_3e= "<< yield_3e<<" syst_err= "<< syst_err<<" stat_err= "<< stat_err<<" total_err= "<< total_err<< "  -> +1sigma_yield_3e= "<< histo->GetBinContent(i)<< endl;
+
+    if (i>=histo->GetNbinsX() && yield_3e>0.){
+      overflow_yield_3e+=yield_3e;
+      overflow_stat_err+=stat_err*stat_err;
+    }
+    
+  }
+
+  // add overflow bin:
+  if (histo->GetBinContent(histo->GetNbinsX()+1>0.)){
+    histo->SetBinContent(histo->GetNbinsX(),overflow_yield_3e+UpDown*sqrt(overflow_stat_err));
+    cout << "bin overflow: yield_3e= "<< overflow_yield_3e<<" stat_err= "<< sqrt(overflow_stat_err)<< "  -> +1sigma_yield_3e= "<< histo->GetBinContent(histo->GetNbinsX())<< endl;
+    histo->SetBinContent(histo->GetNbinsX()+1,0.);
+  }
+  return histo;
+
+}
+
+//------------------------------------------------------------------------------
+// DrawTLatex
+//------------------------------------------------------------------------------
+void DrawTLatex(Font_t      tfont,
+		Double_t    x,
+		Double_t    y,
+		Double_t    tsize,
+		Short_t     align,
+		const char* text,
+		Bool_t      setndc = true)
+{
+  TLatex* tl = new TLatex(x, y, text);
+
+  tl->SetNDC      (setndc);
+  tl->SetTextAlign( align);
+  tl->SetTextFont ( tfont);
+  tl->SetTextSize ( tsize);
+
+  tl->Draw("same");
+}

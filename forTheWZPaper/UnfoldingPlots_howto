@@ -1,0 +1,35 @@
+BLUE combination code should produce (Lucija's code did):
+
+unfoldingFinalResults/combination_<variable>.root
+
+Run script plotFinal.C(<variable>)
+
+produces root files :
+
+unfoldingFinalResults/all_unfolding_<variable>.root
+
+Run script Unfolded_vb.C (original: UnfoldedWZ.C )
+
+
+
+Lucija: 16.10.2015:
+
+evo uspjela sam iskopati svoje kodove koji rade plotove.
+Dakle za plot sa kombinacijom i usporedbom sa teorijom mi treba:
+hComb_diff - differencijalni udarni presjek- kombinacija
+hGenXsLeadingJetPt_1 - madgraph
+mcfm_tot  -mcfm
+
+A za plotove sa sva 4 kanala mi treba 
+hComb_diff
+hcrossSection_diff_0 (0...3) - svaki kanal zasebno. Moja verzija BLUE unfolding je to zapisivala u output root file, tako da mozda i ti to vec imas.
+
+
+Note 24.03.2016:
+
+Final plots:
+
+with the scripts:
+
+UnfoldedWZ.C : plots data, MG, MCFM
+UnfoldedWZ_Njets.C: plots data and MG, axes adapted for Njets

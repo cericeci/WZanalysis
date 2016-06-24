@@ -1,0 +1,19 @@
+
+ root -l -b -q drawFigure1.C\(\"7TeV\"\)
+ root -l -b -q drawFigure1.C\(\"8TeV\"\)
+
+ root -l -b -q drawFigure2.C\(0\)
+ root -l -b -q drawFigure2.C\(1\)
+
+
+# Figure 4: differential spectra
+
+root -l -b -q drawFigure4a.C\(\"Zpt\"\)
+root -l -b -q drawFigure4bc.C\(\"Njets\"\)
+root -l -b -q drawFigure4bc.C\(\"LeadingJetPt\"\)
+
+
+ root -l -b -q drawFigure3.C\(\"dg0\"\)
+ root -l -b -q drawFigure3.C\(\"dk0\"\)
+ root -l -b -q drawFigure3.C\(\"lam0\"\)
+
